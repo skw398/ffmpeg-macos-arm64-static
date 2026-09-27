@@ -50,6 +50,10 @@ build_generic() {
         # configure scripts inject for darwin; strip it generically.
         if [ -f ./configure ]; then perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure; fi
         ./configure --prefix="$PREFIX" --enable-static --disable-shared $flags
+        # some configure scripts promote GCC-targeted warnings to errors
+        # (-Werror), which newer clang trips on; strip it from the generated
+        # makefiles (after configure, so feature detection is unaffected).
+        find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
         make -j"$JOBS" && make install ) ;;
     cmake)
       cmake -S "$src" -B "$src/.build" \
