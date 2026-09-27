@@ -54,42 +54,6 @@ jobs:
           path: ~/tools
           key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}
 
-      - name: Install pinned CMake
-        if: steps.cache-tools.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p "$HOME/tools"
-          curl -sSL --fail -o /tmp/cmake.tar.gz \
-            "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-macos-universal.tar.gz"
-          tar -xzf /tmp/cmake.tar.gz -C "$HOME/tools"
-
-      - name: Install pinned Ninja
-        if: steps.cache-tools.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p "$HOME/tools/ninja"
-          curl -sSL --fail -o /tmp/ninja.zip \
-            "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VERSION}/ninja-mac.zip"
-          unzip -o /tmp/ninja.zip -d "$HOME/tools/ninja"
-
-      - name: Install pinned Meson
-        if: steps.cache-tools.outputs.cache-hit != 'true'
-        run: |
-          # the runner's python3 is Homebrew-managed (PEP 668), so use a venv
-          python3 -m venv "$HOME/tools/meson-venv"
-          "$HOME/tools/meson-venv/bin/pip" install --quiet "meson==${MESON_VERSION}"
-
-      - name: Add pinned tools to PATH
-        run: |
-          echo "$HOME/tools/cmake-${CMAKE_VERSION}-macos-universal/CMake.app/Contents/bin" >> "$GITHUB_PATH"
-          echo "$HOME/tools/ninja" >> "$GITHUB_PATH"
-          echo "$HOME/tools/meson-venv/bin" >> "$GITHUB_PATH"
-
-      - name: Save pinned tools cache
-        if: steps.cache-tools.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ~/tools
-          key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}
-
       - name: Restore pinned Rust cache
         id: cache-rust
         uses: actions/cache/restore@v4
@@ -99,19 +63,15 @@ jobs:
             ~/.cargo
           key: rust-${{ env.RUST_VERSION }}-${{ env.CARGO_C_VERSION }}
 
-      - name: Install pinned Rust
-        if: steps.cache-rust.outputs.cache-hit != 'true'
-        run: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain "${RUST_VERSION}"
+      - name: Install pinned toolchain
+        run: sh scripts/install-toolchain.sh
 
-      - name: Install pinned cargo-c
-        if: steps.cache-rust.outputs.cache-hit != 'true'
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          cargo install cargo-c --version "${CARGO_C_VERSION}" --locked
-
-      - name: Add pinned Rust to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Save pinned tools cache
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/tools
+          key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}
 
       - name: Save pinned Rust cache
         if: steps.cache-rust.outputs.cache-hit != 'true'
@@ -121,19 +81,6 @@ jobs:
             ~/.rustup
             ~/.cargo
           key: rust-${{ env.RUST_VERSION }}-${{ env.CARGO_C_VERSION }}
-
-      - name: Verify pinned toolchain
-        run: |
-          set -e
-          echo "cmake: $(cmake --version | head -n1) [$(command -v cmake)]"
-          echo "ninja: $(ninja --version) [$(command -v ninja)]"
-          echo "meson: $(meson --version) [$(command -v meson)]"
-          echo "rustc: $(rustc --version) [$(command -v rustc)]"
-          echo "cargo-c: $(cargo cinstall --version 2>/dev/null || echo n/a)"
-          cmake --version | head -n1 | grep -q "${CMAKE_VERSION}" || { echo "cmake version mismatch"; exit 1; }
-          [ "$(ninja --version)" = "${NINJA_VERSION}" ] || { echo "ninja version mismatch"; exit 1; }
-          [ "$(meson --version)" = "${MESON_VERSION}" ] || { echo "meson version mismatch"; exit 1; }
-          rustc --version | grep -q "${RUST_VERSION}" || { echo "rust version mismatch"; exit 1; }
 
       - name: Record toolchain versions
         run: |
