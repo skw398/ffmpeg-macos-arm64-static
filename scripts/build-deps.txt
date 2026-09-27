@@ -76,12 +76,12 @@ libaribcaption|cmake|-DARIBCC_BUILD_TESTS=OFF|
 libbluray|meson|-Denable_docs=false -Denable_tools=false -Dbdj_jar=disabled -Dfontconfig=disabled -Dfreetype=disabled -Dlibxml2=disabled|
 libdvdread|meson|-Denable_docs=false|
 libdvdnav|meson|-Denable_docs=false -Denable_examples=false|
-zvbi|autotools|--disable-nls --without-libpng|
+zvbi|autotools|--disable-nls|libpng: no configure option; AC_CHECK_LIB finds the prefix libpng
 
 # ---- network / messaging ----
 openssl|perl|no-shared no-tests|
 libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
-libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp -DOPENSSL_ROOT_DIR=@PREFIX@|static only: a dylib would be linked instead of the static lib
+libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp|static only: a dylib would be linked instead of the static lib
 librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dbuiltin_lz4=true -Dtest=false|builtin lz4: Homebrew's dylib would otherwise be linked
 libzmq|autotools|--without-libsodium|
 librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|

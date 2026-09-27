@@ -238,6 +238,9 @@ jobs:
       - name: Check ambient dependencies
         run: sh scripts/report-ambient-deps.sh
 
+      - name: Report build flag triage
+        run: sh scripts/report-build-flags.sh
+
       - name: Save downloads cache
         if: always() && steps.cache-downloads.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
