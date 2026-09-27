@@ -17,10 +17,16 @@ PREFIX="${PREFIX:-$ROOT/build/prefix}"
 JOBS="${JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
+# bump when build logic changes, to force rebuilds
+RECIPE_REV=1
 
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
+# some libraries pass GCC-only -Wno-* flags together with -Werror; keep clang
+# from failing on the unknown options (generic across all libraries)
+export CFLAGS="-Wno-unknown-warning-option ${CFLAGS:-}"
+export CXXFLAGS="-Wno-unknown-warning-option ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export CMAKE_PREFIX_PATH="$PREFIX"
 export CPPFLAGS="-I$PREFIX/include ${CPPFLAGS:-}"
@@ -144,12 +150,17 @@ dispatch_build() {
   esac
 }
 
-build_one() {
+# per-library marker keyed by recipe revision, build kind, flags and version;
+# changing any of them forces a rebuild of just that library
+marker_for() { # name kind flags
   name="$1"; kind="$2"; flags="$3"
-  if [ -f "$PREFIX/.built-$name" ]; then
-    echo "== skip $name (already built)"
-    return 0
-  fi
+  ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
+  printf '%s/.built-%s-%s' "$PREFIX" "$name" \
+    "$(printf '%s|%s|%s|%s' "$RECIPE_REV" "$kind" "$flags" "$ver" | shasum -a 256 | cut -c1-12)"
+}
+
+build_one() {
+  name="$1"; kind="$2"; flags="$3"; marker="$4"
   echo "== build $name ($kind)"
   log="$LOGS/$name.log"
   if ! ( set -e; dispatch_build "$name" "$kind" "$flags" ) > "$log" 2>&1; then
@@ -157,7 +168,7 @@ build_one() {
     tail -n 40 "$log" 2>/dev/null || true
     exit 1
   fi
-  touch "$PREFIX/.built-$name"
+  touch "$marker"
 }
 
 # --- main --------------------------------------------------------------------
@@ -185,8 +196,13 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$name" ] || continue
+  marker=$(marker_for "$name" "$kind" "$flags")
+  if [ -f "$marker" ]; then
+    echo "== skip $name (already built)"
+    continue
+  fi
   fetch "$name"
-  build_one "$name" "$kind" "$flags"
+  build_one "$name" "$kind" "$flags" "$marker"
 done
 
 echo "== deps build done: $PREFIX"

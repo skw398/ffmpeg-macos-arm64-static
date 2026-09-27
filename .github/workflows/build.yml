@@ -33,12 +33,14 @@ jobs:
         with:
           path: build/downloads
           key: downloads-${{ hashFiles('deps.txt') }}
+          save-always: true
 
       - name: Cache built prefix
         uses: actions/cache@v4
         with:
           path: build/prefix
-          key: prefix-${{ hashFiles('deps.txt', 'scripts/**/*') }}
+          key: prefix-${{ hashFiles('deps.txt') }}
+          save-always: true
 
       - name: Cache git sources
         uses: actions/cache@v4
@@ -47,6 +49,7 @@ jobs:
             build/src/libaom
             build/src/libvpx
           key: gitsrc-${{ hashFiles('deps.txt') }}
+          save-always: true
 
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
