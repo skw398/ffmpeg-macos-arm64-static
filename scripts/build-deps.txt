@@ -81,7 +81,7 @@ zvbi|autotools|--disable-nls --without-libpng|
 openssl|perl|no-shared no-tests|
 libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp -DOPENSSL_ROOT_DIR=@PREFIX@|static only: a dylib would be linked instead of the static lib
-librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dtest=false|
+librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dbuiltin_lz4=true -Dtest=false|builtin lz4: Homebrew's dylib would otherwise be linked
 libzmq|autotools|--without-libsodium|
 librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|
 

@@ -75,7 +75,8 @@ set -- \
   --enable-libqrencode --enable-libquirc --enable-libtesseract --enable-libcaca --enable-libflite \
   --enable-videotoolbox --enable-audiotoolbox --enable-avfoundation \
   --enable-coreimage --enable-opencl --enable-metal \
-  --disable-vulkan
+  --disable-vulkan \
+  --disable-xlib --disable-libxcb
 
 if [ "$CHROMAPRINT" -eq 1 ]; then
   set -- "$@" --enable-chromaprint
