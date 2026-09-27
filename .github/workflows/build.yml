@@ -34,6 +34,7 @@ jobs:
         with:
           path: build/downloads
           key: downloads-${{ hashFiles('deps.txt') }}
+          restore-keys: downloads-
 
       - name: Restore prefix cache
         id: cache-prefix
@@ -41,7 +42,7 @@ jobs:
         with:
           path: build/prefix
           key: prefix-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
-          restore-keys: prefix-${{ hashFiles('deps.txt') }}
+          restore-keys: prefix-
 
       - name: Restore git sources cache
         id: cache-gitsrc
@@ -51,6 +52,7 @@ jobs:
             build/src/libaom
             build/src/libvpx
           key: gitsrc-${{ hashFiles('deps.txt') }}
+          restore-keys: gitsrc-
 
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
