@@ -28,8 +28,19 @@ export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 # some libraries pass GCC-only -Wno-* flags; keep clang from failing on the
 # unknown options (the -Werror promotion is removed separately in lib.sh)
 export CFLAGS="-Wno-unknown-warning-option ${CFLAGS:-}"
-# newer libc++ no longer provides size_t transitively; force-include <cstddef>
-export CXXFLAGS="-include cstddef -Wno-unknown-warning-option ${CXXFLAGS:-}"
+# Newer libc++ no longer provides size_t transitively, so force it into every
+# translation unit. The preinclude is language-aware because some libraries
+# compile C sources through the C++ driver (opencore-amr sets "-x c" in
+# AM_CXXFLAGS), where a C++ header like <cstddef> cannot be found.
+preinc="$ROOT/build/preinclude"; mkdir -p "$preinc"
+cat > "$preinc/size_t.h" <<'EOF'
+#ifdef __cplusplus
+#include <cstddef>
+#else
+#include <stddef.h>
+#endif
+EOF
+export CXXFLAGS="-include $preinc/size_t.h -Wno-unknown-warning-option ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # close the pkg-config search to the prefix so Homebrew/system .pc files are
 # never picked up (any missing dependency must be provided in the prefix)
