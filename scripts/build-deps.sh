@@ -160,6 +160,11 @@ dispatch_build() {
       # qrencode.c uses it for QRcode_APIVersionString(), so restore the define
       perl -0pi -e 's/(AC_INIT\([^\n]*\)\n)/$1AC_DEFINE_UNQUOTED([VERSION], ["\$PACKAGE_VERSION"], [Package version])\n/' \
         "$SRC/libqrencode/configure.ac" ;;
+    libcaca)
+      # common-image.c calls the internal _caca_alloc2d without including the
+      # internal header; newer clang errors on the implicit declaration
+      perl -pi -e 's/^#include "common-image.h"$/#include "common-image.h"\n#include "caca_internals.h"/' \
+        "$SRC/libcaca/src/common-image.c" ;;
   esac
 
   case "$name" in
