@@ -20,7 +20,7 @@ FORCE_REBUILD="${FORCE_REBUILD:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
 # bump when build logic changes, to force rebuilds
-RECIPE_REV=2
+RECIPE_REV=3
 
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
@@ -204,6 +204,11 @@ dispatch_build() {
       # libzmq and libssh both export sha1_*; rename libzmq's internal ones
       perl -pi -e 's/\bsha1_(init|pad|loop|result|step)\b/zmq_sha1_$1/g' \
         "$SRC/libzmq/external/sha1/sha1.c" "$SRC/libzmq/external/sha1/sha1.h" ;;
+    libxeve)
+      # xeve and openapv share the EVC code base and both export the NEON SAD
+      # helper as a global; rename xeve's so the static link has no duplicate
+      find "$SRC/libxeve" -type f \( -name '*.c' -o -name '*.h' \) \
+        -exec perl -pi -e 's/\bsad_16b_neon_8x2n\b/xeve_sad_16b_neon_8x2n/g' {} + ;;
   esac
 
   case "$name" in
