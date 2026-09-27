@@ -23,7 +23,7 @@ harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dfreet
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
 lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
-leptonica|cmake|-DSW_BUILD=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF|no WebP/OpenJPEG: tesseract's try_run cannot resolve the imported targets
+leptonica|cmake|-DSW_BUILD=OFF -DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_GIF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF|no image codecs: OCR only needs raw frames, and they pull Homebrew dylibs / break lept.pc Requires
 libudfread|meson|-Denable_examples=false|
 
 # ---- video codecs ----
@@ -88,7 +88,7 @@ librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|
 quirc|make-copy||make + copy artifacts (build_quirc)
-libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DLeptonica_DIR=@PREFIX@|
+libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON -DLeptonica_DIR=@PREFIX@|
 libcaca|autotools|--disable-slang --disable-ncurses --disable-imlib2 --disable-cocoa --disable-ruby --disable-python --disable-java --disable-csharp --disable-cxx|C lib only: cocoa driver is broken on modern AppKit, and the language bindings are unneeded
 libflite|make||configure-based (build_deps_libflite)
 xz|autotools|--disable-doc --disable-nls|
