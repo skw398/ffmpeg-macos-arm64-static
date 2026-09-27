@@ -65,9 +65,10 @@ jobs:
 
       - name: Install pinned Meson
         run: |
-          python3 -m pip install --user "meson==${MESON_VERSION}" \
-            || pip3 install --user "meson==${MESON_VERSION}"
-          echo "$(python3 -m site --user-base)/bin" >> "$GITHUB_PATH"
+          # the runner's python3 is Homebrew-managed (PEP 668), so use a venv
+          python3 -m venv "$HOME/tools/meson-venv"
+          "$HOME/tools/meson-venv/bin/pip" install --quiet "meson==${MESON_VERSION}"
+          echo "$HOME/tools/meson-venv/bin" >> "$GITHUB_PATH"
 
       - name: Install pinned Rust
         run: |
