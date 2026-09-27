@@ -2,7 +2,7 @@
 # target: libflite v2.2
 # linkage: any
 # reason: the install rule uses GNU cp -pd, which macOS cp does not accept
-# upstream: not submitted by policy (see docs/UPSTREAM-FIXES.md)
+# upstream: not submitted (tracking: docs/UPSTREAM-FIXES.md)
 # apply: git apply -p1, from the library source root
 
 diff -ruN a/main/Makefile b/main/Makefile

@@ -2,7 +2,7 @@
 # target: libssh libssh-0.11.5
 # linkage: any
 # reason: CMake 4 rejects the CompilerChecks.cmake module; use the standard CheckCCompilerFlag it provided
-# upstream: not submitted by policy (see docs/UPSTREAM-FIXES.md)
+# upstream: not submitted (tracking: docs/UPSTREAM-FIXES.md)
 # apply: git apply -p1, from the library source root
 
 diff -ruN a/CMakeLists.txt b/CMakeLists.txt
