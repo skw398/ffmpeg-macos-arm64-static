@@ -8,6 +8,14 @@ set -u
 
 line() { printf '%s\n' "$*"; }
 
+# version string of a tool (some need special handling)
+ver() {
+  case "$1" in
+    perl) perl -e 'printf "%vd\n", $^V' 2>/dev/null ;;
+    *)    "$1" --version 2>&1 | head -n 1 ;;
+  esac
+}
+
 line "== runner =="
 line "uname: $(uname -a)"
 line "sw_vers: $(sw_vers -productVersion 2>/dev/null || echo n/a)"
@@ -29,10 +37,11 @@ for t in clang clang++ gcc cc make; do
 done
 
 line "== build tools =="
-for t in cmake ninja meson nasm pkg-config pkgconf autoconf automake libtool \
-         gettext perl python3 rustc cargo cargo-c git curl tar; do
+for t in cmake ninja meson nasm pkg-config pkgconf autoconf automake m4 \
+         libtool glibtool glibtoolize gettext perl python3 rustc cargo cargo-c \
+         git curl tar; do
   if command -v "$t" >/dev/null 2>&1; then
-    line "$t: $("$t" --version 2>&1 | head -n 1) [$(command -v "$t")]"
+    line "$t: $(ver "$t") [$(command -v "$t")]"
   else
     line "$t: (not found)"
   fi
