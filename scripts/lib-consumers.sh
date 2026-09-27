@@ -203,7 +203,7 @@ MAP=$(map_consumers "$CFG")
 # configure component name) from the data file, keyed by library token
 overrides=""
 if [ -n "$binary" ]; then
-  ovf="$HERE/artifact-consumers.txt"
+  ovf="${OVERRIDES:-$HERE/artifact-consumers.txt}"
   [ -f "$ovf" ] && overrides=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$ovf")
 fi
 

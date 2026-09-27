@@ -343,6 +343,9 @@ jobs:
           libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
           sh scripts/lib-consumers.sh --check --binary build/prefix/bin/ffmpeg $libs
 
+      - name: Lint workarounds
+        run: sh scripts/lint-workarounds.sh
+
       - name: Check buildconf
         run: sh scripts/verify-buildconf.sh
 
