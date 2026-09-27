@@ -97,10 +97,12 @@ build_libaom() {
 
 build_libvpx() {
   flags="$1"
-  ( cd "$SRC/libvpx" && ./configure --prefix="$PREFIX" $flags \
-      --enable-static --disable-shared --disable-examples --disable-tools \
-      --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 \
-      --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic \
+  # libvpx does not support switching the target in a tree that still holds
+  # build output; the git-source cache keeps them, so clean before configuring
+  ( cd "$SRC/libvpx" \
+    && { [ -d .git ] && git clean -xffdq || true; } \
+    && ./configure --prefix="$PREFIX" $flags \
+    && { grep -E '^(CFLAGS|ASFLAGS|LDFLAGS)=' config.mk || true; } \
     && make -j"$JOBS" && make install )
 }
 
