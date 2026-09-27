@@ -51,6 +51,9 @@ export LDFLAGS="-L$PREFIX/lib ${LDFLAGS:-}"
 
 mkdir -p "$DL" "$SRC" "$PREFIX"
 LOGS="${LOGS:-$ROOT/build/logs}"; mkdir -p "$LOGS"
+# per-library record of the files its install created, so a rebuild can remove
+# the previous ones first (a cached prefix may hold files from an older install)
+MANIFEST="$PREFIX/.manifest"
 
 . "$HERE/lib.sh"
 
@@ -239,10 +242,31 @@ is_forced() {
   case " $FORCE_REBUILD " in *" $1 "*) return 0 ;; *) return 1 ;; esac
 }
 
+# every file in the prefix (relative), excluding the manifest bookkeeping.
+# Directories are not recorded: an install recreates the ones it needs, and a
+# lingering empty one is harmless, while rm -f cannot remove it.
+prefix_files() {
+  ( cd "$PREFIX" && find . -path './.manifest' -prune -o \( -type f -o -type l \) -print | sort )
+}
+
 build_one() {
   name="$1"; kind="$2"; flags="$3"; marker="$4"
   echo "== build $name ($kind)"
   log="$LOGS/$name.log"
+
+  # Remove what this library installed last time before rebuilding it: a cached
+  # prefix can keep files from an older install (e.g. a stale static archive),
+  # which would silently mask the rebuild.
+  mf="$MANIFEST/$name"
+  if [ -f "$mf" ]; then
+    while IFS= read -r f; do
+      [ -n "$f" ] && rm -f "$PREFIX/$f"
+    done < "$mf"
+  fi
+
+  before=$(mktemp); after=$(mktemp)
+  prefix_files > "$before"
+
   # Run the recipe with errexit active. Testing the subshell directly (if/&&/||)
   # would disable errexit inside it, letting a late success mask an earlier
   # failure, so capture the status separately.
@@ -253,8 +277,16 @@ build_one() {
   if [ "$st" -ne 0 ]; then
     echo "FAILED: $name (log: build/logs/$name.log)"
     tail -n 40 "$log" 2>/dev/null || true
+    rm -f "$before" "$after"
     exit 1
   fi
+
+  # record what this install added, for the next rebuild
+  prefix_files > "$after"
+  mkdir -p "$MANIFEST"
+  comm -13 "$before" "$after" > "$mf"
+  rm -f "$before" "$after"
+
   touch "$marker"
 }
 
