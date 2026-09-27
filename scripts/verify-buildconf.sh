@@ -19,6 +19,13 @@ CFG="$SRC/ffmpeg"
 [ -x "$BIN" ] || { echo "ERROR: missing $BIN" >&2; exit 1; }
 [ -f "$CFG/config.h" ] || { echo "ERROR: missing $CFG/config.h (run configure first)" >&2; exit 1; }
 
+# diagnostics: surface why the binary aborts (stderr is otherwise discarded)
+set +e
+out=$("$BIN" -buildconf 2>&1); st=$?
+echo "diag: ffmpeg -buildconf exit=$st"
+printf '%s\n' "$out" | tail -n 8
+set -e
+
 fail=0
 
 # enabled config macros (config.h: libraries/flags; config_components.h: components)
