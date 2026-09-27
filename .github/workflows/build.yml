@@ -8,7 +8,11 @@ on:
         type: boolean
         default: false
       clean_build:
-        description: Ignore every cache and rebuild from scratch (release validation)
+        description: Ignore build-output caches (prefix, git sources, FFmpeg trees)
+        type: boolean
+        default: false
+      cold_build:
+        description: Ignore every cache, including pinned tools and downloads
         type: boolean
         default: false
   push:
@@ -57,9 +61,13 @@ jobs:
           xcodebuild -version
           xcrun --show-sdk-version
 
+      # Caches are split by nature: pinned inputs (brew bottles, tools, Rust,
+      # pinned downloads) survive clean_build; build outputs (prefix, git
+      # sources with their build dirs, FFmpeg trees) do not. cold_build drops
+      # everything, to also validate pin fetching and tool installation.
       - name: Restore Homebrew downloads
         id: cache-brew
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: ~/Library/Caches/Homebrew
@@ -75,7 +83,7 @@ jobs:
 
       - name: Restore pinned tools cache
         id: cache-tools
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: ~/tools
@@ -83,7 +91,7 @@ jobs:
 
       - name: Restore pinned Rust cache
         id: cache-rust
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -124,7 +132,7 @@ jobs:
 
       - name: Restore downloads cache
         id: cache-downloads
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: build/downloads
@@ -133,7 +141,7 @@ jobs:
 
       - name: Restore prefix cache
         id: cache-prefix
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: build/prefix
@@ -142,7 +150,7 @@ jobs:
 
       - name: Restore git sources cache
         id: cache-gitsrc
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -199,7 +207,7 @@ jobs:
 
       - name: Restore FFmpeg pass-1 cache
         id: cache-ffmpeg-pass1
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -208,7 +216,7 @@ jobs:
 
       - name: Restore FFmpeg full cache
         id: cache-ffmpeg-full
-        if: ${{ !inputs.clean_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg
