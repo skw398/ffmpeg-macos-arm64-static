@@ -143,8 +143,9 @@ dispatch_build() {
   # source patches (applied in build/src, not committed upstream)
   case "$name" in
     libssh)
-      # CMake 4 errors in libssh's CompilerChecks flag probing; skip it
-      perl -pi -e 's/include\(CompilerChecks\.cmake\)/# include(CompilerChecks.cmake)/' \
+      # CMake 4 errors in libssh's CompilerChecks flag probing; replace it with
+      # the module it would have provided (check_c_compiler_flag)
+      perl -pi -e 's/include\(CompilerChecks\.cmake\)/include(CheckCCompilerFlag)/' \
         "$SRC/libssh/CMakeLists.txt" ;;
   esac
 
