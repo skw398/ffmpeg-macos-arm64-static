@@ -100,6 +100,10 @@ else
 fi
 
 # --- build ---
+# make does not track external libraries as prerequisites, so force a relink
+# against the (possibly rebuilt) prefix libraries
+rm -f "$builddir/ffmpeg" "$builddir/ffprobe" "$builddir/ffplay" \
+      "$builddir/ffmpeg_g" "$builddir/ffprobe_g" "$builddir/ffplay_g"
 if ! ( set -e; cd "$builddir" && make -j"$JOBS" && make install ) > "$LOGS/ffmpeg-build-$PASS.log" 2>&1; then
   echo "FAILED: ffmpeg build ($PASS) (log: build/logs/ffmpeg-build-$PASS.log)"
   tail -n 40 "$LOGS/ffmpeg-build-$PASS.log" 2>/dev/null || true

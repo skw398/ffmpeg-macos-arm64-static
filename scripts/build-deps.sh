@@ -272,6 +272,16 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   build_one "$name" "$kind" "$flags" "$marker"
 done
 
+# The static ffmpeg must link only Apple dylibs, and the linker prefers a
+# .dylib over the .a, so drop any third-party shared library from the prefix
+# (including stale ones left by a cached prefix).
+stale=$(find "$PREFIX/lib" -name '*.dylib' 2>/dev/null || true)
+if [ -n "$stale" ]; then
+  echo "== removing third-party shared libraries from the prefix"
+  printf '%s\n' "$stale"
+  printf '%s\n' "$stale" | while IFS= read -r f; do rm -f "$f"; done
+fi
+
 # Pre-fetch the FFmpeg tarball so the downloads cache (saved after this step)
 # carries it; build-ffmpeg.sh also ensures it when run standalone.
 download ffmpeg
