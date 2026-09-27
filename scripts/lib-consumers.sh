@@ -113,13 +113,6 @@ if [ -n "$binary" ] && [ ! -x "$binary" ]; then
   exit 2
 fi
 
-where="enabled (pre-configure)"
-if [ -n "$binary" ]; then
-  where="listed by the binary"
-elif [ -n "$header_files" ]; then
-  where="enabled in config.h"
-fi
-
 # Expand --config-header arguments: directories become both generated headers.
 header_files=""
 for p in $config_headers; do
@@ -129,6 +122,13 @@ for p in $config_headers; do
     header_files="$header_files $p"
   fi
 done
+
+where="enabled (pre-configure)"
+if [ -n "$binary" ]; then
+  where="listed by the binary"
+elif [ -n "$header_files" ]; then
+  where="enabled in config.h"
+fi
 
 enabled_macros=""
 if [ -n "$header_files" ]; then
