@@ -25,6 +25,7 @@ highway|1.4.0|https://github.com/google/highway/archive/refs/tags/1.4.0.tar.gz|e
 lcms2|2.19.1|https://github.com/mm2/Little-CMS/archive/refs/tags/lcms2.19.1.tar.gz|267705e278e2f7c2fb886c259dadcbaeb2be52748bcbc71c79f08aacacb7a709|MIT|parent: libjxl (skcms submodule absent from the git archive); build: cmake/autotools
 leptonica|1.86.0|https://github.com/DanBloomberg/leptonica/releases/download/1.86.0/leptonica-1.86.0.tar.gz|1fa08e40bb37fd45802d5e6e7b43927449a5c47d4608ef99d3bd3f0fa76baedc|BSD-2|parent: tesseract
 libudfread|1.2.0|https://code.videolan.org/videolan/libudfread/-/archive/1.2.0/libudfread-1.2.0.tar.gz|adcce1190925f9d35a477757c5e3f0e221315d14d3d45b4ae62540ea0925f877|LGPL-2.1+|parent: libbluray (contrib/libudfread submodule absent from the git archive); meson requires >= 1.2.0; relink materials
+libsndfile|1.2.2|https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz|3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e|LGPL-2.1+|parent: libbs2b (its configure requires sndfile); relink materials
 
 # ---- core: video codecs ----
 dav1d|1.5.4|https://code.videolan.org/videolan/dav1d/-/archive/1.5.4/dav1d-1.5.4.tar.gz|a1d5b63d2d38ec9bd03acf643caa51fa22edd1e89c5a109c4807717216bbec07|BSD-2|AV1 dec; build: meson

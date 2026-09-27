@@ -56,6 +56,7 @@ liblc3|meson|-Dtools=false -Dpython=false|
 libgme|cmake|-DGME_ENABLE_UBSAN=OFF|
 libopenmpt|autotools|--without-mpg123 --without-portaudio --without-portaudiocpp --without-flac --without-sndfile --without-vorbis --without-vorbisfile --without-ogg --without-zlib --disable-openmpt123 --disable-examples --disable-tests|
 rubberband|meson|-Dtests=disabled -Dcmdline=disabled -Dvamp=disabled -Dladspa=disabled -Dlv2=disabled|
+libsndfile|autotools|--disable-external-libs|
 libbs2b|autotools||
 libsoxr|cmake|-DWITH_OPENMP=OFF -DBUILD_TESTS=OFF|
 libmysofa|cmake|-DBUILD_TESTS=OFF|
