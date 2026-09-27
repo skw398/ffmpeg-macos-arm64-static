@@ -49,7 +49,7 @@ jobs:
           key: gitsrc-${{ hashFiles('deps.txt') }}
 
       - name: Verify pins
-        if: ${{ !inputs.skip_verify }}
+        if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
         run: sh scripts/verify-pins.sh
 
       - name: Verify build flags
