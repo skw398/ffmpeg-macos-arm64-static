@@ -96,7 +96,8 @@ build_libaom() {
 }
 
 build_libvpx() {
-  ( cd "$SRC/libvpx" && ./configure --prefix="$PREFIX" --target=arm64-darwin-gcc \
+  flags="$1"
+  ( cd "$SRC/libvpx" && ./configure --prefix="$PREFIX" $flags \
       --enable-static --disable-shared --disable-examples --disable-tools \
       --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 \
       --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic \
@@ -179,7 +180,7 @@ dispatch_build() {
 
   case "$name" in
     libaom)      build_libaom ;;
-    libvpx)      build_libvpx ;;
+    libvpx)      build_libvpx "$flags" ;;
     librav1e)    build_librav1e ;;
     openh264)    build_openh264 ;;
     libgsm)      build_libgsm ;;

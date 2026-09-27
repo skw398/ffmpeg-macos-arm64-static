@@ -31,7 +31,7 @@ dav1d|meson|-Denable_tools=false -Denable_tests=false -Denable_examples=false|
 libaom|custom||git pin (clone); cmake in build_deps_libaom
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
 librav1e|custom||Rust + cargo-c
-libvpx|custom||git pin (clone); configure in build_deps_libvpx
+libvpx|custom|--target=arm64-darwin20-gcc|git pin (clone); configure in build_libvpx; darwinNN is macOS (plain darwin is iOS)
 x264|autotools|--enable-pic|
 x265|custom||cmake in build_x265 (source/ subdir)
 openh264|make||make-based (build_deps_openh264)
