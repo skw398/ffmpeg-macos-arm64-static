@@ -17,7 +17,8 @@ fi
 HERE=$(cd "$(dirname "$0")" && pwd)
 PINS="$HERE/../deps.txt"
 DL="${1:-$HERE/../build/downloads}"
-mkdir -p "$DL"
+SRC="${SRC:-$HERE/../build/src}"
+mkdir -p "$DL" "$SRC"
 STATUS="$DL/.verify-status"
 : > "$STATUS"
 
@@ -30,20 +31,24 @@ while IFS='|' read -r name version url hash license notes; do
       ;;
     COMMIT=*)
       sha=${hash#COMMIT=}
-      tmp=$(mktemp -d)
-      if git clone -q --depth 1 --branch "$version" "$url" "$tmp/repo" 2>/dev/null; then
-        actual=$(git -C "$tmp/repo" rev-parse HEAD 2>/dev/null)
-        if [ "$actual" = "$sha" ]; then
-          echo "OK    $name-$version (git HEAD=$sha)" >> "$STATUS"
-        else
-          echo "MISMATCH  $name-$version (git)" >> "$STATUS"
-          echo "          expected: $sha" >> "$STATUS"
-          echo "          actual:   $actual" >> "$STATUS"
-        fi
+      # reuse the git-sources cache (build/src/<name>) when its HEAD matches;
+      # re-clone only when it is missing or stale
+      dest="$SRC/$name"
+      actual=$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)
+      if [ "$actual" != "$sha" ]; then
+        rm -rf "$dest"
+        git clone -q --depth 1 --branch "$version" "$url" "$dest" 2>/dev/null || true
+        actual=$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)
+      fi
+      if [ "$actual" = "$sha" ]; then
+        echo "OK    $name-$version (git HEAD=$sha)" >> "$STATUS"
+      elif [ -n "$actual" ]; then
+        echo "MISMATCH  $name-$version (git)" >> "$STATUS"
+        echo "          expected: $sha" >> "$STATUS"
+        echo "          actual:   $actual" >> "$STATUS"
       else
         echo "FAIL  $name  (git clone failed: $url ref $version)" >> "$STATUS"
       fi
-      rm -rf "$tmp"
       continue
       ;;
   esac
