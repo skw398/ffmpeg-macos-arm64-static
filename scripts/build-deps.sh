@@ -122,10 +122,12 @@ build_libgsm() {
 }
 
 build_quirc() {
-  ( cd "$SRC/quirc" && make -j"$JOBS" libquirc.a )
-  mkdir -p "$PREFIX/lib" "$PREFIX/include"
-  cp "$SRC/quirc/libquirc.a" "$PREFIX/lib/"
-  cp "$SRC/quirc/lib/quirc.h" "$PREFIX/include/"
+  # SDL is only needed by quirc's demos; its makefile captures pkg-config's
+  # stderr into SDL_CFLAGS, whose quotes break the compile command, so blank it
+  ( cd "$SRC/quirc" && make -j"$JOBS" SDL_CFLAGS= libquirc.a ) \
+    && mkdir -p "$PREFIX/lib" "$PREFIX/include" \
+    && cp "$SRC/quirc/libquirc.a" "$PREFIX/lib/" \
+    && cp "$SRC/quirc/lib/quirc.h" "$PREFIX/include/"
 }
 
 build_libflite() {
@@ -202,7 +204,14 @@ build_one() {
   name="$1"; kind="$2"; flags="$3"; marker="$4"
   echo "== build $name ($kind)"
   log="$LOGS/$name.log"
-  if ! ( set -e; dispatch_build "$name" "$kind" "$flags" ) > "$log" 2>&1; then
+  # Run the recipe with errexit active. Testing the subshell directly (if/&&/||)
+  # would disable errexit inside it, letting a late success mask an earlier
+  # failure, so capture the status separately.
+  set +e
+  ( set -e; dispatch_build "$name" "$kind" "$flags" ) > "$log" 2>&1
+  st=$?
+  set -e
+  if [ "$st" -ne 0 ]; then
     echo "FAILED: $name (log: build/logs/$name.log)"
     tail -n 40 "$log" 2>/dev/null || true
     exit 1
