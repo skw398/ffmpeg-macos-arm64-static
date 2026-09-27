@@ -88,7 +88,11 @@ fetch() {
   # on the GCC-targeted warnings these projects enable with -Wall). Keep
   # -Werror=<warning> / -Werror-<warning>: those are specific diagnostics that
   # are often passed as data (e.g. check_c_compiler_flag arguments), where
-  # removing them would corrupt the CMake code.
+  # removing them would corrupt the CMake code. Report the count so an inert
+  # strip is visible.
+  n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+        -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
   find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
     -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
 }

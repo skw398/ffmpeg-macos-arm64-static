@@ -20,7 +20,7 @@ FORCE_REBUILD="${FORCE_REBUILD:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
 # bump when build logic changes, to force rebuilds
-RECIPE_REV=3
+RECIPE_REV=4
 
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
@@ -57,6 +57,20 @@ MANIFEST="$PREFIX/.manifest"
 
 . "$HERE/lib.sh"
 
+# Fail when a patch's precondition is gone: the pattern it rewrites no longer
+# exists, so upstream fixed the problem and the patch must be removed rather
+# than silently doing nothing. Prints the match count, so an inert patch is
+# visible in the per-library log. `path` may be a file or a directory.
+require_pattern() { # <label> <extended-regex> <path>...
+  label="$1"; pat="$2"; shift 2
+  n=$(grep -rhoE -- "$pat" "$@" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -eq 0 ]; then
+    echo "ERROR: patch $label: pattern '$pat' not found (upstream fixed?) -> remove the patch" >&2
+    exit 1
+  fi
+  echo "== patch $label: $n match(es)"
+}
+
 build_generic() {
   name="$1"; kind="$2"; flags="$3"
   flags=$(printf '%s' "$flags" | sed "s|@PREFIX@|$PREFIX|g")
@@ -65,18 +79,25 @@ build_generic() {
     autotools)
       ( cd "$src"
         # git archives often have no generated configure; bootstrap if needed.
-        [ -x ./configure ] || { [ -x ./autogen.sh ] && NOCONFIGURE=1 ./autogen.sh || autoreconf -fi; }
+        [ -x ./configure ] || { echo "== patch: bootstrapping (no generated configure)"; [ -x ./autogen.sh ] && NOCONFIGURE=1 ./autogen.sh || autoreconf -fi; }
         # the runner's newer autotools would regenerate pre-generated files
         # during make (autoheader drops the legacy VERSION define in config.h.in);
         # keep the generated files newer than their autotools inputs.
         touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
         # modern macOS ld rejects the obsolete -force_cpusubtype_ALL that some
-        # configure scripts inject for darwin; strip it generically.
-        if [ -f ./configure ]; then perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure; fi
+        # configure scripts inject for darwin; strip it generically. Report the
+        # count: 0 occurrences over many runs means the strip can be dropped.
+        if [ -f ./configure ]; then
+          n=$(grep -coE ' -force_cpusubtype_ALL' ./configure || true)
+          if [ "$n" -gt 0 ]; then echo "== patch: -force_cpusubtype_ALL strip: $n occurrence(s)"; fi
+          perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure
+        fi
         ./configure --prefix="$PREFIX" --enable-static --disable-shared $flags
         # some configure scripts promote GCC-targeted warnings to errors
         # (-Werror), which newer clang trips on; strip it from the generated
         # makefiles (after configure, so feature detection is unaffected).
+        n=$(find . -name Makefile -exec grep -hoE ' ?-Werror(=[A-Za-z0-9_-]+)?' {} + 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$n" -gt 0 ]; then echo "== patch: -Werror strip: $n occurrence(s)"; fi
         find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
         make -j"$JOBS" && make install ) ;;
     cmake)
@@ -154,8 +175,10 @@ build_quirc() {
 }
 
 build_libflite() {
-  # libflite's install uses GNU cp -d, which macOS cp lacks
+  # libflite's install uses GNU cp -d, which macOS cp lacks. The Makefile only
+  # exists after configure, so patch it (with a precondition check) in between.
   ( cd "$SRC/libflite" && ./configure --prefix="$PREFIX" && make -j"$JOBS" \
+    && require_pattern libflite 'cp -pd' main/Makefile \
     && perl -pi -e 's/\bcp -pd\b/cp -p/g' main/Makefile \
     && make install )
 }
@@ -181,35 +204,43 @@ build_libvmaf() {
 dispatch_build() {
   name="$1"; kind="$2"; flags="$3"
 
-  # source patches (applied in build/src, not committed upstream)
+  # source patches (applied in build/src, not committed upstream). Each one
+  # checks its precondition first, so an upstream fix becomes a loud failure
+  # instead of a patch that silently does nothing.
   case "$name" in
     libssh)
       # CMake 4 errors in libssh's CompilerChecks flag probing; replace it with
       # the module it would have provided (check_c_compiler_flag)
+      require_pattern libssh 'CompilerChecks\.cmake' "$SRC/libssh/CMakeLists.txt"
       perl -pi -e 's/include\(CompilerChecks\.cmake\)/include(CheckCCompilerFlag)/' \
         "$SRC/libssh/CMakeLists.txt" ;;
     libqrencode)
       # autoconf >= 2.70 no longer defines VERSION from AC_INIT in config.h;
       # qrencode.c uses it for QRcode_APIVersionString(), so restore the define
+      require_pattern libqrencode 'AC_INIT\(' "$SRC/libqrencode/configure.ac"
       perl -0pi -e 's/(AC_INIT\([^\n]*\)\n)/$1AC_DEFINE_UNQUOTED([VERSION], ["\$PACKAGE_VERSION"], [Package version])\n/' \
         "$SRC/libqrencode/configure.ac" ;;
     libcaca)
       # common-image.c calls the internal _caca_alloc2d without including the
       # internal header; newer clang errors on the implicit declaration
+      require_pattern libcaca 'common-image\.h' "$SRC/libcaca/src/common-image.c"
       perl -pi -e 's/^#include "common-image.h"$/#include "common-image.h"\n#include "caca_internals.h"/' \
         "$SRC/libcaca/src/common-image.c" ;;
     libcodec2)
       # codec2 and speex both export these speex-derived helpers; rename
       # codec2's so the static link has no duplicate symbols
+      require_pattern libcodec2 'lsp_to_lpc' "$SRC/libcodec2"
       find "$SRC/libcodec2" -type f \( -name '*.c' -o -name '*.h' \) \
         -exec perl -pi -e 's/\blsp_to_lpc\b/codec2_lsp_to_lpc/g; s/\blpc_to_lsp\b/codec2_lpc_to_lsp/g' {} + ;;
     libzmq)
       # libzmq and libssh both export sha1_*; rename libzmq's internal ones
+      require_pattern libzmq 'sha1_init' "$SRC/libzmq/external/sha1"
       perl -pi -e 's/\bsha1_(init|pad|loop|result|step)\b/zmq_sha1_$1/g' \
         "$SRC/libzmq/external/sha1/sha1.c" "$SRC/libzmq/external/sha1/sha1.h" ;;
     libxeve)
       # xeve and openapv share the EVC code base and both export the NEON SAD
       # helper as a global; rename xeve's so the static link has no duplicate
+      require_pattern libxeve 'sad_16b_neon_8x2n' "$SRC/libxeve"
       find "$SRC/libxeve" -type f \( -name '*.c' -o -name '*.h' \) \
         -exec perl -pi -e 's/\bsad_16b_neon_8x2n\b/xeve_sad_16b_neon_8x2n/g' {} + ;;
   esac
@@ -345,11 +376,14 @@ done
 # pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it. Always
 # refresh the copy: a cached prefix can hold a stale one from an earlier build,
 # which would silently mask a rebuilt library.
+flattened=0
 for a in "$PREFIX"/lib/*/lib*.a; do
   [ -e "$a" ] || continue
   base=$(basename "$a")
   cp -f "$a" "$PREFIX/lib/$base"
+  flattened=$((flattened + 1))
 done
+echo "== flattened static archives: $flattened"
 
 # The static ffmpeg must link only Apple dylibs, and the linker prefers a
 # .dylib over the .a, so drop any third-party shared library from the prefix
@@ -359,6 +393,8 @@ if [ -n "$stale" ]; then
   echo "== removing third-party shared libraries from the prefix"
   printf '%s\n' "$stale"
   printf '%s\n' "$stale" | while IFS= read -r f; do rm -f "$f"; done
+else
+  echo "== no third-party shared libraries in the prefix"
 fi
 
 # Pre-fetch the FFmpeg tarball so the downloads cache (saved after this step)
