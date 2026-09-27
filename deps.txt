@@ -19,6 +19,7 @@ libtheora|1.2.0|https://downloads.xiph.org/releases/theora/libtheora-1.2.0.tar.g
 libunibreak|8.0|https://github.com/adah1972/libunibreak/archive/refs/tags/libunibreak_8_0.tar.gz|35f1008184c13de55793fa292b62a0c10739f1294f401a3b6a772edc145a4b3b|LGPL-2.1+|parent: libass (mandatory since 0.17)
 freetype|2.14.3|https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.xz|36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f|FTL|parent: libass/drawtext
 fribidi|1.0.17|https://github.com/fribidi/fribidi/archive/refs/tags/v1.0.17.tar.gz|ab015bb040b2ff4bf815813c21948947dad1e0186473359e99a8881c79878d5d|LGPL-2.1+|parent: libass/drawtext
+libpng|1.6.44|https://download.sourceforge.net/libpng/libpng-1.6.44.tar.gz|8c25a7792099a0089fa1cc76c94260d0bb3f1ec52b93671b572f8bb61577b732|libpng-2.0|parent: libaribb24/harfbuzz-raster; static only (Homebrew's dylib must not be linked)
 harfbuzz|14.5.0|https://github.com/harfbuzz/harfbuzz/archive/refs/tags/14.5.0.tar.gz|97ec7488a46b974e18e08ee774af93173e7e1dbf738424796eb315ebcb735ec5|Old MIT|parent: libass/drawtext; build: meson
 brotli|1.2.0|https://github.com/google/brotli/archive/refs/tags/v1.2.0.tar.gz|816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec|MIT|parent: libjxl
 highway|1.4.0|https://github.com/google/highway/archive/refs/tags/1.4.0.tar.gz|e72241ac9524bb653ae52ced768b508045d4438726a303f10181a38f764a453c|Apache-2.0|parent: libjxl; build: cmake

@@ -19,6 +19,7 @@ libtheora|autotools|--disable-examples|
 libunibreak|autotools||
 freetype|autotools|--without-png --without-bzip2|
 fribidi|meson|-Ddocs=false -Dtests=false|
+libpng|cmake|-DPNG_SHARED=OFF -DPNG_TESTS=OFF|static only; required by libaribb24 and harfbuzz-raster
 harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled|
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
