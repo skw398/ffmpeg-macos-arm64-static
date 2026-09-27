@@ -20,7 +20,7 @@ FORCE_REBUILD="${FORCE_REBUILD:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
 # bump when build logic changes, to force rebuilds
-RECIPE_REV=1
+RECIPE_REV=2
 
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
