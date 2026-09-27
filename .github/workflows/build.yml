@@ -40,7 +40,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: build/prefix
-          key: prefix-${{ hashFiles('deps.txt') }}
+          key: prefix-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
+          restore-keys: prefix-${{ hashFiles('deps.txt') }}
 
       - name: Restore git sources cache
         id: cache-gitsrc
@@ -73,7 +74,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: build/prefix
-          key: prefix-${{ hashFiles('deps.txt') }}
+          key: prefix-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
 
       - name: Save git sources cache
         if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
