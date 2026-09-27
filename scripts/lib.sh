@@ -21,6 +21,12 @@ download() {
     COMMIT=*) return 0 ;;
   esac
   file="$DL/$name-$version.tarball"
+  # a stale cached tarball (e.g. an archive regenerated upstream, or a cache
+  # from a previous URL) must not be trusted: re-download on hash mismatch
+  if [ -f "$file" ] && [ "$(shasum -a 256 "$file" | cut -d' ' -f1)" != "$hash" ]; then
+    echo "== re-downloading $name (cached tarball hash mismatch)" >&2
+    rm -f "$file"
+  fi
   if [ ! -f "$file" ]; then
     curl -sSL --fail --max-time 300 -o "$file.tmp" "$url"
     mv "$file.tmp" "$file"

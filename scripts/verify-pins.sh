@@ -53,15 +53,18 @@ while IFS='|' read -r name version url hash license notes; do
       ;;
   esac
   file="$DL/$name-$version.tarball"
-  if [ ! -f "$file" ]; then
+  actual=""
+  [ -f "$file" ] && actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
+  if [ "$actual" != "$hash" ]; then
+    # missing or stale (e.g. a regenerated upstream archive): fetch it again
     if ! curl -sSL --max-time 300 --fail -o "$file.tmp" "$url"; then
       echo "FAIL  $name  (download failed: $url)" >> "$STATUS"
       rm -f "$file.tmp"
       continue
     fi
     mv "$file.tmp" "$file"
+    actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
   fi
-  actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
   if [ "$actual" = "$hash" ]; then
     echo "OK    $name-$version" >> "$STATUS"
   else
