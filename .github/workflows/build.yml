@@ -74,6 +74,14 @@ jobs:
           key: gitsrc-${{ hashFiles('deps.txt') }}
           restore-keys: gitsrc-
 
+      - name: Restore FFmpeg build cache
+        id: cache-ffmpeg
+        uses: actions/cache/restore@v4
+        with:
+          path: build/src/ffmpeg
+          key: ffmpeg-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
+          restore-keys: ffmpeg-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-
+
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
         run: sh scripts/verify-pins.sh
@@ -111,6 +119,13 @@ jobs:
 
       - name: FFmpeg pass 1 (for chromaprint)
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
+
+      - name: Save FFmpeg build cache
+        if: ${{ always() && steps.cache-ffmpeg.outputs.cache-hit != 'true' && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: build/src/ffmpeg
+          key: ffmpeg-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
 
       - name: Build chromaprint
         run: sh scripts/build-chromaprint.sh

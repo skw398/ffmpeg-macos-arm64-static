@@ -38,13 +38,14 @@ fi
 # dylib), which the Apple-only runtime rule forbids.
 # NOTE: the extra libs below are private dependencies that some of the static
 # libraries' pkg-config files omit (e.g. libjxl_threads.pc lacks -lc++, and
-# libssh.pc lacks -lssl -lcrypto -lz), so they are supplied explicitly.
+# libssh.pc lacks -lssl -lcrypto -lz; chromaprint.pc lacks the Accelerate
+# framework it uses for vDSP), so they are supplied explicitly.
 set -- \
   --prefix="$PREFIX" \
   --pkg-config-flags=--static \
   --extra-cflags="-I$PREFIX/include" \
   --extra-ldflags="-L$PREFIX/lib" \
-  --extra-libs="-lpthread -lm -lc++ -lssl -lcrypto -lz" \
+  --extra-libs="-lpthread -lm -lc++ -lssl -lcrypto -lz -framework Accelerate" \
   --enable-gpl --enable-version3 \
   --enable-static --disable-shared --disable-debug \
   --enable-libxml2 --enable-openssl --enable-lzma \
@@ -73,10 +74,20 @@ fi
 
 LOGS="$ROOT/build/logs"; mkdir -p "$LOGS"
 if [ "$CHROMAPRINT" -eq 1 ]; then PASS=full; else PASS=pass1; fi
-if ! ( set -e; cd "$SRC/ffmpeg" && ./configure "$@" ) > "$LOGS/ffmpeg-configure-$PASS.log" 2>&1; then
-  echo "FAILED: ffmpeg configure ($PASS) (log: build/logs/ffmpeg-configure-$PASS.log; see also $SRC/ffmpeg/ffbuild/config.log)"
-  tail -n 40 "$LOGS/ffmpeg-configure-$PASS.log" 2>/dev/null || true
-  exit 1
+
+# Reuse an existing configuration when the tree (possibly restored from the CI
+# cache) was configured with identical arguments, so make runs incrementally.
+stamp="$SRC/ffmpeg/ffbuild/.configure-stamp"
+if [ -f "$stamp" ] && [ -f "$SRC/ffmpeg/ffbuild/config.mak" ] \
+   && [ "$(cat "$stamp")" = "$(printf '%s\n' "$@")" ]; then
+  echo "== reuse existing FFmpeg configuration ($PASS)"
+else
+  if ! ( set -e; cd "$SRC/ffmpeg" && ./configure "$@" ) > "$LOGS/ffmpeg-configure-$PASS.log" 2>&1; then
+    echo "FAILED: ffmpeg configure ($PASS) (log: build/logs/ffmpeg-configure-$PASS.log; see also $SRC/ffmpeg/ffbuild/config.log)"
+    tail -n 40 "$LOGS/ffmpeg-configure-$PASS.log" 2>/dev/null || true
+    exit 1
+  fi
+  printf '%s\n' "$@" > "$stamp"
 fi
 
 # --- build ---
