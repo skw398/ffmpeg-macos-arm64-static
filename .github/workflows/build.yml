@@ -82,6 +82,8 @@ jobs:
         run: sh scripts/verify-build-flags.sh
 
       - name: Build dependencies
+        env:
+          FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
         run: sh scripts/build-deps.sh
 
       - name: Save downloads cache

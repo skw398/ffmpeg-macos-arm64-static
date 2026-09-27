@@ -15,6 +15,8 @@ DL="${DL:-$ROOT/build/downloads}"
 SRC="${SRC:-$ROOT/build/src}"
 PREFIX="${PREFIX:-$ROOT/build/prefix}"
 JOBS="${JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
+# space-separated library names to rebuild even if their marker exists
+FORCE_REBUILD="${FORCE_REBUILD:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
 # bump when build logic changes, to force rebuilds
@@ -178,6 +180,15 @@ dispatch_build() {
       # internal header; newer clang errors on the implicit declaration
       perl -pi -e 's/^#include "common-image.h"$/#include "common-image.h"\n#include "caca_internals.h"/' \
         "$SRC/libcaca/src/common-image.c" ;;
+    libcodec2)
+      # codec2 and speex both export these speex-derived helpers; rename
+      # codec2's so the static link has no duplicate symbols
+      find "$SRC/libcodec2" -type f \( -name '*.c' -o -name '*.h' \) \
+        -exec perl -pi -e 's/\blsp_to_lpc\b/codec2_lsp_to_lpc/g; s/\blpc_to_lsp\b/codec2_lpc_to_lsp/g' {} + ;;
+    libzmq)
+      # libzmq and libssh both export sha1_*; rename libzmq's internal ones
+      perl -pi -e 's/\bsha1_(init|pad|loop|result|step)\b/zmq_sha1_$1/g' \
+        "$SRC/libzmq/external/sha1/sha1.c" "$SRC/libzmq/external/sha1/sha1.h" ;;
   esac
 
   case "$name" in
@@ -201,6 +212,11 @@ marker_for() { # name kind flags
   ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
   printf '%s/.built-%s-%s' "$PREFIX" "$name" \
     "$(printf '%s|%s|%s|%s' "$RECIPE_REV" "$kind" "$flags" "$ver" | shasum -a 256 | cut -c1-12)"
+}
+
+# true when the named library is listed in FORCE_REBUILD
+is_forced() {
+  case " $FORCE_REBUILD " in *" $1 "*) return 0 ;; *) return 1 ;; esac
 }
 
 build_one() {
@@ -248,7 +264,7 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$name" ] || continue
   marker=$(marker_for "$name" "$kind" "$flags")
-  if [ -f "$marker" ]; then
+  if [ -f "$marker" ] && ! is_forced "$name"; then
     echo "== skip $name (already built)"
     continue
   fi
