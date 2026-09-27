@@ -1,0 +1,94 @@
+# build-deps.txt — build order and per-library build recipe (data for build-deps.sh)
+#
+# Format (no spaces around "|"): name|kind|flags|note
+#   kind : autotools | cmake | meson | perl | make | custom
+#   flags: passed verbatim after the common args; use @PREFIX@ for the install prefix
+#   order: build order (transitive dependencies first)
+#
+# - name must match deps.txt (used for fetch/extract).
+# - Only special cases use `custom`/`make` (see build-deps.sh functions).
+# - chromaprint is NOT here: it needs FFmpeg libs, so it is built between two
+#   FFmpeg passes (see build-ffmpeg.sh and the CI workflow).
+# - Flags are best-effort from docs/COMPONENT-AUDIT.md; the first CI run is
+#   expected to reveal any that need adjusting.
+
+# ---- transitive deps (build first) ----
+libogg|autotools||
+libvorbis|autotools||
+libtheora|autotools|--disable-examples|
+libunibreak|autotools||
+freetype|autotools|--without-png --without-bzip2|
+fribidi|meson|-Ddocs=false -Dtests=false|
+harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled|
+brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
+highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
+lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_UTILS=OFF|
+leptonica|cmake|-DSW_BUILD=OFF|
+libudfread|meson|-Dexamples=false|
+
+# ---- video codecs ----
+dav1d|meson|-Denable_tools=false -Denable_tests=false -Denable_examples=false|
+libaom|custom||git pin (clone); cmake in build_deps_libaom
+SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
+librav1e|custom||Rust + cargo-c
+libvpx|custom||git pin (clone); configure in build_deps_libvpx
+x264|autotools|--enable-pic|
+x265|custom||cmake in build_x265 (source/ subdir)
+openh264|make||make-based (build_deps_openh264)
+libvvenc|cmake|-DVVENC_ENABLE_APPS=OFF -DVVENC_ENABLE_TESTS=OFF|
+liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DOAPV_BUILD_TESTS=OFF|
+libxeve|cmake|-DBUILD_APPS=OFF|
+libxevd|cmake|-DBUILD_APPS=OFF|
+libvidstab|cmake|-DUSE_OMP=OFF|
+libsnappy|cmake|-DSNAPPY_BUILD_TESTS=OFF -DSNAPPY_BUILD_BENCHMARKS=OFF|
+
+# ---- audio codecs ----
+libopus|autotools|--disable-extra-programs --disable-doc|
+libspeex|autotools|--disable-binaries|
+lame|autotools|--disable-frontend|
+libtwolame|autotools|--disable-sndfile|
+libgsm|make||make-based (build_deps_libgsm)
+opencore-amr|autotools||
+vo-amrwbenc|autotools||
+libcodec2|cmake|-DUNITTEST=OFF -DINSTALL_EXAMPLES=OFF|
+libilbc|cmake||
+liblc3|meson|-Dtools=false -Dpython=false|
+libgme|cmake|-DENABLE_UBSAN=OFF|
+libopenmpt|autotools|--without-mpg123|
+rubberband|meson|-Dtests=disabled -Ddocs=disabled|
+libbs2b|autotools||
+libsoxr|cmake|-DWITH_OPENMP=OFF -DBUILD_TESTS=OFF|
+libmysofa|cmake|-DBUILD_TESTS=OFF|
+
+# ---- image / quality ----
+libwebp|cmake|-DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF|
+libopenjpeg|cmake|-DBUILD_CODEC=OFF -DBUILD_JPIP=OFF|
+libzimg|autotools||
+libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
+libvmaf|custom||meson under libvmaf/ (build_libvmaf)
+
+# ---- subtitles / text / disc / teletext ----
+libass|meson|-Dfontconfig=disabled -Dtest=disabled -Dcompare=disabled|
+libaribb24|autotools||
+libaribcaption|cmake|-DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF|
+libbluray|meson|-Denable_docs=false -Denable_tools=false -Dbdj_jar=disabled -Dfontconfig=disabled -Dfreetype=disabled -Dlibxml2=disabled|
+libdvdread|meson|-Denable_docs=false|
+libdvdnav|meson|-Denable_docs=false -Denable_examples=false|
+zvbi|autotools|--disable-nls --without-libpng|
+
+# ---- network / messaging ----
+openssl|perl|no-shared no-tests|
+libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DWITH_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
+libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DUSE_ENCLIB=openssl-evp -DOPENSSL_ROOT_DIR=@PREFIX@|
+librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dtest=false -Ddocs=false|
+libzmq|autotools|--without-libsodium|
+librabbitmq|cmake|-DBUILD_EXAMPLES=OFF -DBUILD_TESTS=OFF -DBUILD_TOOLS=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|
+
+# ---- misc / utility ----
+libqrencode|autotools|--without-tools|
+quirc|make||make-based (build_deps_quirc)
+libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DLeptonica_DIR=@PREFIX@|
+libcaca|autotools|--disable-slang --disable-ncurses --disable-imlib2|
+libflite|make||configure-based (build_deps_libflite)
+xz|autotools|--disable-doc --disable-nls|
+SDL2|cmake|-DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST=OFF|

@@ -1,0 +1,78 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  macos-arm64:
+    runs-on: macos-14
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert Apple Silicon runner
+        run: |
+          uname -m
+          test "$(uname -m)" = arm64
+
+      - name: Install build tools
+        run: |
+          brew install cmake ninja meson nasm pkgconf autoconf automake libtool gettext perl rust
+          brew install cargo-c || cargo install cargo-c --locked
+
+      - name: Cache downloads
+        uses: actions/cache@v4
+        with:
+          path: build/downloads
+          key: downloads-${{ hashFiles('deps.txt') }}
+
+      - name: Cache built prefix
+        uses: actions/cache@v4
+        with:
+          path: build/prefix
+          key: prefix-${{ hashFiles('deps.txt', 'scripts/**/*') }}
+
+      - name: Verify pins
+        run: sh scripts/verify-pins.sh
+
+      - name: Build dependencies
+        run: sh scripts/build-deps.sh
+
+      - name: FFmpeg pass 1 (for chromaprint)
+        run: sh scripts/build-ffmpeg.sh --no-chromaprint
+
+      - name: Build chromaprint
+        run: sh scripts/build-chromaprint.sh
+
+      - name: FFmpeg (full)
+        run: sh scripts/build-ffmpeg.sh
+
+      - name: Check library consumers
+        run: |
+          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
+          sh scripts/lib-consumers.sh --check --config-header build/src/ffmpeg $libs
+
+      - name: Check buildconf
+        run: sh scripts/verify-buildconf.sh
+
+      - name: Verify build
+        run: sh scripts/verify-build.sh
+
+      - name: Collect release assets
+        run: sh scripts/collect-release-assets.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-macos-arm64
+          path: |
+            build/prefix/bin/ffmpeg
+            build/prefix/bin/ffprobe
+            build/prefix/bin/ffplay
+            build/artifacts
+            build/logs
+            build/src/ffmpeg/ffbuild/config.log

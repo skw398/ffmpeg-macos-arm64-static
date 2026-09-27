@@ -1,0 +1,116 @@
+# macos-arm64-static FFmpeg — dependency pin list
+#
+# Format:  name | version | URL | SHA-256 | license | notes
+#
+# - URL is the upstream source tarball (SHA-256 over that exact file), or the
+#   git repo URL for COMMIT= pins (the version column is then the git tag/ref;
+#   verify/build clone that ref and assert HEAD == COMMIT).
+# - FFmpeg build consumes these as STATIC libraries; runtime dynamic deps must be
+#   Apple-provided only (see docs/FEATURE-SCOPE.md).
+# - Bumping any line requires updating docs/COMPONENT-AUDIT.md in the same commit.
+
+# ---- FFmpeg itself ----
+ffmpeg|9.0.2|https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz|8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e|LGPL-2.1+/GPL-2.0+ (build GPLv3)|PGP sig: ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz.asc
+
+# ---- transitive deps (build first) ----
+libogg|1.3.6|https://downloads.xiph.org/releases/ogg/libogg-1.3.6.tar.xz|5c8253428e181840cd20d41f3ca16557a9cc04bad4a3d04cce84808677fa1061|BSD-3|parent: vorbis/theora
+libvorbis|1.3.7|https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.gz|0e982409a9c3fc82ee06e08205b1355e5c6aa4c36bca58146ef399621b0ce5ab|BSD-3|parent: theora (optional), ffmpeg
+libtheora|1.2.0|https://downloads.xiph.org/releases/theora/libtheora-1.2.0.tar.gz|279327339903b544c28a92aeada7d0dcfd0397b59c2f368cc698ac56f515906e|BSD-3|pkg: theoraenc/theoradec
+libunibreak|8.0|https://github.com/adah1972/libunibreak/archive/refs/tags/libunibreak_8_0.tar.gz|35f1008184c13de55793fa292b62a0c10739f1294f401a3b6a772edc145a4b3b|LGPL-2.1+|parent: libass (mandatory since 0.17)
+freetype|2.14.3|https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.xz|36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f|FTL|parent: libass/drawtext
+fribidi|1.0.17|https://github.com/fribidi/fribidi/archive/refs/tags/v1.0.17.tar.gz|ab015bb040b2ff4bf815813c21948947dad1e0186473359e99a8881c79878d5d|LGPL-2.1+|parent: libass/drawtext
+harfbuzz|14.5.0|https://github.com/harfbuzz/harfbuzz/archive/refs/tags/14.5.0.tar.gz|97ec7488a46b974e18e08ee774af93173e7e1dbf738424796eb315ebcb735ec5|Old MIT|parent: libass/drawtext; build: meson
+brotli|1.2.0|https://github.com/google/brotli/archive/refs/tags/v1.2.0.tar.gz|816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec|MIT|parent: libjxl
+highway|1.4.0|https://github.com/google/highway/archive/refs/tags/1.4.0.tar.gz|e72241ac9524bb653ae52ced768b508045d4438726a303f10181a38f764a453c|Apache-2.0|parent: libjxl; build: cmake
+lcms2|2.19.1|https://github.com/mm2/Little-CMS/archive/refs/tags/lcms2.19.1.tar.gz|267705e278e2f7c2fb886c259dadcbaeb2be52748bcbc71c79f08aacacb7a709|MIT|parent: libjxl (skcms submodule absent from the git archive); build: cmake/autotools
+leptonica|1.86.0|https://github.com/DanBloomberg/leptonica/releases/download/1.86.0/leptonica-1.86.0.tar.gz|1fa08e40bb37fd45802d5e6e7b43927449a5c47d4608ef99d3bd3f0fa76baedc|BSD-2|parent: tesseract
+libudfread|1.2.0|https://code.videolan.org/videolan/libudfread/-/archive/1.2.0/libudfread-1.2.0.tar.gz|adcce1190925f9d35a477757c5e3f0e221315d14d3d45b4ae62540ea0925f877|LGPL-2.1+|parent: libbluray (contrib/libudfread submodule absent from the git archive); meson requires >= 1.2.0; relink materials
+
+# ---- core: video codecs ----
+dav1d|1.5.4|https://code.videolan.org/videolan/dav1d/-/archive/1.5.4/dav1d-1.5.4.tar.gz|a1d5b63d2d38ec9bd03acf643caa51fa22edd1e89c5a109c4807717216bbec07|BSD-2|AV1 dec; build: meson
+libaom|v3.15.1|https://aomedia.googlesource.com/aom|COMMIT=44d0a57786f432d933ff64b653347c66f4d0fa1d|BSD-2+AOM-Patent|AV1 enc/dec; build: cmake; needs perl. git pin: version is the tag; clone it and assert HEAD == COMMIT (googlesource archives are not byte-stable)
+SVT-AV1|4.2.0|https://github.com/AOMediaCodec/SVT-AV1/archive/refs/tags/v4.2.0.tar.gz|d9cb8d5fccbed565d038ae304cb00c5610f1f62388868102ca22132e7844921b|BSD-3-Clear+AOM-Patent|AV1 enc; build: cmake
+librav1e|0.8.1|https://github.com/xiph/rav1e/archive/refs/tags/v0.8.1.tar.gz|06d1523955fb6ed9cf9992eace772121067cca7e8926988a1ee16492febbe01e|BSD-2|AV1 enc (alt); Rust + cargo-c; pkg rav1e >= 0.5.0
+libvpx|v1.17.0|https://chromium.googlesource.com/webm/libvpx|COMMIT=6df3ec34557879fff673706f4a1d9fbd0f3a6f0e|BSD-3+IP-grant|VP8/9 enc/dec; build: configure; needs nasm; git pin: version is the tag; clone it and assert HEAD == COMMIT
+x264|b35605ac|https://code.videolan.org/videolan/x264/-/archive/b35605ace3ddf7c1a5d67a2eb553f034aef41d55/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.gz|cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9|GPL-2.0+|H.264 enc; no upstream tarballs; pin = x264 stable commit b35605ace3ddf7c1a5d67a2eb553f034aef41d55 (GitLab archive is byte-stable, so a real SHA-256 is recorded)
+x265|4.2|https://bitbucket.org/multicoreware/x265_git/downloads/x265_4.2.tar.gz|40b1ea0453e0309f0eba934e0ddf533f8f6295966679e8894e8f1c1c8d5e1210|GPL-2.0+|HEVC enc; build: cmake
+openh264|2.6.0|https://github.com/cisco/openh264/archive/refs/tags/v2.6.0.tar.gz|558544ad358283a7ab2930d69a9ceddf913f4a51ee9bf1bfb9e377322af81a69|BSD-2+patent-note|H.264 enc/dec (libopenh264 encoder+decoder); patent note in Release
+libvvenc|1.14.0|https://github.com/fraunhoferhhi/vvenc/archive/refs/tags/v1.14.0.tar.gz|dd43d061d59dbc0d9b9ae5b99cb40672877dd811646228938f065798939ee174|BSD-3-Clear verify|VVC enc; NOTE: FFmpeg 9.0.2 has libvvenc only (no libvvdec option)
+liboapv|1.1.1.0|https://github.com/AcademySoftwareFoundation/openapv/archive/refs/tags/v1.1.1.0.tar.gz|956e6e2cc822c63af4c323bf86464f1186171314e67e9c5153f58bd875538470|Samsung BSD-style verify|APV enc/dec; pkg oapv>=0.2.0.0
+libxeve|0.7.0|https://github.com/mpeg5/xeve/archive/refs/tags/v0.7.0.tar.gz|f60950d063f52adf11ed7196c0bbb0503fa107b0e43af06bdc81fecc24f2a62e|BSD-3+patent verify|MPEG-5 EVC enc (option libxeve; libxeveb = base profile, exclusive)
+libxevd|0.7.0|https://github.com/mpeg5/xevd/archive/refs/tags/v0.7.0.tar.gz|febfdb532819bbf36b1b04e74d3ef328ad0f0f2db6224ddb7640fce6bd0014f4|BSD-3+patent verify|MPEG-5 EVC dec (option libxevd; libxevdb = base profile, exclusive)
+libvidstab|1.1.2|https://github.com/georgmartius/vid.stab/archive/refs/tags/v1.1.2.tar.gz|96db34d48a9e3aa13736a48744b56dfb76731ac9bb5193c716de8534c9fd709d|LGPL-2.1-or-later|vidstabdetect/vidstabtransform filters; pkg "vidstab >= 0.98"; relink materials
+libsnappy|1.3.1|https://github.com/google/snappy/archive/refs/tags/1.3.1.tar.gz|893f708a0bf4b5529d555ffcee390e940e932fcf90261f682604475a76cd0247|BSD-3|hap encode only (hap decoder uses built-in snappy); no-pc: check_lib; links libstdc++
+
+# ---- core: audio codecs ----
+libopus|1.6.1|https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz|6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1|BSD-3+patent|
+libspeex|1.2.1|https://downloads.xiph.org/releases/speex/speex-1.2.1.tar.gz|4b44d4f2b38a370a2d98a78329fefc56a0cf93d1c1be70029217baae6628feea|Xiph BSD|Speex enc (decode is native); pkg speex; speexdsp NOT required (speex.pc has no Requires)
+lame|4.0|https://downloads.sourceforge.net/project/lame/lame/4.0/lame-4.0.tar.gz|3df5124d5ad3a98312ffd7ba6a9b36230e4f8a3e66d3ce0f425e336c32d216eb|LGPL-2.1+|relink materials
+libtwolame|0.4.0|https://downloads.sourceforge.net/project/twolame/twolame/0.4.0/twolame-0.4.0.tar.gz|cc35424f6019a88c6f52570b63e1baf50f62963a3eac52a03a800bb070d7c87d|LGPL-2.1+|relink materials
+libgsm|1.0.24|https://www.quut.com/gsm/gsm-1.0.24.tar.gz|a3c40c6471928383f4abfcb2e8f24012a1f562be2f17b8d672145d5986681a92|ISC|no-pc: check_lib gsm.h
+opencore-amr|0.1.6|https://downloads.sourceforge.net/project/opencore-amr/opencore-amr/opencore-amr-0.1.6.tar.gz|483eb4061088e2b34b358e47540b5d495a96cd468e361050fae615b1809dc4a1|Apache-2.0|
+vo-amrwbenc|0.1.3|https://downloads.sourceforge.net/project/opencore-amr/vo-amrwbenc/vo-amrwbenc-0.1.3.tar.gz|5652b391e0f0e296417b841b02987d3fd33e6c0af342c69542cbb016a71d9d4e|Apache-2.0|NOTE: latest upstream is 0.1.3 (not 0.1.5)
+libcodec2|1.2.0|https://github.com/drowe67/codec2/archive/refs/tags/1.2.0.tar.gz|cbccae52b2c2ecc5d2757e407da567eb681241ff8dadce39d779a7219dbcf449|LGPL-2.1|relink materials; no-pc: check_lib
+libilbc|3.0.4|https://github.com/TimothyGu/libilbc/releases/download/v3.0.4/libilbc-3.0.4.tar.gz|6820081a5fc58f86c119890f62cac53f957adb40d580761947a0871cea5e728f|BSD-3|no-pc: check_lib; release asset bundles abseil-cpp headers (git archive does not; header-only use, no abseil build)
+liblc3|1.1.3|https://github.com/google/liblc3/archive/refs/tags/v1.1.3.tar.gz|276752ff54ce6a77d54ec133397b9d7e71f90caf3d9afa32d8b0e891b8ecb8af|Apache-2.0|pkg lc3>=1.1.0
+libgme|0.6.5|https://github.com/libgme/game-music-emu/archive/refs/tags/0.6.5.tar.gz|8531678502451c2cf04248cda45c8b4645e19fcfb63e6a7ec2549641c47bb392|LGPL-2.1|relink materials
+libopenmpt|0.8.9|https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.9+release.autotools.tar.gz|d7ce84fd05d686c4bcf66af40eae857afa371442db60eeda3f874bd6cf6fc318|BSD-3 multi|C++17; release asset (autotools tarball with generated configure)
+rubberband|4.0.0|https://github.com/breakfastquay/rubberband/archive/refs/tags/v4.0.0.tar.gz|24300f48a8014b7c863b573a9647e61b1b19b37875e2cdd92005e64c6424d266|GPL-2.0+|rubberband filter; links libstdc++
+libbs2b|3.1.0|https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz|6aaafd81aae3898ee40148dd1349aab348db9bfae9767d0e66e0b07ddd4b2528|LGPL-2.1+|relink materials
+libsoxr|0.1.3|https://github.com/chirlu/soxr/archive/refs/tags/0.1.3.tar.gz|db6ca1b1e8405c6ef92f8294fc123d910abf0a114003b3f0f13fa57a95fd62d0|LGPL-2.1+|relink materials; no-pc: check_lib
+libmysofa|1.3.5|https://github.com/hoene/libmysofa/archive/refs/tags/v1.3.5.tar.gz|f29508c335c83d8703f943ffc9ca783ac39aca84e851357f13a55af0f8143137|BSD-3|sofalizer; needs zlib
+chromaprint|1.6.1|https://github.com/acoustid/chromaprint/releases/download/v1.6.1/chromaprint-1.6.1.tar.gz|3368805af0ee47b9df74df10b5001a44569e01df2844dab520031720dde9ad23|LGPL-2.1+|relink materials; build needs FFmpeg libs (two-pass)
+
+# ---- image / quality ----
+libwebp|1.6.0|https://github.com/webmproject/libwebp/archive/refs/tags/v1.6.0.tar.gz|93a852c2b3efafee3723efd4636de855b46f9fe1efddd607e1f42f60fc8f2136|BSD-3|
+libopenjpeg|2.5.4|https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.4.tar.gz|a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a|BSD-2|pkg libopenjp2; build needs -DOPJ_STATIC
+libzimg|3.0.6|https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz|be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577|WTFPL-2|zscale
+libjxl|0.12.0|https://github.com/libjxl/libjxl/archive/refs/tags/v0.12.0.tar.gz|03e9be69a30be4011f559da75328b6d7cea8ad921fabfbd551ce10bf45cdc992|BSD-3|needs brotli+highway+lcms2; C++; build: -DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON
+libvmaf|3.2.1|https://github.com/Netflix/vmaf/archive/refs/tags/v3.2.1.tar.gz|5df7386911bc15fd1ca783132528748d219768ae4fc5f8e0b61184f041648092|Apache-2.0|build: meson
+
+# ---- subtitles / text / disc / teletext ----
+libass|0.17.5|https://github.com/libass/libass/archive/refs/tags/0.17.5.tar.gz|fa286fc9ee1ba3b932703a3df7b8474d01dc8abe29ec69b6fa68781dc4bf7acc|ISC|needs unibreak+freetype+fribidi+harfbuzz; CoreText font provider
+libaribb24|1.0.4|https://code.videolan.org/jeeb/aribb24/-/archive/v1.0.4/aribb24-v1.0.4.tar.gz|923f77023bc1d8c2007165d7a941a29a38ef465729977a8a16407b504b26b0b4|LGPL-3.0+|relink materials
+libaribcaption|1.1.2|https://github.com/xqq/libaribcaption/archive/refs/tags/v1.1.2.tar.gz|649b50bde99272b97c66af2a8400163e2f84eae072d252daa26baaaf0866a1c2|MIT|
+libbluray|1.5.1|https://code.videolan.org/videolan/libbluray/-/archive/1.5.1/libbluray-1.5.1.tar.gz|ee46f99adc591d18a9485b404cb04be6ba6fcde5bd45590ea94d0c1432d448c9|LGPL-2.1+|relink materials; needs external libudfread >= 1.2.0 (meson subproject; submodule not in archive)
+libdvdread|7.1.1|https://code.videolan.org/videolan/libdvdread/-/archive/7.1.1/libdvdread-7.1.1.tar.gz|01a690d1b442dfbbf66e5bbe58604ddc42d5aba4334b7c9680d9d4dbd116c74d|GPL-2.0+|
+libdvdnav|7.0.0|https://code.videolan.org/videolan/libdvdnav/-/archive/7.0.0/libdvdnav-7.0.0.tar.gz|15d28086937647a95c3d6b083f0a86678cd4dd428914e319c64adf52cadec786|GPL-2.0+|
+zvbi|0.2.44|https://github.com/zapping-vbi/zvbi/archive/refs/tags/v0.2.44.tar.gz|bca620ab670328ad732d161e4ce8d9d9fc832533cb7440e98c50e112b805ac5e|GPL-2.0+|pkg zvbi-0.2
+
+# ---- network / messaging ----
+libssh|0.11.5|https://gitlab.com/libssh/libssh-mirror/-/archive/libssh-0.11.5/libssh-mirror-libssh-0.11.5.tar.gz|659512a41f73af143e41de08078f181ea5a7187b7ef3449f4f00fac9fd9cb404|LGPL-2.1+|relink materials; crypto: OpenSSL 3
+libsrt|1.5.7|https://github.com/Haivision/srt/archive/refs/tags/v1.5.7.tar.gz|017cd1e437ef2073a4dd10ddf7b55e86bc3d6ebac0393d13bd22f6a57055d32b|MPL-2.0|needs OpenSSL
+librist|0.2.20|https://code.videolan.org/rist/librist/-/archive/v0.2.20/librist-v0.2.20.tar.gz|9e40eeb87f014790531ad41326cc271b930a65962e4b15231b301fc59b29fe31|BSD-2|
+libzmq|4.3.5|https://github.com/zeromq/libzmq/archive/refs/tags/v4.3.5.tar.gz|6c972d1e6a91a0ecd79c3236f04cf0126f2f4dfbbad407d72b4606a7ba93f9c6|MPL-2.0|zmq filter/protocol
+librabbitmq|0.18.0|https://github.com/alanxz/rabbitmq-c/archive/refs/tags/v0.18.0.tar.gz|d57782c950ec04c7da3692cad6f02059dad6df90e588e2f6a1def632fa59f7d7|MIT|amqp protocol
+openssl|3.5.8|https://github.com/openssl/openssl/releases/download/openssl-3.5.8/openssl-3.5.8.tar.gz|a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2|Apache-2.0|LTS; no-threads=no; shared=no
+
+# ---- misc / utility ----
+libqrencode|4.1.1|https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz|5385bc1b8c2f20f3b91d258bf8ccc8cf62023935df2d2676b5b67049f31a049c|LGPL-2.1+|relink materials
+quirc|1.2|https://github.com/dlbeer/quirc/archive/refs/tags/v1.2.tar.gz|73c12ea33d337ec38fb81218c7674f57dba7ec0570bddd5c7f7a977c0deb64c5|ISC|no-pc: check_lib
+libtesseract|5.5.3|https://github.com/tesseract-ocr/tesseract/archive/refs/tags/5.5.3.tar.gz|9218e62793116d42a9f6d14cd9348518b27f382096eea3d0f2d1a24616bb5884|Apache-2.0|needs leptonica; langdata shipped separately if used
+libcaca|0.99.beta20|https://github.com/cacalabs/libcaca/releases/download/v0.99.beta20/libcaca-0.99.beta20.tar.gz|8ad74babc63bf665b0b2378d95b4da65b7493c11bd9f3ac600517085b0c4acf2|WTFPL-2|release asset (NOT git archive: different bytes)
+libflite|2.2|https://github.com/festvox/flite/archive/refs/tags/v2.2.tar.gz|ab1555fe5adc3f99f1d4a1a0eb1596d329fd6d74f1464a0097c81f53c0cf9e5c|BSD-3 verify|TTS; many sub-libs linked; NOTE: upstream repo is festvox/flite (not cmusphinx)
+xz|5.8.4|https://github.com/tukaani-project/xz/releases/download/v5.8.4/xz-5.8.4.tar.xz|4ce24038fd4221e0d13bc1a2de7a4db56e90b92b3bf75321f6c14be73f65de4b|public-domain/BSD parts|liblzma static
+SDL2|2.32.10|https://github.com/libsdl-org/SDL/archive/refs/tags/release-2.32.10.tar.gz|03f9d7c191a837525c9cda6406af2f2e48be02b5e7eb03d949cc9f1e9ca41c8b|zlib|ffplay; pkg sdl2>=2.0.1 <3.0.0
+
+# =====================================================================
+# FFmpeg 9.0.2 configure detection notes (from n9.0.2/configure)
+# - pkg-config STRICT (no fallback; must provide .pc): dav1d aom SvtAv1Enc
+#   SvtJpegxs libssh rubberband vidstab libass freetype2 fribidi harfbuzz
+#   libopenjp2 zimg libjxl libbluray dvdread dvdnav aribb24 libaribcaption
+#   opencore-amrnb opencore-amrwb vo-amrwbenc srt librist libopenmpt lc3
+#   oapv libchromaprint libmysofa libvvenc lcevc_dec xeve xevd libqrencode
+#   tesseract libzmq caca librabbitmq lensfun OpenColorIO opus vorbis
+#   theoraenc speex libwebp libwebpmux libxml-2.0 openssl harfbuzz
+#   openh264 kvazaar libvpx(4 sub-checks w/ -lvpx fallback)
+# - NO pkg-config (require/check_lib with -l flags): libmp3lame libsoxr
+#   libcodec2 libgsm libilbc libflite libquirc libsnappy
+#   (libtwolame uses require + extra symbol check)
+# - libvvdec: NO option exists in 9.0.2 (only libvvenc)
+# - astcenc: NO option exists in 9.0.2
+# - liblcevc option is spelled --enable-liblcevc-dec
+# - libxeveb/libxevdb are Base-profile variants; mutually exclusive with
+#   libxeve/libxevd (configure dies if both enabled)
+# - SDL2: pkg sdl2 >=2.0.1 <3.0.0 or sdl2-config fallback; ffplay hard-dep
+# =====================================================================

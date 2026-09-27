@@ -1,0 +1,67 @@
+#!/bin/sh
+# Verify every pin in deps.txt.
+# - SHA-256 pins: fetch the URL and compare the hash.
+# - COMMIT=<sha> pins (git): shallow-clone the tag/ref in the version column
+#   from the repo URL and assert HEAD == <sha>. No vendored tarball is produced.
+# - HASH-TODO / PIN-IN-CI: skipped (reported).
+# Exits non-zero if any check fails.
+set -u
+
+HERE=$(cd "$(dirname "$0")" && pwd)
+PINS="$HERE/../deps.txt"
+DL="${1:-$HERE/../build/downloads}"
+mkdir -p "$DL"
+STATUS="$DL/.verify-status"
+: > "$STATUS"
+
+while IFS='|' read -r name version url hash license notes; do
+  case "$name" in ""|\#*) continue ;; esac
+  case "$hash" in
+    HASH-TODO|PIN-IN-CI)
+      echo "SKIP  $name (hash field: $hash)" >> "$STATUS"
+      continue
+      ;;
+    COMMIT=*)
+      sha=${hash#COMMIT=}
+      tmp=$(mktemp -d)
+      if git clone -q --depth 1 --branch "$version" "$url" "$tmp/repo" 2>/dev/null; then
+        actual=$(git -C "$tmp/repo" rev-parse HEAD 2>/dev/null)
+        if [ "$actual" = "$sha" ]; then
+          echo "OK    $name-$version (git HEAD=$sha)" >> "$STATUS"
+        else
+          echo "MISMATCH  $name-$version (git)" >> "$STATUS"
+          echo "          expected: $sha" >> "$STATUS"
+          echo "          actual:   $actual" >> "$STATUS"
+        fi
+      else
+        echo "FAIL  $name  (git clone failed: $url ref $version)" >> "$STATUS"
+      fi
+      rm -rf "$tmp"
+      continue
+      ;;
+  esac
+  file="$DL/$name-$version.tarball"
+  if [ ! -f "$file" ]; then
+    if ! curl -sSL --max-time 300 --fail -o "$file.tmp" "$url"; then
+      echo "FAIL  $name  (download failed: $url)" >> "$STATUS"
+      rm -f "$file.tmp"
+      continue
+    fi
+    mv "$file.tmp" "$file"
+  fi
+  actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
+  if [ "$actual" = "$hash" ]; then
+    echo "OK    $name-$version" >> "$STATUS"
+  else
+    echo "MISMATCH  $name-$version" >> "$STATUS"
+    echo "          expected: $hash" >> "$STATUS"
+    echo "          actual:   $actual" >> "$STATUS"
+  fi
+done < "$PINS"
+
+cat "$STATUS"
+fails=$(grep -c -E "^(FAIL|MISMATCH)" "$STATUS")
+skips=$(grep -c "^SKIP" "$STATUS")
+oks=$(grep -c "^OK" "$STATUS")
+echo "RESULT: $oks ok, $skips skipped (TODO pins), $fails failed"
+[ "$fails" -eq 0 ]
