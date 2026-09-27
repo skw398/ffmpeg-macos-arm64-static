@@ -53,6 +53,9 @@ fetch_commit() {
       git clone -q --depth 1 --branch "$ref" "$url" "$dest"
     fi
   fi
+  # discard in-place edits: the git-source cache stores the tree after the
+  # previous run's -Werror strip and source patches, which must not accumulate
+  git -C "$dest" checkout -q -- . 2>/dev/null || true
   actual=$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)
   [ "$actual" = "$sha" ]
 }
