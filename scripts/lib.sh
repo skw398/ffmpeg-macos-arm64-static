@@ -8,6 +8,27 @@ pin() {
   awk -F'|' -v n="$1" '$1 == n { print $2 "|" $3 "|" $4; exit }' "$PINS"
 }
 
+# download <name> -> ensure the pinned tarball is present in $DL and verified,
+# without extracting it (tarball pins only; commit pins are a no-op)
+download() {
+  name="$1"
+  p=$(pin "$name")
+  [ -n "$p" ] || { echo "ERROR: no pin for $name" >&2; exit 1; }
+  version=$(printf '%s' "$p" | cut -d'|' -f1)
+  url=$(printf '%s' "$p" | cut -d'|' -f2)
+  hash=$(printf '%s' "$p" | cut -d'|' -f3)
+  case "$hash" in
+    COMMIT=*) return 0 ;;
+  esac
+  file="$DL/$name-$version.tarball"
+  if [ ! -f "$file" ]; then
+    curl -sSL --fail --max-time 300 -o "$file.tmp" "$url"
+    mv "$file.tmp" "$file"
+  fi
+  actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
+  [ "$actual" = "$hash" ] || { echo "ERROR: $name hash mismatch" >&2; exit 1; }
+}
+
 # fetch <name> -> verify and extract (or clone) into $SRC/<name>
 fetch() {
   name="$1"
@@ -26,13 +47,8 @@ fetch() {
       [ "$actual" = "$sha" ] || { echo "ERROR: $name commit mismatch" >&2; exit 1; }
       ;;
     *)
+      download "$name"
       file="$DL/$name-$version.tarball"
-      if [ ! -f "$file" ]; then
-        curl -sSL --fail --max-time 300 -o "$file.tmp" "$url"
-        mv "$file.tmp" "$file"
-      fi
-      actual=$(shasum -a 256 "$file" | cut -d' ' -f1)
-      [ "$actual" = "$hash" ] || { echo "ERROR: $name hash mismatch" >&2; exit 1; }
       rm -rf "$dest"; mkdir -p "$dest"
       tar -xf "$file" -C "$dest" --strip-components=1
       ;;

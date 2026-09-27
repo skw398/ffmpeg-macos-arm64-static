@@ -272,4 +272,8 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   build_one "$name" "$kind" "$flags" "$marker"
 done
 
+# Pre-fetch the FFmpeg tarball so the downloads cache (saved after this step)
+# carries it; build-ffmpeg.sh also ensures it when run standalone.
+download ffmpeg
+
 echo "== deps build done: $PREFIX"
