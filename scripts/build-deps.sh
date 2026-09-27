@@ -272,6 +272,14 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   build_one "$name" "$kind" "$flags" "$marker"
 done
 
+# Some libraries install their static archive into a subdirectory while their
+# pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it.
+for a in "$PREFIX"/lib/*/lib*.a; do
+  [ -e "$a" ] || continue
+  base=$(basename "$a")
+  [ -e "$PREFIX/lib/$base" ] || cp -f "$a" "$PREFIX/lib/$base"
+done
+
 # The static ffmpeg must link only Apple dylibs, and the linker prefers a
 # .dylib over the .a, so drop any third-party shared library from the prefix
 # (including stale ones left by a cached prefix).
