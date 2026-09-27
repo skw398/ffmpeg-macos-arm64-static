@@ -58,7 +58,7 @@ libopenmpt|autotools|--without-mpg123 --without-portaudio --without-portaudiocpp
 rubberband|meson|-Dtests=disabled -Dcmdline=disabled -Dvamp=disabled -Dladspa=disabled -Dlv2=disabled|
 libsndfile|autotools|--disable-external-libs|
 libbs2b|autotools||
-libsoxr|cmake|-DWITH_OPENMP=OFF -DBUILD_TESTS=OFF|
+libsoxr|cmake|-DWITH_OPENMP=OFF -DWITH_CR32S=OFF -DWITH_CR64S=OFF|
 libmysofa|cmake|-DBUILD_TESTS=OFF|
 
 # ---- image / quality ----

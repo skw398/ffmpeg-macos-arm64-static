@@ -23,10 +23,22 @@ jobs:
           uname -m
           test "$(uname -m)" = arm64
 
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: brew-${{ runner.os }}-v1
+
       - name: Install build tools
         run: |
-          brew install cmake ninja meson nasm pkgconf autoconf automake libtool gettext perl rust
-          brew install cargo-c || cargo install cargo-c --locked
+          missing=""
+          for t in cmake ninja meson nasm pkgconf autoconf automake libtool gettext perl rust; do
+            brew list --formula "$t" >/dev/null 2>&1 || missing="$missing $t"
+          done
+          if [ -n "$missing" ]; then brew install $missing; fi
+          if ! brew list --formula cargo-c >/dev/null 2>&1; then
+            brew install cargo-c || cargo install cargo-c --locked
+          fi
 
       - name: Restore downloads cache
         id: cache-downloads
