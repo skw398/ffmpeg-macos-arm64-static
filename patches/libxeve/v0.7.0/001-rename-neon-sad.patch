@@ -1,0 +1,52 @@
+# PATCH-POLICY: C
+# target: libxeve v0.7.0
+# linkage: static
+# reason: xeve and openapv share the EVC code base and both export sad_16b_neon_8x2n as a global
+# upstream: not applicable
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/src_base/neon/xeve_sad_neon.c b/src_base/neon/xeve_sad_neon.c
+--- a/src_base/neon/xeve_sad_neon.c	2026-09-27 23:29:50
++++ b/src_base/neon/xeve_sad_neon.c	2026-09-27 23:30:01
+@@ -129,7 +129,7 @@
+     return (sad >> (bit_depth - 8));
+ }
+ 
+-int sad_16b_neon_8x2n(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth)
++int xeve_sad_16b_neon_8x2n(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth)
+ {
+     int16_t const *pu2_inp, *pu2_inp2;
+     int16_t const *pu2_ref, *pu2_ref2;
+@@ -237,13 +237,13 @@
+     /* width == 8 */
+     {
+         sad_16b,           /* height == 1 */
+-        sad_16b_neon_8x2n, /* height == 2 */
+-        sad_16b_neon_8x2n, /* height == 4 */
+-        sad_16b_neon_8x2n, /* height == 8 */
+-        sad_16b_neon_8x2n, /* height == 16 */
+-        sad_16b_neon_8x2n, /* height == 32 */
+-        sad_16b_neon_8x2n, /* height == 64 */
+-        sad_16b_neon_8x2n, /* height == 128 */
++        xeve_sad_16b_neon_8x2n, /* height == 2 */
++        xeve_sad_16b_neon_8x2n, /* height == 4 */
++        xeve_sad_16b_neon_8x2n, /* height == 8 */
++        xeve_sad_16b_neon_8x2n, /* height == 16 */
++        xeve_sad_16b_neon_8x2n, /* height == 32 */
++        xeve_sad_16b_neon_8x2n, /* height == 64 */
++        xeve_sad_16b_neon_8x2n, /* height == 128 */
+     },
+     /* width == 16 */
+     {
+diff -ruN a/src_base/neon/xeve_sad_neon.h b/src_base/neon/xeve_sad_neon.h
+--- a/src_base/neon/xeve_sad_neon.h	2026-09-27 23:29:50
++++ b/src_base/neon/xeve_sad_neon.h	2026-09-27 23:30:01
+@@ -43,7 +43,7 @@
+ int sad_16b_neon_4x2(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth);
+ int sad_16b_neon_4x2n(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth);
+ int sad_16b_neon_4x4(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth);
+-int sad_16b_neon_8x2n(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth);
++int xeve_sad_16b_neon_8x2n(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth);
+ int sad_16b_neon_16nx1n(int w, int h, void* src1, void* src2, int s_src1, int s_src2, int bit_depth);
+ 
+ #endif /* ARM_NEON */

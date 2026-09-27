@@ -1,0 +1,19 @@
+# PATCH-POLICY: A
+# target: libssh libssh-0.11.5
+# linkage: any
+# reason: CMake 4 rejects the CompilerChecks.cmake module; use the standard CheckCCompilerFlag it provided
+# upstream: not reported
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2026-09-27 23:29:43
++++ b/CMakeLists.txt	2026-09-27 23:29:58
+@@ -32,7 +32,7 @@
+ include(CPackConfig.cmake)
+ include(GNUInstallDirs)
+ 
+-include(CompilerChecks.cmake)
++include(CheckCCompilerFlag)
+ 
+ # disallow in-source build
+ include(MacroEnsureOutOfSourceBuild)

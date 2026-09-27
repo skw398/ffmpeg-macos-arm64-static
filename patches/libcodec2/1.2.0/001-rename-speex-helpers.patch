@@ -1,0 +1,177 @@
+# PATCH-POLICY: C
+# target: libcodec2 1.2.0
+# linkage: static
+# reason: codec2 and speex both export lsp_to_lpc / lpc_to_lsp; rename codec2's to avoid a duplicate symbol in a static link
+# upstream: not applicable
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/src/c2sim.c b/src/c2sim.c
+--- a/src/c2sim.c	2026-09-27 23:29:47
++++ b/src/c2sim.c	2026-09-27 23:29:59
+@@ -737,13 +737,13 @@
+         encode_lsps_scalar(lsp_indexes, lsps, LPC_ORD);
+         decode_lsps_scalar(lsps_, lsp_indexes, LPC_ORD);
+         bw_expand_lsps(lsps_, LPC_ORD, 50.0, 100.0);
+-        lsp_to_lpc(lsps_, ak_, LPC_ORD);
++        codec2_lsp_to_lpc(lsps_, ak_, LPC_ORD);
+       }
+ 
+       if (lspd) {
+         encode_lspds_scalar(lsp_indexes, lsps, LPC_ORD);
+         decode_lspds_scalar(lsps_, lsp_indexes, LPC_ORD);
+-        lsp_to_lpc(lsps_, ak_, LPC_ORD);
++        codec2_lsp_to_lpc(lsps_, ak_, LPC_ORD);
+       }
+ 
+       if (lspjmv) {
+@@ -753,7 +753,7 @@
+           float lsps_bw[LPC_ORD];
+           memcpy(lsps_bw, lsps_, sizeof(float) * order);
+           bw_expand_lsps(lsps_bw, LPC_ORD, 50.0, 100.0);
+-          lsp_to_lpc(lsps_bw, ak_, LPC_ORD);
++          codec2_lsp_to_lpc(lsps_bw, ak_, LPC_ORD);
+         }
+       }
+ 
+@@ -1021,7 +1021,7 @@
+ 
+       for (i = 0; i < decimate; i++) {
+         if (lpc_model) {
+-          lsp_to_lpc(&lsps_dec[i][0], &ak_dec[i][0], order);
++          codec2_lsp_to_lpc(&lsps_dec[i][0], &ak_dec[i][0], order);
+           aks_to_M2(fftr_fwd_cfg, &ak_dec[i][0], order, &model_dec[i], e_dec[i],
+                     &snr, 0, simlpcpf, lpcpf, 1, LPCPF_BETA, LPCPF_GAMMA, Aw);
+           apply_lpc_correction(&model_dec[i]);
+diff -ruN a/src/codec2.c b/src/codec2.c
+--- a/src/codec2.c	2026-09-27 23:29:47
++++ b/src/codec2.c	2026-09-27 23:29:59
+@@ -533,7 +533,7 @@
+                        LPC_ORD);
+ 
+   for (i = 0; i < 2; i++) {
+-    lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
++    codec2_lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
+     aks_to_M2(c2->fftr_fwd_cfg, &ak[i][0], LPC_ORD, &model[i], e[i], &snr, 0, 0,
+               c2->lpc_pf, c2->bass_boost, c2->beta, c2->gamma, Aw);
+     apply_lpc_correction(&model[i]);
+@@ -673,7 +673,7 @@
+   interpolate_lsp_ver2(&lsps[0][0], c2->prev_lsps_dec, &lsps[1][0], 0.5,
+                        LPC_ORD);
+   for (i = 0; i < 2; i++) {
+-    lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
++    codec2_lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
+     aks_to_M2(c2->fftr_fwd_cfg, &ak[i][0], LPC_ORD, &model[i], e[i], &snr, 0, 0,
+               c2->lpc_pf, c2->bass_boost, c2->beta, c2->gamma, Aw);
+     apply_lpc_correction(&model[i]);
+@@ -866,7 +866,7 @@
+                          LPC_ORD);
+   }
+   for (i = 0; i < 4; i++) {
+-    lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
++    codec2_lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
+     aks_to_M2(c2->fftr_fwd_cfg, &ak[i][0], LPC_ORD, &model[i], e[i], &snr, 0, 0,
+               c2->lpc_pf, c2->bass_boost, c2->beta, c2->gamma, Aw);
+     apply_lpc_correction(&model[i]);
+@@ -1033,7 +1033,7 @@
+                          LPC_ORD);
+   }
+   for (i = 0; i < 4; i++) {
+-    lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
++    codec2_lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
+     aks_to_M2(c2->fftr_fwd_cfg, &ak[i][0], LPC_ORD, &model[i], e[i], &snr, 0, 0,
+               c2->lpc_pf, c2->bass_boost, c2->beta, c2->gamma, Aw);
+     apply_lpc_correction(&model[i]);
+@@ -1203,7 +1203,7 @@
+   /* then recover spectral amplitudes */
+ 
+   for (i = 0; i < 4; i++) {
+-    lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
++    codec2_lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
+     aks_to_M2(c2->fftr_fwd_cfg, &ak[i][0], LPC_ORD, &model[i], e[i], &snr, 0, 0,
+               c2->lpc_pf, c2->bass_boost, c2->beta, c2->gamma, Aw);
+     apply_lpc_correction(&model[i]);
+@@ -1391,7 +1391,7 @@
+                          LPC_ORD);
+   }
+   for (i = 0; i < 4; i++) {
+-    lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
++    codec2_lsp_to_lpc(&lsps[i][0], &ak[i][0], LPC_ORD);
+     aks_to_M2(c2->fftr_fwd_cfg, &ak[i][0], LPC_ORD, &model[i], e[i], &snr, 0, 0,
+               c2->lpc_pf, c2->bass_boost, c2->beta, c2->gamma, Aw);
+     apply_lpc_correction(&model[i]);
+diff -ruN a/src/interp.c b/src/interp.c
+--- a/src/interp.c	2026-09-27 23:29:47
++++ b/src/interp.c	2026-09-27 23:29:59
+@@ -198,7 +198,7 @@
+ 
+   /* convert back to amplitudes */
+ 
+-  lsp_to_lpc(lsps_interp, ak_interp, LPC_ORD);
++  codec2_lsp_to_lpc(lsps_interp, ak_interp, LPC_ORD);
+   aks_to_M2(fft_fwd_cfg, ak_interp, LPC_ORD, interp, e, &snr, 0, 0, 1, 1,
+             LPCPF_BETA, LPCPF_GAMMA);
+   // printf("  interp: ak[1]: %f A[1] %f\n", ak_interp[1], interp->A[1]);
+diff -ruN a/src/lsp.c b/src/lsp.c
+--- a/src/lsp.c	2026-09-27 23:29:47
++++ b/src/lsp.c	2026-09-27 23:29:59
+@@ -120,7 +120,7 @@
+ 
+ /*---------------------------------------------------------------------------*\
+ 
+-  FUNCTION....: lpc_to_lsp()
++  FUNCTION....: codec2_lpc_to_lsp()
+   AUTHOR......: David Rowe
+   DATE CREATED: 24/2/93
+ 
+@@ -128,7 +128,7 @@
+ 
+ \*---------------------------------------------------------------------------*/
+ 
+-int lpc_to_lsp(float *a, int order, float *freq, int nb, float delta)
++int codec2_lpc_to_lsp(float *a, int order, float *freq, int nb, float delta)
+ /*  float *a 		     	lpc coefficients			*/
+ /*  int order			order of LPC coefficients (10) 		*/
+ /*  float *freq 	      	LSP frequencies in radians      	*/
+@@ -244,7 +244,7 @@
+ 
+ /*---------------------------------------------------------------------------*\
+ 
+-  FUNCTION....: lsp_to_lpc()
++  FUNCTION....: codec2_lsp_to_lpc()
+   AUTHOR......: David Rowe
+   DATE CREATED: 24/2/93
+ 
+@@ -253,7 +253,7 @@
+ 
+ \*---------------------------------------------------------------------------*/
+ 
+-void lsp_to_lpc(float *lsp, float *ak, int order)
++void codec2_lsp_to_lpc(float *lsp, float *ak, int order)
+ /*  float *freq         array of LSP frequencies in radians     	*/
+ /*  float *ak 		array of LPC coefficients 			*/
+ /*  int order     	order of LPC coefficients 			*/
+diff -ruN a/src/lsp.h b/src/lsp.h
+--- a/src/lsp.h	2026-09-27 23:29:47
++++ b/src/lsp.h	2026-09-27 23:29:59
+@@ -31,7 +31,7 @@
+ #ifndef __LSP__
+ #define __LSP__
+ 
+-int lpc_to_lsp(float *a, int lpcrdr, float *freq, int nb, float delta);
+-void lsp_to_lpc(float *freq, float *ak, int lpcrdr);
++int codec2_lpc_to_lsp(float *a, int lpcrdr, float *freq, int nb, float delta);
++void codec2_lsp_to_lpc(float *freq, float *ak, int lpcrdr);
+ 
+ #endif
+diff -ruN a/src/quantise.c b/src/quantise.c
+--- a/src/quantise.c	2026-09-27 23:29:47
++++ b/src/quantise.c	2026-09-27 23:29:59
+@@ -683,7 +683,7 @@
+ 
+   for (i = 0; i <= order; i++) ak[i] *= powf(0.994, (float)i);
+ 
+-  roots = lpc_to_lsp(ak, order, lsp, 5, LSP_DELTA1);
++  roots = codec2_lpc_to_lsp(ak, order, lsp, 5, LSP_DELTA1);
+   if (roots != order) {
+     /* if root finding fails use some benign LSP values instead */
+     for (i = 0; i < order; i++) lsp[i] = (PI / order) * (float)i;

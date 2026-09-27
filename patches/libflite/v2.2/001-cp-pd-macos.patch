@@ -1,0 +1,21 @@
+# PATCH-POLICY: A
+# target: libflite v2.2
+# linkage: any
+# reason: the install rule uses GNU cp -pd, which macOS cp does not accept
+# upstream: not reported
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/main/Makefile b/main/Makefile
+--- a/main/Makefile	2026-09-27 23:29:56
++++ b/main/Makefile	2026-09-27 23:30:02
+@@ -152,8 +152,8 @@
+ 	done
+ 	$(INSTALL) -m 755 $(BINDIR)/flite_time $(DESTDIR)$(INSTALLBINDIR)
+ #       The libraries: static and shared (if built)
+-	cp -pd $(flite_LIBS_deps) $(DESTDIR)$(INSTALLLIBDIR)
++	cp -p $(flite_LIBS_deps) $(DESTDIR)$(INSTALLLIBDIR)
+ ifdef SHFLAGS
+-	cp -pd $(SHAREDLIBS) $(VERSIONSHAREDLIBS) $(DESTDIR)$(INSTALLLIBDIR)
++	cp -p $(SHAREDLIBS) $(VERSIONSHAREDLIBS) $(DESTDIR)$(INSTALLLIBDIR)
+ endif
+ 

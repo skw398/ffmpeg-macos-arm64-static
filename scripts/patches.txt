@@ -1,0 +1,17 @@
+# patches.txt — per-library source patches (data for build-deps.sh)
+#
+# Format: lib|version-dir|patch-file|class|linkage
+#   class   : A (upstream bug) | B (toolchain/environment) | C (static-link only)
+#   linkage : any | static   (static = applied only when linking statically)
+#
+# Each patch lives in patches/<lib>/<version-dir>/ and is applied with
+# `git apply -p1` from the library source root, after a `git apply --check`
+# precondition (a patch that no longer applies fails the build loudly).
+# See docs/PATCH-POLICY.md for the classification and metadata rules.
+libssh|libssh-0.11.5|001-cmake4-compilerchecks.patch|A|any
+libqrencode|v4.1.1|001-autoconf-version-define.patch|A|any
+libcaca|0.99.beta20|001-internal-header-include.patch|A|any
+libflite|v2.2|001-cp-pd-macos.patch|A|any
+libcodec2|1.2.0|001-rename-speex-helpers.patch|C|static
+libzmq|v4.3.5|001-rename-sha1.patch|C|static
+libxeve|v0.7.0|001-rename-neon-sad.patch|C|static

@@ -1,0 +1,18 @@
+# PATCH-POLICY: A
+# target: libqrencode v4.1.1
+# linkage: any
+# reason: autoconf >= 2.70 no longer defines VERSION from AC_INIT; qrencode.c uses it in QRcode_APIVersionString()
+# upstream: not reported
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/configure.ac b/configure.ac
+--- a/configure.ac	2026-09-27 23:29:44
++++ b/configure.ac	2026-09-27 23:29:58
+@@ -3,6 +3,7 @@
+ m4_define([__MICRO_VERSION], [1])dnl
+ m4_define([__VERSION], [__MAJOR_VERSION.__MINOR_VERSION.__MICRO_VERSION])dnl
+ AC_INIT(QRencode, __VERSION)
++AC_DEFINE_UNQUOTED([VERSION], ["$PACKAGE_VERSION"], [Package version])
+ 
+ MAJOR_VERSION=__MAJOR_VERSION
+ MINOR_VERSION=__MINOR_VERSION

@@ -6,8 +6,8 @@
 #   1. autotools "unrecognized options": configure rejected the flag
 #   2. CMake "unused-cli": the project never reads the -D variable
 #   3. meson: the -D value already equals the option's declared default
-#   4. transform counts printed by build-deps.sh: 0 occurrences means the
-#      transform can be dropped
+#   4. patch/transform activity printed by build-deps.sh: a transform that
+#      matches 0 occurrences can be dropped
 #
 # Flags passed to every library by build-deps.sh (BUILD_SHARED_LIBS, BUILD_TESTING,
 # CMAKE_*) are labelled [global]; anything else is a per-library trim candidate.
@@ -131,7 +131,7 @@ rm -f "$hits"
 
 # --- 4. transform counts from build-deps.sh ----------------------------------
 echo
-echo "== transform counts (0 occurrences over many runs -> droppable) =="
+echo "== patch/transform activity (a transform with 0 occurrences is droppable) =="
 found=0
 for f in "$LOGS"/*.log; do
   [ -f "$f" ] || continue

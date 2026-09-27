@@ -1,0 +1,123 @@
+# PATCH-POLICY: C
+# target: libzmq v4.3.5
+# linkage: static
+# reason: libzmq and libssh both export sha1_*; rename libzmq's internal ones. MPL-2.0: changed sources must be disclosed
+# upstream: not applicable
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/external/sha1/sha1.c b/external/sha1/sha1.c
+--- a/external/sha1/sha1.c	2026-09-27 23:29:49
++++ b/external/sha1/sha1.c	2026-09-27 23:30:00
+@@ -61,7 +61,7 @@
+ 	COUNT %= 64;				\
+ 	ctxt->c.b64[0] += 8;			\
+ 	if (COUNT % 64 == 0)			\
+-		sha1_step(ctxt);		\
++		zmq_sha1_step(ctxt);		\
+ } while (0)
+ 
+ #define PUTPAD(x) \
+@@ -70,13 +70,13 @@
+ 	COUNT++;				\
+ 	COUNT %= 64;				\
+ 	if (COUNT % 64 == 0)			\
+-		sha1_step(ctxt);		\
++		zmq_sha1_step(ctxt);		\
+ } while (0)
+ 
+-static void sha1_step(struct sha1_ctxt *);
++static void zmq_sha1_step(struct sha1_ctxt *);
+ 
+ static void
+-sha1_step(struct sha1_ctxt * ctxt)
++zmq_sha1_step(struct sha1_ctxt * ctxt)
+ {
+ 	uint32_t		a,
+ 				b,
+@@ -221,7 +221,7 @@
+ /*------------------------------------------------------------*/
+ 
+ void
+-sha1_init(struct sha1_ctxt * ctxt)
++zmq_sha1_init(struct sha1_ctxt * ctxt)
+ {
+ 	memset(ctxt, 0, sizeof(struct sha1_ctxt));
+ 	H(0) = 0x67452301;
+@@ -232,7 +232,7 @@
+ }
+ 
+ void
+-sha1_pad(struct sha1_ctxt * ctxt)
++zmq_sha1_pad(struct sha1_ctxt * ctxt)
+ {
+ 	size_t		padlen;			/* pad length in bytes */
+ 	size_t		padstart;
+@@ -246,7 +246,7 @@
+ 		memset(&ctxt->m.b8[padstart], 0, padlen);
+ 		COUNT += (uint8_t) padlen;
+ 		COUNT %= 64;
+-		sha1_step(ctxt);
++		zmq_sha1_step(ctxt);
+ 		padstart = COUNT % 64;	/* should be 0 */
+ 		padlen = 64 - padstart; /* should be 64 */
+ 	}
+@@ -275,7 +275,7 @@
+ }
+ 
+ void
+-sha1_loop(struct sha1_ctxt * ctxt, const uint8_t *input0, size_t len)
++zmq_sha1_loop(struct sha1_ctxt * ctxt, const uint8_t *input0, size_t len)
+ {
+ 	const uint8_t *input;
+ 	size_t		gaplen;
+@@ -297,18 +297,18 @@
+ 		COUNT %= 64;
+ 		ctxt->c.b64[0] += copysiz * 8;
+ 		if (COUNT % 64 == 0)
+-			sha1_step(ctxt);
++			zmq_sha1_step(ctxt);
+ 		off += copysiz;
+ 	}
+ }
+ 
+ void
+-sha1_result(struct sha1_ctxt * ctxt, uint8_t *digest0)
++zmq_sha1_result(struct sha1_ctxt * ctxt, uint8_t *digest0)
+ {
+ 	uint8_t	   *digest;
+ 
+ 	digest = (uint8_t *) digest0;
+-	sha1_pad(ctxt);
++	zmq_sha1_pad(ctxt);
+ #ifdef WORDS_BIGENDIAN
+ 	memmove(digest, &ctxt->h.b8[0], 20);
+ #else
+diff -ruN a/external/sha1/sha1.h b/external/sha1/sha1.h
+--- a/external/sha1/sha1.h	2026-09-27 23:29:49
++++ b/external/sha1/sha1.h	2026-09-27 23:30:00
+@@ -65,18 +65,18 @@
+ 	uint8_t count;
+ };
+ 
+-void sha1_init(struct sha1_ctxt *);
+-void sha1_pad(struct sha1_ctxt *);
+-void sha1_loop(struct sha1_ctxt *, const uint8_t *, size_t);
+-void sha1_result(struct sha1_ctxt *, uint8_t *);
++void zmq_sha1_init(struct sha1_ctxt *);
++void zmq_sha1_pad(struct sha1_ctxt *);
++void zmq_sha1_loop(struct sha1_ctxt *, const uint8_t *, size_t);
++void zmq_sha1_result(struct sha1_ctxt *, uint8_t *);
+ 
+ //  Compatibility with OpenSSL API
+ #define SHA_DIGEST_LENGTH 20
+ typedef struct sha1_ctxt SHA_CTX;
+ 
+-#define SHA1_Init(x)            sha1_init((x))
+-#define SHA1_Update(x, y, z)    sha1_loop((x), (y), (z))
+-#define SHA1_Final(x, y)        sha1_result((y), (x))
++#define SHA1_Init(x)            zmq_sha1_init((x))
++#define SHA1_Update(x, y, z)    zmq_sha1_loop((x), (y), (z))
++#define SHA1_Final(x, y)        zmq_sha1_result((y), (x))
+ 
+ #define SHA1_RESULTLEN	(160/8)
+ 

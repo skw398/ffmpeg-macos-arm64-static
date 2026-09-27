@@ -53,4 +53,12 @@ done < "$ROOT/deps.txt"
 "$PREFIX/bin/ffmpeg" -version   > "$OUT/ffmpeg-version.txt" 2>&1 || true
 "$PREFIX/bin/ffmpeg" -buildconf > "$OUT/buildconf.txt" 2>&1 || true
 
+# --- source patches (PATCH-POLICY: the modified sources must be shipped) ---
+if [ -d "$ROOT/patches" ]; then
+  mkdir -p "$OUT/patches"
+  cp -R "$ROOT/patches/." "$OUT/patches/"
+  cp "$HERE/patches.txt" "$OUT/patches/patches.txt" 2>/dev/null || true
+  echo "== source patches included: $(find "$OUT/patches" -type f | wc -l | tr -d ' ') file(s)"
+fi
+
 echo "== release assets collected: $OUT"

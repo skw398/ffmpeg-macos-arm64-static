@@ -19,8 +19,11 @@ JOBS="${JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 FORCE_REBUILD="${FORCE_REBUILD:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
+PATCHES="$HERE/patches.txt"
+# this build always links statically, so `linkage=static` patches always apply
+LINKAGE=static
 # bump when build logic changes, to force rebuilds
-RECIPE_REV=4
+RECIPE_REV=5
 
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
@@ -57,18 +60,32 @@ MANIFEST="$PREFIX/.manifest"
 
 . "$HERE/lib.sh"
 
-# Fail when a patch's precondition is gone: the pattern it rewrites no longer
-# exists, so upstream fixed the problem and the patch must be removed rather
-# than silently doing nothing. Prints the match count, so an inert patch is
-# visible in the per-library log. `path` may be a file or a directory.
-require_pattern() { # <label> <extended-regex> <path>...
-  label="$1"; pat="$2"; shift 2
-  n=$(grep -rhoE -- "$pat" "$@" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$n" -eq 0 ]; then
-    echo "ERROR: patch $label: pattern '$pat' not found (upstream fixed?) -> remove the patch" >&2
-    exit 1
-  fi
-  echo "== patch $label: $n match(es)"
+# Apply the source patches listed for a library in scripts/patches.txt. Each is
+# checked with `git apply --check` first: a patch that no longer applies means
+# upstream changed the code, so the build fails loudly instead of silently
+# skipping the patch (see docs/PATCH-POLICY.md).
+apply_patches() { # <name>
+  lib_want="$1"
+  [ -f "$PATCHES" ] || return 0
+  while IFS='|' read -r lib vdir pfile cls link || [ -n "$lib" ]; do
+    case "$lib" in ''|'#'*) continue ;; esac
+    [ "$lib" = "$lib_want" ] || continue
+    if [ "$link" = static ] && [ "$LINKAGE" != static ]; then
+      echo "== patch $lib: skipped ($pfile is static-only)"
+      continue
+    fi
+    pf="$ROOT/patches/$lib/$vdir/$pfile"
+    if [ ! -f "$pf" ]; then
+      echo "ERROR: patch not found: $pf" >&2; exit 1
+    fi
+    if ! ( cd "$SRC/$lib" && git apply --check -p1 "$pf" ); then
+      echo "ERROR: patch does not apply: $lib/$vdir/$pfile" >&2
+      echo "       (upstream changed the code -> refresh or remove the patch)" >&2
+      exit 1
+    fi
+    ( cd "$SRC/$lib" && git apply -p1 "$pf" )
+    echo "== patch $lib: $pfile ($cls) applied"
+  done < "$PATCHES"
 }
 
 build_generic() {
@@ -175,12 +192,9 @@ build_quirc() {
 }
 
 build_libflite() {
-  # libflite's install uses GNU cp -d, which macOS cp lacks. The Makefile only
-  # exists after configure, so patch it (with a precondition check) in between.
-  ( cd "$SRC/libflite" && ./configure --prefix="$PREFIX" && make -j"$JOBS" \
-    && require_pattern libflite 'cp -pd' main/Makefile \
-    && perl -pi -e 's/\bcp -pd\b/cp -p/g' main/Makefile \
-    && make install )
+  # the install rule's GNU-only `cp -pd` is fixed by the data-driven patch
+  # (patches/libflite/v2.2/001-cp-pd-macos.patch, applied by apply_patches)
+  ( cd "$SRC/libflite" && ./configure --prefix="$PREFIX" && make -j"$JOBS" && make install )
 }
 
 build_x265() {
@@ -204,46 +218,9 @@ build_libvmaf() {
 dispatch_build() {
   name="$1"; kind="$2"; flags="$3"
 
-  # source patches (applied in build/src, not committed upstream). Each one
-  # checks its precondition first, so an upstream fix becomes a loud failure
-  # instead of a patch that silently does nothing.
-  case "$name" in
-    libssh)
-      # CMake 4 errors in libssh's CompilerChecks flag probing; replace it with
-      # the module it would have provided (check_c_compiler_flag)
-      require_pattern libssh 'CompilerChecks\.cmake' "$SRC/libssh/CMakeLists.txt"
-      perl -pi -e 's/include\(CompilerChecks\.cmake\)/include(CheckCCompilerFlag)/' \
-        "$SRC/libssh/CMakeLists.txt" ;;
-    libqrencode)
-      # autoconf >= 2.70 no longer defines VERSION from AC_INIT in config.h;
-      # qrencode.c uses it for QRcode_APIVersionString(), so restore the define
-      require_pattern libqrencode 'AC_INIT\(' "$SRC/libqrencode/configure.ac"
-      perl -0pi -e 's/(AC_INIT\([^\n]*\)\n)/$1AC_DEFINE_UNQUOTED([VERSION], ["\$PACKAGE_VERSION"], [Package version])\n/' \
-        "$SRC/libqrencode/configure.ac" ;;
-    libcaca)
-      # common-image.c calls the internal _caca_alloc2d without including the
-      # internal header; newer clang errors on the implicit declaration
-      require_pattern libcaca 'common-image\.h' "$SRC/libcaca/src/common-image.c"
-      perl -pi -e 's/^#include "common-image.h"$/#include "common-image.h"\n#include "caca_internals.h"/' \
-        "$SRC/libcaca/src/common-image.c" ;;
-    libcodec2)
-      # codec2 and speex both export these speex-derived helpers; rename
-      # codec2's so the static link has no duplicate symbols
-      require_pattern libcodec2 'lsp_to_lpc' "$SRC/libcodec2"
-      find "$SRC/libcodec2" -type f \( -name '*.c' -o -name '*.h' \) \
-        -exec perl -pi -e 's/\blsp_to_lpc\b/codec2_lsp_to_lpc/g; s/\blpc_to_lsp\b/codec2_lpc_to_lsp/g' {} + ;;
-    libzmq)
-      # libzmq and libssh both export sha1_*; rename libzmq's internal ones
-      require_pattern libzmq 'sha1_init' "$SRC/libzmq/external/sha1"
-      perl -pi -e 's/\bsha1_(init|pad|loop|result|step)\b/zmq_sha1_$1/g' \
-        "$SRC/libzmq/external/sha1/sha1.c" "$SRC/libzmq/external/sha1/sha1.h" ;;
-    libxeve)
-      # xeve and openapv share the EVC code base and both export the NEON SAD
-      # helper as a global; rename xeve's so the static link has no duplicate
-      require_pattern libxeve 'sad_16b_neon_8x2n' "$SRC/libxeve"
-      find "$SRC/libxeve" -type f \( -name '*.c' -o -name '*.h' \) \
-        -exec perl -pi -e 's/\bsad_16b_neon_8x2n\b/xeve_sad_16b_neon_8x2n/g' {} + ;;
-  esac
+  # source patches come from data (scripts/patches.txt) and are applied with a
+  # precondition check; see apply_patches() and docs/PATCH-POLICY.md
+  apply_patches "$name"
 
   case "$name" in
     libaom)      build_libaom ;;

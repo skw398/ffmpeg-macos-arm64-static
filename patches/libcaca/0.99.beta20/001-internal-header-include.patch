@@ -1,0 +1,18 @@
+# PATCH-POLICY: A
+# target: libcaca 0.99.beta20
+# linkage: any
+# reason: common-image.c calls the internal _caca_alloc2d without including the internal header (implicit declaration error on newer clang)
+# upstream: not reported
+# apply: git apply -p1, from the library source root
+
+diff -ruN a/src/common-image.c b/src/common-image.c
+--- a/src/common-image.c	2021-10-19 22:49:20
++++ b/src/common-image.c	2026-09-27 23:29:58
+@@ -24,6 +24,7 @@
+ #include "caca.h"
+ 
+ #include "common-image.h"
++#include "caca_internals.h"
+ 
+ #if !defined(USE_IMLIB2)
+ static unsigned int u32fread(caca_file_t *);
