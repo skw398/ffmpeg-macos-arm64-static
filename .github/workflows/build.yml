@@ -38,6 +38,9 @@ jobs:
       - name: Verify pins
         run: sh scripts/verify-pins.sh
 
+      - name: Verify build flags
+        run: sh scripts/verify-build-flags.sh
+
       - name: Build dependencies
         run: sh scripts/build-deps.sh
 

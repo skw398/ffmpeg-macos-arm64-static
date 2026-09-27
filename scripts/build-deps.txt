@@ -22,7 +22,7 @@ fribidi|meson|-Ddocs=false -Dtests=false|
 harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled|
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
-lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_UTILS=OFF|
+lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
 leptonica|cmake|-DSW_BUILD=OFF|
 libudfread|meson|-Dexamples=false|
 
@@ -35,10 +35,10 @@ libvpx|custom||git pin (clone); configure in build_deps_libvpx
 x264|autotools|--enable-pic|
 x265|custom||cmake in build_x265 (source/ subdir)
 openh264|make||make-based (build_deps_openh264)
-libvvenc|cmake|-DVVENC_ENABLE_APPS=OFF -DVVENC_ENABLE_TESTS=OFF|
-liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DOAPV_BUILD_TESTS=OFF|
-libxeve|cmake|-DBUILD_APPS=OFF|
-libxevd|cmake|-DBUILD_APPS=OFF|
+libvvenc|cmake|-DVVENC_LIBRARY_ONLY=ON|
+liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DENABLE_TESTS=OFF|
+libxeve|cmake||
+libxevd|cmake||
 libvidstab|cmake|-DUSE_OMP=OFF|
 libsnappy|cmake|-DSNAPPY_BUILD_TESTS=OFF -DSNAPPY_BUILD_BENCHMARKS=OFF|
 
@@ -50,7 +50,7 @@ libtwolame|autotools|--disable-sndfile|
 libgsm|make||make-based (build_deps_libgsm)
 opencore-amr|autotools||
 vo-amrwbenc|autotools||
-libcodec2|cmake|-DUNITTEST=OFF -DINSTALL_EXAMPLES=OFF|
+libcodec2|cmake|-DUNITTEST=OFF|
 libilbc|cmake||
 liblc3|meson|-Dtools=false -Dpython=false|
 libgme|cmake|-DENABLE_UBSAN=OFF|
@@ -70,7 +70,7 @@ libvmaf|custom||meson under libvmaf/ (build_libvmaf)
 # ---- subtitles / text / disc / teletext ----
 libass|meson|-Dfontconfig=disabled -Dtest=disabled -Dcompare=disabled|
 libaribb24|autotools||
-libaribcaption|cmake|-DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF|
+libaribcaption|cmake|-DARIBCC_BUILD_TESTS=OFF|
 libbluray|meson|-Denable_docs=false -Denable_tools=false -Dbdj_jar=disabled -Dfontconfig=disabled -Dfreetype=disabled -Dlibxml2=disabled|
 libdvdread|meson|-Denable_docs=false|
 libdvdnav|meson|-Denable_docs=false -Denable_examples=false|
@@ -78,7 +78,7 @@ zvbi|autotools|--disable-nls --without-libpng|
 
 # ---- network / messaging ----
 openssl|perl|no-shared no-tests|
-libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DWITH_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
+libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DUSE_ENCLIB=openssl-evp -DOPENSSL_ROOT_DIR=@PREFIX@|
 librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dtest=false -Ddocs=false|
 libzmq|autotools|--without-libsodium|

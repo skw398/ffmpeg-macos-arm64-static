@@ -127,6 +127,14 @@ build_libvmaf() {
 
 dispatch_build() {
   name="$1"; kind="$2"; flags="$3"
+
+  # source patches (applied in build/src, not committed upstream)
+  case "$name" in
+    libvorbis)
+      # configure injects the obsolete ld flag -force_cpusubtype_ALL for darwin
+      perl -pi -e 's/ -force_cpusubtype_ALL//g' "$SRC/libvorbis/configure" ;;
+  esac
+
   case "$name" in
     libaom)      build_libaom ;;
     libvpx)      build_libvpx ;;
