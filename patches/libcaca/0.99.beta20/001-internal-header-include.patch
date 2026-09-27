@@ -2,7 +2,7 @@
 # target: libcaca 0.99.beta20
 # linkage: any
 # reason: common-image.c calls the internal _caca_alloc2d without including the internal header (implicit declaration error on newer clang)
-# upstream: not reported
+# upstream: not submitted by policy (see docs/UPSTREAM-FIXES.md)
 # apply: git apply -p1, from the library source root
 
 diff -ruN a/src/common-image.c b/src/common-image.c

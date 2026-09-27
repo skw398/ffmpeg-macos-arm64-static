@@ -2,7 +2,7 @@
 # target: libqrencode v4.1.1
 # linkage: any
 # reason: autoconf >= 2.70 no longer defines VERSION from AC_INIT; qrencode.c uses it in QRcode_APIVersionString()
-# upstream: not reported
+# upstream: not submitted by policy (see docs/UPSTREAM-FIXES.md)
 # apply: git apply -p1, from the library source root
 
 diff -ruN a/configure.ac b/configure.ac
