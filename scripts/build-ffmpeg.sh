@@ -36,14 +36,15 @@ fi
 # --- configure ---
 # NOTE: --disable-vulkan because Vulkan on macOS needs MoltenVK (a third-party
 # dylib), which the Apple-only runtime rule forbids.
-# NOTE: -lc++ supplies the C++ runtime for static C++ dependencies; some
-# pkg-config files (e.g. libjxl_threads.pc) omit it.
+# NOTE: the extra libs below are private dependencies that some of the static
+# libraries' pkg-config files omit (e.g. libjxl_threads.pc lacks -lc++, and
+# libssh.pc lacks -lssl -lcrypto -lz), so they are supplied explicitly.
 set -- \
   --prefix="$PREFIX" \
   --pkg-config-flags=--static \
   --extra-cflags="-I$PREFIX/include" \
   --extra-ldflags="-L$PREFIX/lib" \
-  --extra-libs="-lpthread -lm -lc++" \
+  --extra-libs="-lpthread -lm -lc++ -lssl -lcrypto -lz" \
   --enable-gpl --enable-version3 \
   --enable-static --disable-shared --disable-debug \
   --enable-libxml2 --enable-openssl --enable-lzma \
