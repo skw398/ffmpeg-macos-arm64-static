@@ -15,6 +15,15 @@ jobs:
   macos-arm64:
     runs-on: macos-14
     timeout-minutes: 350
+    env:
+      # Pinned tool versions, installed from official distributions (not brew)
+      # so the toolchain does not drift with Homebrew. Tools that cannot be
+      # pinned (the runner image, Xcode/SDK, system tools) are recorded instead.
+      RUST_VERSION: "1.98.1"
+      CARGO_C_VERSION: "0.10.25"
+      CMAKE_VERSION: "4.4.3"
+      NINJA_VERSION: "1.13.2"
+      MESON_VERSION: "1.12.1"
     steps:
       - uses: actions/checkout@v4
 
@@ -30,16 +39,58 @@ jobs:
           path: ~/Library/Caches/Homebrew
           key: brew-${{ runner.os }}-v1
 
-      - name: Install build tools
+      - name: Install remaining build tools (brew)
         run: |
           missing=""
-          for t in cmake ninja meson nasm pkgconf autoconf automake libtool gettext perl rust; do
+          for t in nasm pkgconf autoconf automake libtool gettext perl; do
             brew list --formula "$t" >/dev/null 2>&1 || missing="$missing $t"
           done
           if [ -n "$missing" ]; then brew install $missing; fi
-          if ! brew list --formula cargo-c >/dev/null 2>&1; then
-            brew install cargo-c || cargo install cargo-c --locked
-          fi
+
+      - name: Install pinned CMake
+        run: |
+          mkdir -p "$HOME/tools"
+          curl -sSL --fail -o /tmp/cmake.tar.gz \
+            "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-macos-universal.tar.gz"
+          tar -xzf /tmp/cmake.tar.gz -C "$HOME/tools"
+          echo "$HOME/tools/cmake-${CMAKE_VERSION}-macos-universal/CMake.app/Contents/bin" >> "$GITHUB_PATH"
+
+      - name: Install pinned Ninja
+        run: |
+          mkdir -p "$HOME/tools/ninja"
+          curl -sSL --fail -o /tmp/ninja.zip \
+            "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VERSION}/ninja-mac.zip"
+          unzip -o /tmp/ninja.zip -d "$HOME/tools/ninja"
+          echo "$HOME/tools/ninja" >> "$GITHUB_PATH"
+
+      - name: Install pinned Meson
+        run: |
+          python3 -m pip install --user "meson==${MESON_VERSION}" \
+            || pip3 install --user "meson==${MESON_VERSION}"
+          echo "$(python3 -m site --user-base)/bin" >> "$GITHUB_PATH"
+
+      - name: Install pinned Rust
+        run: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain "${RUST_VERSION}"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install pinned cargo-c
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cargo install cargo-c --version "${CARGO_C_VERSION}" --locked
+
+      - name: Verify pinned toolchain
+        run: |
+          set -e
+          echo "cmake: $(cmake --version | head -n1) [$(command -v cmake)]"
+          echo "ninja: $(ninja --version) [$(command -v ninja)]"
+          echo "meson: $(meson --version) [$(command -v meson)]"
+          echo "rustc: $(rustc --version) [$(command -v rustc)]"
+          echo "cargo-c: $(cargo cinstall --version 2>/dev/null || echo n/a)"
+          cmake --version | head -n1 | grep -q "${CMAKE_VERSION}" || { echo "cmake version mismatch"; exit 1; }
+          [ "$(ninja --version)" = "${NINJA_VERSION}" ] || { echo "ninja version mismatch"; exit 1; }
+          [ "$(meson --version)" = "${MESON_VERSION}" ] || { echo "meson version mismatch"; exit 1; }
+          rustc --version | grep -q "${RUST_VERSION}" || { echo "rust version mismatch"; exit 1; }
 
       - name: Record toolchain versions
         run: |
