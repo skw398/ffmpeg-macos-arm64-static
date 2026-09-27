@@ -189,11 +189,6 @@ dispatch_build() {
       # libzmq and libssh both export sha1_*; rename libzmq's internal ones
       perl -pi -e 's/\bsha1_(init|pad|loop|result|step)\b/zmq_sha1_$1/g' \
         "$SRC/libzmq/external/sha1/sha1.c" "$SRC/libzmq/external/sha1/sha1.h" ;;
-    libvvenc)
-      # CMake >= 4 requires check_c_compiler_flag's flag as a single argument;
-      # vvenc passes ${FLAGS_CHECK_STR} unquoted (2 tokens -> 3 args -> error)
-      perl -pi -e 's/check_c_compiler_flag\( \$\{FLAGS_CHECK_STR\}/check_c_compiler_flag( "\${FLAGS_CHECK_STR}"/' \
-        "$SRC/libvvenc/cmake/modules/vvencCompilerSupport.cmake" ;;
   esac
 
   case "$name" in
