@@ -1,0 +1,22 @@
+# artifact-consumers.txt — how each adopted library is confirmed in the built
+# binary, for libraries whose configure consumer name differs from the name
+# ffmpeg lists at runtime (or that have no list entry at all).
+#
+# Used by: scripts/lib-consumers.sh --check --binary <ffmpeg> (artifact check).
+# Libraries not listed here are confirmed through their configure consumers,
+# whose component name is used as the ffmpeg -<list> entry name.
+#
+# Format: lib|kind|list|name
+#   kind=list  list is encoders/decoders/filters/muxers/demuxers/protocols/...
+#              and name is the entry that must appear
+#   kind=skip  no list entry can confirm it; name explains why (printed, not a
+#              failure — the configure-time check still covers the library)
+libaom|list|encoders|libaom-av1
+libvpx|list|encoders|libvpx-vp9
+libzvbi|list|decoders|libzvbi_teletextdec
+libssh|list|protocols|sftp
+libsrt|list|protocols|srt
+librist|list|protocols|rist
+librabbitmq|list|protocols|amqp
+libxevd|skip|-|decoder registered as "evc", the same name as the native EVC decoder
+libsoxr|skip|-|swresample engine (resampler=soxr); ffmpeg lists no entry for it

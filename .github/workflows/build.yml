@@ -322,10 +322,15 @@ jobs:
           path: build/src/ffmpeg
           key: ffmpeg-full-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
 
-      - name: Check library consumers
+      - name: Check library consumers (configure)
         run: |
           libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
           sh scripts/lib-consumers.sh --check --config-header build/src/ffmpeg $libs
+
+      - name: Check library consumers (artifact)
+        run: |
+          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
+          sh scripts/lib-consumers.sh --check --binary build/prefix/bin/ffmpeg $libs
 
       - name: Check buildconf
         run: sh scripts/verify-buildconf.sh
