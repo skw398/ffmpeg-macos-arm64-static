@@ -22,12 +22,12 @@ fetch chromaprint
 
 src="$SRC/chromaprint"
 
-cmake -S "$src" -B "$src/build" \
+cmake -S "$src" -B "$src/.build" \
   -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_TOOLS=OFF \
   -DCMAKE_PREFIX_PATH="$PREFIX" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET"
-cmake --build "$src/build" -j "$JOBS"
-cmake --install "$src/build"
+cmake --build "$src/.build" -j "$JOBS"
+cmake --install "$src/.build"
 
 echo "== chromaprint build done: $PREFIX"

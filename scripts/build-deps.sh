@@ -40,20 +40,23 @@ build_generic() {
       ( cd "$src"
         # git archives often have no generated configure; bootstrap if needed.
         [ -x ./configure ] || { [ -x ./autogen.sh ] && NOCONFIGURE=1 ./autogen.sh || autoreconf -fi; }
+        # modern macOS ld rejects the obsolete -force_cpusubtype_ALL that some
+        # configure scripts inject for darwin; strip it generically.
+        if [ -f ./configure ]; then perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure; fi
         ./configure --prefix="$PREFIX" --enable-static --disable-shared $flags
         make -j"$JOBS" && make install ) ;;
     cmake)
-      cmake -S "$src" -B "$src/build" \
+      cmake -S "$src" -B "$src/.build" \
         -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
         -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" $flags
-      cmake --build "$src/build" -j "$JOBS"
-      cmake --install "$src/build" ;;
+      cmake --build "$src/.build" -j "$JOBS"
+      cmake --install "$src/.build" ;;
     meson)
-      meson setup "$src/build" "$src" --prefix="$PREFIX" \
+      meson setup "$src/.build" "$src" --prefix="$PREFIX" \
         --default-library=static --buildtype=release $flags
-      ninja -C "$src/build"
-      ninja -C "$src/build" install ;;
+      ninja -C "$src/.build"
+      ninja -C "$src/.build" install ;;
     perl)
       ( cd "$src" && ./Configure --prefix="$PREFIX" --openssldir="$PREFIX/ssl" $flags \
         && make -j"$JOBS" && make install_sw ) ;;
@@ -66,14 +69,14 @@ build_generic() {
 
 build_libaom() {
   src="$SRC/libaom"
-  cmake -S "$src" -B "$src/build" \
+  cmake -S "$src" -B "$src/.build" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DAOM_TARGET_CPU=arm64 -DCONFIG_RUNTIME_CPU_DETECT=0 \
     -DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 \
     -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1
-  cmake --build "$src/build" -j "$JOBS"
-  cmake --install "$src/build"
+  cmake --build "$src/.build" -j "$JOBS"
+  cmake --install "$src/.build"
 }
 
 build_libvpx() {
@@ -118,23 +121,15 @@ build_x265() {
 }
 
 build_libvmaf() {
-  meson setup "$SRC/libvmaf/build" "$SRC/libvmaf/libvmaf" --prefix="$PREFIX" \
+  meson setup "$SRC/libvmaf/.build" "$SRC/libvmaf/libvmaf" --prefix="$PREFIX" \
     --default-library=static --buildtype=release \
     -Denable_tests=false -Denable_docs=false -Denable_tools=false
-  ninja -C "$SRC/libvmaf/build"
-  ninja -C "$SRC/libvmaf/build" install
+  ninja -C "$SRC/libvmaf/.build"
+  ninja -C "$SRC/libvmaf/.build" install
 }
 
 dispatch_build() {
   name="$1"; kind="$2"; flags="$3"
-
-  # source patches (applied in build/src, not committed upstream)
-  case "$name" in
-    libvorbis)
-      # configure injects the obsolete ld flag -force_cpusubtype_ALL for darwin
-      perl -pi -e 's/ -force_cpusubtype_ALL//g' "$SRC/libvorbis/configure" ;;
-  esac
-
   case "$name" in
     libaom)      build_libaom ;;
     libvpx)      build_libvpx ;;

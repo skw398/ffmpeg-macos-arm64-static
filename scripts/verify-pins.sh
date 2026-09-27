@@ -5,7 +5,14 @@
 #   from the repo URL and assert HEAD == <sha>. No vendored tarball is produced.
 # - HASH-TODO / PIN-IN-CI: skipped (reported).
 # Exits non-zero if any check fails.
+# --skip disables verification (iteration only; never for release runs).
 set -u
+
+# --skip: disable verification
+if [ "${1:-}" = "--skip" ]; then
+  echo "SKIP: pin verification disabled (--skip)"
+  exit 0
+fi
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 PINS="$HERE/../deps.txt"

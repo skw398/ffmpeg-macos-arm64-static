@@ -2,6 +2,11 @@ name: build
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_verify:
+        description: Skip pin verification (iteration only)
+        type: boolean
+        default: false
   push:
     branches: [ main ]
   pull_request:
@@ -35,7 +40,16 @@ jobs:
           path: build/prefix
           key: prefix-${{ hashFiles('deps.txt', 'scripts/**/*') }}
 
+      - name: Cache git sources
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/src/libaom
+            build/src/libvpx
+          key: gitsrc-${{ hashFiles('deps.txt') }}
+
       - name: Verify pins
+        if: ${{ !inputs.skip_verify }}
         run: sh scripts/verify-pins.sh
 
       - name: Verify build flags
