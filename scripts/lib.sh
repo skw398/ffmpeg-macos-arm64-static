@@ -37,4 +37,9 @@ fetch() {
       tar -xf "$file" -C "$dest" --strip-components=1
       ;;
   esac
+
+  # generic: drop -Werror from CMake build files; clang trips on the GCC-targeted
+  # warnings these projects enable with -Wall (which -Werror then promotes)
+  find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+    -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
 }

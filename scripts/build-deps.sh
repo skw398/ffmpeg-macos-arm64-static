@@ -23,10 +23,10 @@ RECIPE_REV=1
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
-# some libraries pass GCC-only -Wno-* flags together with -Werror; keep clang
-# from failing on unknown options or on clang-only warnings they don't disable
-export CFLAGS="-Wno-unknown-warning-option -Wno-sometimes-uninitialized ${CFLAGS:-}"
-export CXXFLAGS="-Wno-unknown-warning-option -Wno-sometimes-uninitialized ${CXXFLAGS:-}"
+# some libraries pass GCC-only -Wno-* flags; keep clang from failing on the
+# unknown options (the -Werror promotion is removed separately in lib.sh)
+export CFLAGS="-Wno-unknown-warning-option ${CFLAGS:-}"
+export CXXFLAGS="-Wno-unknown-warning-option ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export CMAKE_PREFIX_PATH="$PREFIX"
 export CPPFLAGS="-I$PREFIX/include ${CPPFLAGS:-}"
@@ -60,7 +60,7 @@ build_generic() {
       cmake --install "$src/.build" ;;
     meson)
       meson setup "$src/.build" "$src" --prefix="$PREFIX" \
-        --default-library=static --buildtype=release $flags
+        --default-library=static --buildtype=release -Dwerror=false $flags
       ninja -C "$src/.build"
       ninja -C "$src/.build" install ;;
     perl)
