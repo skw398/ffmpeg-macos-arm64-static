@@ -55,6 +55,7 @@ build_generic() {
       cmake -S "$src" -B "$src/.build" \
         -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" $flags
       cmake --build "$src/.build" -j "$JOBS"
       cmake --install "$src/.build" ;;
@@ -78,6 +79,7 @@ build_libaom() {
   cmake -S "$src" -B "$src/.build" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DAOM_TARGET_CPU=arm64 -DCONFIG_RUNTIME_CPU_DETECT=0 \
     -DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 \
     -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1
@@ -121,6 +123,7 @@ build_x265() {
   cmake -S "$SRC/x265/source" -B "$SRC/x265/build-cmake" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF -DENABLE_CLI=OFF -DENABLE_SHARED=OFF \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET"
   cmake --build "$SRC/x265/build-cmake" -j "$JOBS"
   cmake --install "$SRC/x265/build-cmake"
