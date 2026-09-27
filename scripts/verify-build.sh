@@ -16,6 +16,8 @@ fail=0
 if [ -d "$PREFIX/lib/pkgconfig" ]; then
   echo "== pkg-config files referencing /opt/homebrew:"
   grep -lE '/opt/homebrew' "$PREFIX/lib/pkgconfig"/*.pc 2>/dev/null || echo "  (none)"
+  echo "== pkg-config files requiring libpng:"
+  grep -lE 'libpng' "$PREFIX/lib/pkgconfig"/*.pc 2>/dev/null || echo "  (none)"
 fi
 
 # --- binaries exist and are arm64 ---
