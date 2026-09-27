@@ -21,6 +21,7 @@ SRC="${SRC:-$HERE/../build/src}"
 mkdir -p "$DL" "$SRC"
 STATUS="$DL/.verify-status"
 : > "$STATUS"
+. "$HERE/lib.sh"
 
 while IFS='|' read -r name version url hash license notes; do
   case "$name" in ""|\#*) continue ;; esac
@@ -37,7 +38,7 @@ while IFS='|' read -r name version url hash license notes; do
       actual=$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)
       if [ "$actual" != "$sha" ]; then
         rm -rf "$dest"
-        git clone -q --depth 1 --branch "$version" "$url" "$dest" 2>/dev/null || true
+        fetch_commit "$name" "$version" "$url" "$sha" || true
         actual=$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)
       fi
       if [ "$actual" = "$sha" ]; then

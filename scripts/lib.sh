@@ -35,6 +35,28 @@ download() {
   [ "$actual" = "$hash" ] || { echo "ERROR: $name hash mismatch" >&2; exit 1; }
 }
 
+# fetch_commit <name> <ref> <url> <sha> -> ensure $SRC/<name> is checked out at
+# <sha>. <ref> is usually a tag; for repositories without a tag at the pinned
+# commit it is the 40-hex commit itself (fetched directly). Returns non-zero on
+# mismatch. The checkout is host-agnostic (works for GitHub, GitLab, ...).
+fetch_commit() {
+  name="$1"; ref="$2"; url="$3"; sha="$4"
+  dest="$SRC/$name"
+  if [ ! -d "$dest/.git" ]; then
+    if printf '%s' "$ref" | grep -qE '^[0-9a-f]{40}$'; then
+      mkdir -p "$dest"
+      git -C "$dest" init -q
+      git -C "$dest" remote add origin "$url"
+      git -C "$dest" fetch -q --depth 1 origin "$ref"
+      git -C "$dest" checkout -q FETCH_HEAD
+    else
+      git clone -q --depth 1 --branch "$ref" "$url" "$dest"
+    fi
+  fi
+  actual=$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)
+  [ "$actual" = "$sha" ]
+}
+
 # fetch <name> -> verify and extract (or clone) into $SRC/<name>
 fetch() {
   name="$1"
@@ -48,9 +70,8 @@ fetch() {
   case "$hash" in
     COMMIT=*)
       sha=${hash#COMMIT=}
-      [ -d "$dest/.git" ] || git clone -q --depth 1 --branch "$version" "$url" "$dest"
-      actual=$(git -C "$dest" rev-parse HEAD)
-      [ "$actual" = "$sha" ] || { echo "ERROR: $name commit mismatch" >&2; exit 1; }
+      fetch_commit "$name" "$version" "$url" "$sha" \
+        || { echo "ERROR: $name commit mismatch" >&2; exit 1; }
       ;;
     *)
       download "$name"

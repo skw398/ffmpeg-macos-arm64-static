@@ -136,8 +136,54 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
+            build/src/libunibreak
+            build/src/fribidi
+            build/src/harfbuzz
+            build/src/brotli
+            build/src/highway
+            build/src/lcms2
+            build/src/libudfread
+            build/src/dav1d
             build/src/libaom
+            build/src/SVT-AV1
+            build/src/librav1e
             build/src/libvpx
+            build/src/x264
+            build/src/openh264
+            build/src/libvvenc
+            build/src/liboapv
+            build/src/libxeve
+            build/src/libxevd
+            build/src/libvidstab
+            build/src/libsnappy
+            build/src/libcodec2
+            build/src/liblc3
+            build/src/libgme
+            build/src/rubberband
+            build/src/libsoxr
+            build/src/libmysofa
+            build/src/libwebp
+            build/src/libopenjpeg
+            build/src/libzimg
+            build/src/libjxl
+            build/src/libvmaf
+            build/src/libass
+            build/src/libaribb24
+            build/src/libaribcaption
+            build/src/libbluray
+            build/src/libdvdread
+            build/src/libdvdnav
+            build/src/zvbi
+            build/src/libssh
+            build/src/libsrt
+            build/src/librist
+            build/src/libzmq
+            build/src/librabbitmq
+            build/src/libqrencode
+            build/src/quirc
+            build/src/libtesseract
+            build/src/libflite
+            build/src/SDL2
           key: gitsrc-${{ hashFiles('deps.txt') }}
           restore-keys: gitsrc-
 
@@ -188,8 +234,54 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
+            build/src/libunibreak
+            build/src/fribidi
+            build/src/harfbuzz
+            build/src/brotli
+            build/src/highway
+            build/src/lcms2
+            build/src/libudfread
+            build/src/dav1d
             build/src/libaom
+            build/src/SVT-AV1
+            build/src/librav1e
             build/src/libvpx
+            build/src/x264
+            build/src/openh264
+            build/src/libvvenc
+            build/src/liboapv
+            build/src/libxeve
+            build/src/libxevd
+            build/src/libvidstab
+            build/src/libsnappy
+            build/src/libcodec2
+            build/src/liblc3
+            build/src/libgme
+            build/src/rubberband
+            build/src/libsoxr
+            build/src/libmysofa
+            build/src/libwebp
+            build/src/libopenjpeg
+            build/src/libzimg
+            build/src/libjxl
+            build/src/libvmaf
+            build/src/libass
+            build/src/libaribb24
+            build/src/libaribcaption
+            build/src/libbluray
+            build/src/libdvdread
+            build/src/libdvdnav
+            build/src/zvbi
+            build/src/libssh
+            build/src/libsrt
+            build/src/librist
+            build/src/libzmq
+            build/src/librabbitmq
+            build/src/libqrencode
+            build/src/quirc
+            build/src/libtesseract
+            build/src/libflite
+            build/src/SDL2
           key: gitsrc-${{ hashFiles('deps.txt') }}
 
       - name: FFmpeg pass 1 (for chromaprint)
