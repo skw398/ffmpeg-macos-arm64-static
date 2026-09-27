@@ -45,7 +45,7 @@ libsnappy|cmake|-DSNAPPY_BUILD_TESTS=OFF -DSNAPPY_BUILD_BENCHMARKS=OFF|
 # ---- audio codecs ----
 libopus|autotools|--disable-extra-programs --disable-doc|
 libspeex|autotools|--disable-binaries|
-lame|autotools|--disable-frontend|
+lame|autotools|--disable-frontend --disable-decoder|
 libtwolame|autotools|--disable-sndfile|
 libgsm|make||make-based (build_deps_libgsm)
 opencore-amr|autotools||
