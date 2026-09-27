@@ -46,6 +46,10 @@ build_generic() {
       ( cd "$src"
         # git archives often have no generated configure; bootstrap if needed.
         [ -x ./configure ] || { [ -x ./autogen.sh ] && NOCONFIGURE=1 ./autogen.sh || autoreconf -fi; }
+        # the runner's newer autotools would regenerate pre-generated files
+        # during make (autoheader drops the legacy VERSION define in config.h.in);
+        # keep the generated files newer than their autotools inputs.
+        touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
         # modern macOS ld rejects the obsolete -force_cpusubtype_ALL that some
         # configure scripts inject for darwin; strip it generically.
         if [ -f ./configure ]; then perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure; fi
