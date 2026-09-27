@@ -89,7 +89,7 @@ librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR
 libqrencode|autotools|--without-tools|
 quirc|make||make-based (build_deps_quirc)
 libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DLeptonica_DIR=@PREFIX@|
-libcaca|autotools|--disable-slang --disable-ncurses --disable-imlib2|
+libcaca|autotools|--disable-slang --disable-ncurses --disable-imlib2 --disable-cocoa|no cocoa: its driver touches the private NSApplication _running ivar (broken on modern AppKit)
 libflite|make||configure-based (build_deps_libflite)
 xz|autotools|--disable-doc --disable-nls|
 SDL2|cmake|-DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST=OFF|
