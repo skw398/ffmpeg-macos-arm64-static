@@ -24,7 +24,7 @@ brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
 lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
 leptonica|cmake|-DSW_BUILD=OFF|
-libudfread|meson|-Dexamples=false|
+libudfread|meson|-Denable_examples=false|
 
 # ---- video codecs ----
 dav1d|meson|-Denable_tools=false -Denable_tests=false -Denable_examples=false|
@@ -53,9 +53,9 @@ vo-amrwbenc|autotools||
 libcodec2|cmake|-DUNITTEST=OFF|
 libilbc|cmake||
 liblc3|meson|-Dtools=false -Dpython=false|
-libgme|cmake|-DENABLE_UBSAN=OFF|
+libgme|cmake|-DGME_ENABLE_UBSAN=OFF|
 libopenmpt|autotools|--without-mpg123|
-rubberband|meson|-Dtests=disabled -Ddocs=disabled|
+rubberband|meson|-Dtests=disabled -Dcmdline=disabled -Dvamp=disabled -Dladspa=disabled -Dlv2=disabled|
 libbs2b|autotools||
 libsoxr|cmake|-DWITH_OPENMP=OFF -DBUILD_TESTS=OFF|
 libmysofa|cmake|-DBUILD_TESTS=OFF|
@@ -80,9 +80,9 @@ zvbi|autotools|--disable-nls --without-libpng|
 openssl|perl|no-shared no-tests|
 libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DUSE_ENCLIB=openssl-evp -DOPENSSL_ROOT_DIR=@PREFIX@|
-librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dtest=false -Ddocs=false|
+librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dtest=false|
 libzmq|autotools|--without-libsodium|
-librabbitmq|cmake|-DBUILD_EXAMPLES=OFF -DBUILD_TESTS=OFF -DBUILD_TOOLS=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|
+librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|
 
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|
