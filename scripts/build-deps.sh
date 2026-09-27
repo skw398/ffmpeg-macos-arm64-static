@@ -248,6 +248,8 @@ build_one() {
 mkdir -p "$PREFIX/lib/pkgconfig" "$PREFIX/lib"
 sdk=$(xcrun --show-sdk-path)
 # macOS ships libxml2 in the SDK but no pkg-config file; provide one (Apple dylib).
+# NOTE: pkgconf skips a .pc file that does not declare Name/Description/Version
+# (it reports "not found in the pkg-config search path"), so keep all three.
 cat > "$PREFIX/lib/pkgconfig/libxml-2.0.pc" <<EOF
 prefix=$sdk/usr
 exec_prefix=\${prefix}
@@ -255,6 +257,7 @@ libdir=\${prefix}/lib
 includedir=$sdk/usr/include/libxml2
 
 Name: libXML
+Description: libXML XML parser (macOS SDK)
 Version: 2.9.13
 Libs: -L\${libdir} -lxml2
 Cflags: -I\${includedir}

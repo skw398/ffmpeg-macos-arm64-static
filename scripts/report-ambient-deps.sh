@@ -27,6 +27,12 @@ trap 'rm -f "$bad"' EXIT
 
 for pc in "$PCDIR"/*.pc; do
   [ -f "$pc" ] || continue
+  # a .pc file that pkgconf skips (no Name/Description/Version) is treated as
+  # absent, so an invalid shim would silently resolve from Homebrew/system;
+  # catch that here rather than letting the closed search hide it.
+  mod=$(basename "$pc" .pc)
+  pkg-config --exists "$mod" 2>/dev/null \
+    || echo "INVALID  $mod  (pkg-config cannot load $(basename "$pc"))" >> "$bad"
   reqs=$(sed -n 's/^Requires\(\.private\)\{0,1\}:[[:space:]]*//p' "$pc" \
     | tr ',' '\n' | tr ' ' '\n' \
     | grep -vE '^$|^(>=|<=|=|>|<)|^[0-9]' | sort -u)
@@ -44,7 +50,7 @@ for pc in "$PCDIR"/*.pc; do
 done
 
 if [ -s "$bad" ]; then
-  echo "== dependencies that do not resolve inside the prefix =="
+  echo "== modules that do not resolve inside the prefix =="
   sort -u "$bad"
   echo "RESULT: FAILED (provide them in the prefix or disable the feature)"
   exit 1
