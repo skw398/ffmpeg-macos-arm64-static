@@ -139,6 +139,15 @@ build_libvmaf() {
 
 dispatch_build() {
   name="$1"; kind="$2"; flags="$3"
+
+  # source patches (applied in build/src, not committed upstream)
+  case "$name" in
+    libssh)
+      # CMake 4 errors in libssh's CompilerChecks flag probing; skip it
+      perl -pi -e 's/include\(CompilerChecks\.cmake\)/# include(CompilerChecks.cmake)/' \
+        "$SRC/libssh/CMakeLists.txt" ;;
+  esac
+
   case "$name" in
     libaom)      build_libaom ;;
     libvpx)      build_libvpx ;;
