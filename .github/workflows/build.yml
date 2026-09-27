@@ -174,3 +174,4 @@ jobs:
             build/artifacts
             build/logs
             build/src/ffmpeg/ffbuild/config.log
+            build/src/ffmpeg-pass1/ffbuild/config.log
