@@ -113,7 +113,12 @@ build_openh264() {
 }
 
 build_libgsm() {
-  ( cd "$SRC/libgsm" && make -j"$JOBS" && make install PREFIX="$PREFIX" )
+  ( cd "$SRC/libgsm" && make -j"$JOBS" )
+  # libgsm's install target needs INSTALL_ROOT and uses an "inc" directory, so
+  # place the library and header where FFmpeg's configure looks for them
+  mkdir -p "$PREFIX/lib" "$PREFIX/include"
+  cp "$SRC/libgsm/lib/libgsm.a" "$PREFIX/lib/"
+  cp "$SRC/libgsm/inc/gsm.h" "$PREFIX/include/"
 }
 
 build_quirc() {

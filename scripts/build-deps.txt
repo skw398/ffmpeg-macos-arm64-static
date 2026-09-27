@@ -47,7 +47,7 @@ libopus|autotools|--disable-extra-programs --disable-doc|
 libspeex|autotools|--disable-binaries|
 lame|autotools|--disable-frontend --disable-decoder|
 libtwolame|autotools|--disable-sndfile|
-libgsm|make||make-based (build_deps_libgsm)
+libgsm|make-copy||make + copy artifacts (build_libgsm)
 opencore-amr|autotools||
 vo-amrwbenc|autotools||
 libcodec2|cmake|-DUNITTEST=OFF|
