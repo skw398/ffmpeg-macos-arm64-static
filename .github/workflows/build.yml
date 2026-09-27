@@ -41,6 +41,11 @@ jobs:
             brew install cargo-c || cargo install cargo-c --locked
           fi
 
+      - name: Record toolchain versions
+        run: |
+          mkdir -p build
+          sh scripts/record-toolchain.sh | tee build/toolchain-versions.txt
+
       - name: Save Homebrew downloads
         if: always() && steps.cache-brew.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
@@ -173,5 +178,6 @@ jobs:
             build/prefix/bin/ffplay
             build/artifacts
             build/logs
+            build/toolchain-versions.txt
             build/src/ffmpeg/ffbuild/config.log
             build/src/ffmpeg-pass1/ffbuild/config.log
