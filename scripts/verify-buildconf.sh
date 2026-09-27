@@ -22,13 +22,17 @@ CFG="$SRC/ffmpeg"
 fail=0
 
 # enabled config macros (config.h: libraries/flags; config_components.h: components)
-enabled=$(awk '/^#define[ \t]+CONFIG_[A-Z0-9_]+[ \t]+1([ \t]|$)/{print $2}' \
-  "$CFG/config.h" "$CFG/config_components.h" 2>/dev/null | sort -u)
+# written to a file: piping a large list into `grep -q` would abort the shell
+# with EPIPE once grep exits early
+enabled_file=$(mktemp)
+trap 'rm -f "$enabled_file"' EXIT
+awk '/^#define[ \t]+CONFIG_[A-Z0-9_]+[ \t]+1([ \t]|$)/{print $2}' \
+  "$CFG/config.h" "$CFG/config_components.h" 2>/dev/null | sort -u > "$enabled_file"
 
 # every adopted library must be enabled in config.h
 for t in $(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$TOKENS"); do
   macro="CONFIG_$(printf '%s' "$t" | tr '[:lower:]' '[:upper:]')"
-  if printf '%s\n' "$enabled" | grep -qx "$macro"; then
+  if grep -qx "$macro" "$enabled_file"; then
     :
   else
     echo "DISABLED lib: $t ($macro)"; fail=1
@@ -37,7 +41,7 @@ done
 
 # license flags passed / nonfree absent (configure args sanity)
 BC=$("$BIN" -buildconf 2>/dev/null)
-has_flag() { printf '%s\n' "$BC" | grep -q -- "$1"; }
+has_flag() { case "$BC" in *"$1"*) return 0 ;; *) return 1 ;; esac; }
 has_flag --enable-gpl      || { echo "MISSING --enable-gpl"; fail=1; }
 has_flag --enable-version3 || { echo "MISSING --enable-version3"; fail=1; }
 if has_flag --enable-nonfree; then echo "UNEXPECTED --enable-nonfree"; fail=1; fi

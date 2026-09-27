@@ -74,13 +74,21 @@ jobs:
           key: gitsrc-${{ hashFiles('deps.txt') }}
           restore-keys: gitsrc-
 
-      - name: Restore FFmpeg build cache
-        id: cache-ffmpeg
+      - name: Restore FFmpeg pass-1 cache
+        id: cache-ffmpeg-pass1
+        uses: actions/cache/restore@v4
+        with:
+          path: build/src/ffmpeg-pass1
+          key: ffmpeg-pass1-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
+          restore-keys: ffmpeg-pass1-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-
+
+      - name: Restore FFmpeg full cache
+        id: cache-ffmpeg-full
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg
-          key: ffmpeg-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
-          restore-keys: ffmpeg-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-
+          key: ffmpeg-full-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
+          restore-keys: ffmpeg-full-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-
 
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
@@ -120,18 +128,25 @@ jobs:
       - name: FFmpeg pass 1 (for chromaprint)
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
 
-      - name: Save FFmpeg build cache
-        if: ${{ always() && steps.cache-ffmpeg.outputs.cache-hit != 'true' && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+      - name: Save FFmpeg pass-1 cache
+        if: ${{ always() && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
-          path: build/src/ffmpeg
-          key: ffmpeg-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
+          path: build/src/ffmpeg-pass1
+          key: ffmpeg-pass1-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
 
       - name: Build chromaprint
         run: sh scripts/build-chromaprint.sh
 
       - name: FFmpeg (full)
         run: sh scripts/build-ffmpeg.sh
+
+      - name: Save FFmpeg full cache
+        if: ${{ always() && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: build/src/ffmpeg
+          key: ffmpeg-full-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-${{ github.run_id }}
 
       - name: Check library consumers
         run: |

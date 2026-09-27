@@ -33,6 +33,15 @@ if [ ! -d "$SRC/ffmpeg" ]; then
   fetch ffmpeg
 fi
 
+# Pass 1 builds in its own tree so both passes can be cached and restored
+# independently (the full pass keeps the canonical build/src/ffmpeg tree).
+if [ "$CHROMAPRINT" -eq 1 ]; then
+  builddir="$SRC/ffmpeg"
+else
+  builddir="$SRC/ffmpeg-pass1"
+  [ -d "$builddir" ] || cp -R "$SRC/ffmpeg" "$builddir"
+fi
+
 # --- configure ---
 # NOTE: --disable-vulkan because Vulkan on macOS needs MoltenVK (a third-party
 # dylib), which the Apple-only runtime rule forbids.
@@ -77,13 +86,13 @@ if [ "$CHROMAPRINT" -eq 1 ]; then PASS=full; else PASS=pass1; fi
 
 # Reuse an existing configuration when the tree (possibly restored from the CI
 # cache) was configured with identical arguments, so make runs incrementally.
-stamp="$SRC/ffmpeg/ffbuild/.configure-stamp"
-if [ -f "$stamp" ] && [ -f "$SRC/ffmpeg/ffbuild/config.mak" ] \
+stamp="$builddir/ffbuild/.configure-stamp"
+if [ -f "$stamp" ] && [ -f "$builddir/ffbuild/config.mak" ] \
    && [ "$(cat "$stamp")" = "$(printf '%s\n' "$@")" ]; then
   echo "== reuse existing FFmpeg configuration ($PASS)"
 else
-  if ! ( set -e; cd "$SRC/ffmpeg" && ./configure "$@" ) > "$LOGS/ffmpeg-configure-$PASS.log" 2>&1; then
-    echo "FAILED: ffmpeg configure ($PASS) (log: build/logs/ffmpeg-configure-$PASS.log; see also $SRC/ffmpeg/ffbuild/config.log)"
+  if ! ( set -e; cd "$builddir" && ./configure "$@" ) > "$LOGS/ffmpeg-configure-$PASS.log" 2>&1; then
+    echo "FAILED: ffmpeg configure ($PASS) (log: build/logs/ffmpeg-configure-$PASS.log; see also $builddir/ffbuild/config.log)"
     tail -n 40 "$LOGS/ffmpeg-configure-$PASS.log" 2>/dev/null || true
     exit 1
   fi
@@ -91,10 +100,10 @@ else
 fi
 
 # --- build ---
-if ! ( set -e; cd "$SRC/ffmpeg" && make -j"$JOBS" && make install ) > "$LOGS/ffmpeg-build-$PASS.log" 2>&1; then
+if ! ( set -e; cd "$builddir" && make -j"$JOBS" && make install ) > "$LOGS/ffmpeg-build-$PASS.log" 2>&1; then
   echo "FAILED: ffmpeg build ($PASS) (log: build/logs/ffmpeg-build-$PASS.log)"
   tail -n 40 "$LOGS/ffmpeg-build-$PASS.log" 2>/dev/null || true
   exit 1
 fi
 
-echo "== ffmpeg build done (chromaprint=$CHROMAPRINT): $SRC/ffmpeg/ffmpeg"
+echo "== ffmpeg build done (chromaprint=$CHROMAPRINT): $builddir/ffmpeg"
