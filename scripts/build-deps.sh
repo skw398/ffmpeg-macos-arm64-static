@@ -124,7 +124,10 @@ build_quirc() {
 }
 
 build_libflite() {
-  ( cd "$SRC/libflite" && ./configure --prefix="$PREFIX" && make -j"$JOBS" && make install )
+  # libflite's install uses GNU cp -d, which macOS cp lacks
+  ( cd "$SRC/libflite" && ./configure --prefix="$PREFIX" && make -j"$JOBS" \
+    && perl -pi -e 's/\bcp -pd\b/cp -p/g' main/Makefile \
+    && make install )
 }
 
 build_x265() {
