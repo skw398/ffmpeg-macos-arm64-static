@@ -310,11 +310,13 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
 done
 
 # Some libraries install their static archive into a subdirectory while their
-# pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it.
+# pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it. Always
+# refresh the copy: a cached prefix can hold a stale one from an earlier build,
+# which would silently mask a rebuilt library.
 for a in "$PREFIX"/lib/*/lib*.a; do
   [ -e "$a" ] || continue
   base=$(basename "$a")
-  [ -e "$PREFIX/lib/$base" ] || cp -f "$a" "$PREFIX/lib/$base"
+  cp -f "$a" "$PREFIX/lib/$base"
 done
 
 # The static ffmpeg must link only Apple dylibs, and the linker prefers a
