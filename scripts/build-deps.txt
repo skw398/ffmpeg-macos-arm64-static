@@ -20,7 +20,7 @@ libunibreak|autotools||
 freetype|autotools|--without-png --without-bzip2|
 fribidi|meson|-Ddocs=false -Dtests=false|
 libpng|cmake|-DPNG_SHARED=OFF -DPNG_TESTS=OFF|static only; required by libaribb24 and harfbuzz-raster
-harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled|
+harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dutilities=disabled -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled|library only: the util tools pull an incomplete static brotli
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
 lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
