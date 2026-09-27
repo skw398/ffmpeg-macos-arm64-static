@@ -155,6 +155,11 @@ dispatch_build() {
       # the module it would have provided (check_c_compiler_flag)
       perl -pi -e 's/include\(CompilerChecks\.cmake\)/include(CheckCCompilerFlag)/' \
         "$SRC/libssh/CMakeLists.txt" ;;
+    libqrencode)
+      # autoconf >= 2.70 no longer defines VERSION from AC_INIT in config.h;
+      # qrencode.c uses it for QRcode_APIVersionString(), so restore the define
+      perl -0pi -e 's/(AC_INIT\([^\n]*\)\n)/$1AC_DEFINE_UNQUOTED([VERSION], ["\$PACKAGE_VERSION"], [Package version])\n/' \
+        "$SRC/libqrencode/configure.ac" ;;
   esac
 
   case "$name" in
