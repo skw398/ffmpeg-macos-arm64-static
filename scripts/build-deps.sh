@@ -24,9 +24,9 @@ export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 # some libraries pass GCC-only -Wno-* flags together with -Werror; keep clang
-# from failing on the unknown options (generic across all libraries)
-export CFLAGS="-Wno-unknown-warning-option ${CFLAGS:-}"
-export CXXFLAGS="-Wno-unknown-warning-option ${CXXFLAGS:-}"
+# from failing on unknown options or on clang-only warnings they don't disable
+export CFLAGS="-Wno-unknown-warning-option -Wno-sometimes-uninitialized ${CFLAGS:-}"
+export CXXFLAGS="-Wno-unknown-warning-option -Wno-sometimes-uninitialized ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export CMAKE_PREFIX_PATH="$PREFIX"
 export CPPFLAGS="-I$PREFIX/include ${CPPFLAGS:-}"

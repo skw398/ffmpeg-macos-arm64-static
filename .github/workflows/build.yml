@@ -28,28 +28,28 @@ jobs:
           brew install cmake ninja meson nasm pkgconf autoconf automake libtool gettext perl rust
           brew install cargo-c || cargo install cargo-c --locked
 
-      - name: Cache downloads
-        uses: actions/cache@v4
+      - name: Restore downloads cache
+        id: cache-downloads
+        uses: actions/cache/restore@v4
         with:
           path: build/downloads
           key: downloads-${{ hashFiles('deps.txt') }}
-          save-always: true
 
-      - name: Cache built prefix
-        uses: actions/cache@v4
+      - name: Restore prefix cache
+        id: cache-prefix
+        uses: actions/cache/restore@v4
         with:
           path: build/prefix
           key: prefix-${{ hashFiles('deps.txt') }}
-          save-always: true
 
-      - name: Cache git sources
-        uses: actions/cache@v4
+      - name: Restore git sources cache
+        id: cache-gitsrc
+        uses: actions/cache/restore@v4
         with:
           path: |
             build/src/libaom
             build/src/libvpx
           key: gitsrc-${{ hashFiles('deps.txt') }}
-          save-always: true
 
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
@@ -60,6 +60,29 @@ jobs:
 
       - name: Build dependencies
         run: sh scripts/build-deps.sh
+
+      - name: Save downloads cache
+        if: always() && steps.cache-downloads.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/downloads
+          key: downloads-${{ hashFiles('deps.txt') }}
+
+      - name: Save prefix cache
+        if: always() && steps.cache-prefix.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/prefix
+          key: prefix-${{ hashFiles('deps.txt') }}
+
+      - name: Save git sources cache
+        if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            build/src/libaom
+            build/src/libvpx
+          key: gitsrc-${{ hashFiles('deps.txt') }}
 
       - name: FFmpeg pass 1 (for chromaprint)
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
