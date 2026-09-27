@@ -203,10 +203,6 @@ jobs:
           key: ffmpeg-full-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
           restore-keys: ffmpeg-full-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-
 
-      - name: Report ambient dependencies
-        if: always()
-        run: sh scripts/report-ambient-deps.sh
-
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
         run: sh scripts/verify-pins.sh
@@ -218,6 +214,9 @@ jobs:
         env:
           FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
         run: sh scripts/build-deps.sh
+
+      - name: Check ambient dependencies
+        run: sh scripts/report-ambient-deps.sh
 
       - name: Save downloads cache
         if: always() && steps.cache-downloads.outputs.cache-hit != 'true'

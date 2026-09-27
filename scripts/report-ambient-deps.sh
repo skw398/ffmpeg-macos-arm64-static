@@ -1,12 +1,11 @@
 #!/bin/sh
-# report-ambient-deps.sh — list the inputs that are resolved from OUTSIDE the
-# prefix (Homebrew / system), i.e. ambient dependencies that make the build
-# non-hermetic. Read-only: it inspects the restored prefix and does not change
-# the build.
+# report-ambient-deps.sh — check that every module required by the prefix's
+# .pc files resolves INSIDE the prefix.
 #
-# For every module required by a .pc file in the prefix, it asks pkg-config
-# (with the same PKG_CONFIG_PATH the build uses) which .pc actually answers and
-# reports it when that file lives outside the prefix.
+# The build closes the pkg-config search to the prefix (PKG_CONFIG_LIBDIR), so
+# any dependency that is not provided in the prefix would silently come from
+# Homebrew/system. This script fails when such a dependency is found, so CI
+# notifies us before a non-Apple library can be linked in.
 set -u
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -14,18 +13,18 @@ ROOT="$HERE/.."
 PREFIX="${PREFIX:-$ROOT/build/prefix}"
 PCDIR="$PREFIX/lib/pkgconfig"
 
-if [ ! -d "$PCDIR" ]; then
-  echo "no pkg-config dir in the prefix ($PCDIR); nothing to report"
-  exit 0
-fi
+[ -d "$PCDIR" ] || { echo "ERROR: no pkg-config dir in the prefix ($PCDIR)"; exit 1; }
 
-# same search path as the build: prefix first, then the ambient defaults
+# same (closed) search path the build uses
+export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 
 echo "== prefix .pc files embedding /opt/homebrew paths =="
 grep -rl '/opt/homebrew' "$PCDIR" 2>/dev/null || echo "  (none)"
 
-echo "== modules required by the prefix that resolve OUTSIDE the prefix =="
+bad=$(mktemp)
+trap 'rm -f "$bad"' EXIT
+
 for pc in "$PCDIR"/*.pc; do
   [ -f "$pc" ] || continue
   reqs=$(sed -n 's/^Requires\(\.private\)\{0,1\}:[[:space:]]*//p' "$pc" \
@@ -34,12 +33,20 @@ for pc in "$PCDIR"/*.pc; do
   for r in $reqs; do
     dir=$(pkg-config --variable=pcfiledir "$r" 2>/dev/null || true)
     if [ -z "$dir" ]; then
-      echo "  MISSING  $r  (required by $(basename "$pc"))"
+      echo "MISSING  $r  (required by $(basename "$pc"))" >> "$bad"
     else
       case "$dir" in
         "$PREFIX"/*) : ;;
-        *) echo "  AMBIENT  $r  ->  $dir  (required by $(basename "$pc"))" ;;
+        *) echo "OUTSIDE  $r  ->  $dir  (required by $(basename "$pc"))" >> "$bad" ;;
       esac
     fi
   done
-done | sort -u
+done
+
+if [ -s "$bad" ]; then
+  echo "== dependencies that do not resolve inside the prefix =="
+  sort -u "$bad"
+  echo "RESULT: FAILED (provide them in the prefix or disable the feature)"
+  exit 1
+fi
+echo "RESULT: all required modules resolve inside the prefix"

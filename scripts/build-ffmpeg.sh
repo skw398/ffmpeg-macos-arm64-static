@@ -23,6 +23,8 @@ CHROMAPRINT=1
 
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
+# search only the prefix (no Homebrew/system .pc files)
+export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 
 # --- extract pinned FFmpeg source ---
 # download and verify the tarball on demand (verify-pins.sh pre-fetches it when

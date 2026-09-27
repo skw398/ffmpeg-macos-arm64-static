@@ -30,6 +30,9 @@ export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 export CFLAGS="-Wno-unknown-warning-option ${CFLAGS:-}"
 export CXXFLAGS="-Wno-unknown-warning-option ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
+# close the pkg-config search to the prefix so Homebrew/system .pc files are
+# never picked up (any missing dependency must be provided in the prefix)
+export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export CMAKE_PREFIX_PATH="$PREFIX"
 export CPPFLAGS="-I$PREFIX/include ${CPPFLAGS:-}"
 export LDFLAGS="-L$PREFIX/lib ${LDFLAGS:-}"
@@ -253,6 +256,20 @@ includedir=$sdk/usr/include/libxml2
 Name: libXML
 Version: 2.9.13
 Libs: -L\${libdir} -lxml2
+Cflags: -I\${includedir}
+EOF
+# zlib lives in the SDK (Apple) but has no pkg-config file; provide a shim so
+# the closed search still resolves it to the system libz.
+cat > "$PREFIX/lib/pkgconfig/zlib.pc" <<EOF
+prefix=$sdk/usr
+exec_prefix=\${prefix}
+libdir=\${prefix}/lib
+includedir=\${prefix}/include
+
+Name: zlib
+Description: zlib compression library (macOS SDK)
+Version: 1.2.12
+Libs: -L\${libdir} -lz
 Cflags: -I\${includedir}
 EOF
 # FFmpeg's libsnappy check links -lstdc++, which macOS lacks; alias it to libc++.
