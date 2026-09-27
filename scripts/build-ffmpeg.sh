@@ -25,12 +25,12 @@ export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 
 # --- extract pinned FFmpeg source ---
-ffver=$(awk -F'|' '$1=="ffmpeg"{print $2}' "$ROOT/deps.txt")
-fftar="$DL/ffmpeg-$ffver.tarball"
-[ -f "$fftar" ] || { echo "ERROR: missing $fftar" >&2; exit 1; }
+# download and verify the tarball on demand (verify-pins.sh pre-fetches it when
+# pin verification is enabled, but it must not be a prerequisite)
+PINS="$ROOT/deps.txt"
+. "$HERE/lib.sh"
 if [ ! -d "$SRC/ffmpeg" ]; then
-  mkdir -p "$SRC/ffmpeg"
-  tar -xf "$fftar" -C "$SRC/ffmpeg" --strip-components=1
+  fetch ffmpeg
 fi
 
 # --- configure ---
