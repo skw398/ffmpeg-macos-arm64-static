@@ -91,17 +91,19 @@ fetch() {
       ;;
   esac
 
-  # Some CMake projects add -Werror to their own flags: libxeve does, in the
-  # branch it takes for AppleClang (it only special-cases the id "Clang"), and
-  # the newer clang then fails on warnings upstream has not fixed. Strip it from
-  # the CMake sources before configuring and report the count: on a full build,
-  # 0 occurrences means the strip can be dropped (a partial build cannot tell,
-  # which is how it was once dropped and then broke libxeve).
-  n=$(find "$dest" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
-        -exec grep -hoE '(^|[^-])-Werror(=[A-Za-z0-9_-]+)?([^A-Za-z0-9_-]|$)' {} + 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$n" -gt 0 ]; then echo "== patch: CMake -Werror strip: $n occurrence(s)"; fi
-  find "$dest" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
-    -exec perl -pi -e 's/(^|[^-])-Werror(?:=[A-Za-z0-9_-]+)?(?![A-Za-z0-9_-])/$1/g' {} + 2>/dev/null || true
+  # generic: drop the bare -Werror promotion from CMake build files (clang trips
+  # on the GCC-targeted warnings these projects enable with -Wall; libxeve adds
+  # one in the branch it takes for AppleClang, which does not match its "Clang"
+  # branch). Keep -Werror=<warning> / -Werror-<warning>: those are specific
+  # diagnostics that are often passed as data (e.g. check_c_compiler_flag
+  # arguments), where removing them would corrupt the CMake code. Report the
+  # count so an inert strip is visible: a partial build cannot tell (see
+  # docs/BUILD-WORKAROUNDS.md).
+  n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+        -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
+  find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+    -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
 }
 
 # --- workaround trials -------------------------------------------------------
