@@ -57,11 +57,18 @@ else
 fi
 
 # --- [D] cmake_minimum_required < 3.5 (CMAKE_POLICY_VERSION_MINIMUM) ----------
+# cmake projects we build: the recipes, plus chromaprint, which is built outside
+# build-deps.txt (between the FFmpeg passes) but gets the same global -D flags
+cmake_projects() {
+  grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" | awk -F'|' '$2=="cmake"{print $1}'
+  echo chromaprint
+}
+
 echo
 echo "== [D] CMake projects declaring < 3.5 (CMAKE_POLICY_VERSION_MINIMUM) =="
 low=""
 scanned=0
-for name in $(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" | awk -F'|' '$2=="cmake"{print $1}'); do
+for name in $(cmake_projects); do
   src="$SRC/$name"
   [ -d "$src" ] || continue
   scanned=$((scanned + 1))
@@ -84,6 +91,36 @@ else
   echo "  none of the $scanned CMake projects declares < 3.5"
   echo "  -> CMAKE_POLICY_VERSION_MINIMUM=3.5 can be dropped"
   fired=1
+fi
+
+# --- [D] CMake projects that never read BUILD_TESTING ------------------------
+# -DBUILD_TESTING=OFF is passed to every CMake project. The triage counts the
+# libraries whose log reports it unused (labelled [global]), but chromaprint
+# builds after that step, so its log is never counted: check the sources here.
+echo
+echo "== [D] CMake projects that never read BUILD_TESTING (-DBUILD_TESTING=OFF) =="
+reads=""
+never=""
+for name in $(cmake_projects); do
+  src="$SRC/$name"
+  [ -d "$src" ] || continue
+  if find "$src" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
+       -exec grep -qE 'BUILD_TESTING|include\([[:space:]]*CTest' {} + 2>/dev/null; then
+    reads="$reads $name"
+  else
+    never="$never $name"
+  fi
+done
+if [ -z "$reads$never" ]; then
+  echo "  (no CMake sources present: skipped)"
+elif [ -z "$reads" ]; then
+  echo "  no CMake project reads BUILD_TESTING:$never"
+  echo "  -> -DBUILD_TESTING=OFF can be dropped"
+  fired=1
+else
+  echo "  reads BUILD_TESTING:$reads"
+  [ -n "$never" ] && echo "  never reads it (the flag is inert there):$never"
+  echo "  -> -DBUILD_TESTING=OFF still needed"
 fi
 
 # --- [I] artifact-consumers skips --------------------------------------------
