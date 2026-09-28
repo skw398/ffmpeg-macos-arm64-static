@@ -267,9 +267,13 @@ build_one() {
   # which would silently mask the rebuild.
   mf="$MANIFEST/$name"
   if [ -f "$mf" ]; then
+    removed=0
     while IFS= read -r f; do
-      [ -n "$f" ] && rm -f "$PREFIX/$f"
+      [ -n "$f" ] || continue
+      rm -f "$PREFIX/$f"
+      removed=$((removed + 1))
     done < "$mf"
+    echo "== manifest $name: removed $removed previous file(s)"
   fi
 
   before=$(mktemp); after=$(mktemp)
@@ -293,6 +297,7 @@ build_one() {
   prefix_files > "$after"
   mkdir -p "$MANIFEST"
   comm -13 "$before" "$after" > "$mf"
+  echo "== manifest $name: recorded $(wc -l < "$mf" | tr -d ' ') file(s)"
   rm -f "$before" "$after"
 
   touch "$marker"
