@@ -42,6 +42,13 @@ download() {
 fetch_commit() {
   name="$1"; ref="$2"; url="$3"; sha="$4"
   dest="$SRC/$name"
+  # a cached tree at another commit (e.g. a pin bump, where restore-keys can
+  # bring back a cache keyed by the previous deps.txt) must be re-cloned, or the
+  # checkout below would keep the old HEAD and fail with a commit mismatch
+  if [ -d "$dest/.git" ] \
+     && [ "$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)" != "$sha" ]; then
+    rm -rf "$dest"
+  fi
   if [ ! -d "$dest/.git" ]; then
     if printf '%s' "$ref" | grep -qE '^[0-9a-f]{40}$'; then
       mkdir -p "$dest"
@@ -117,11 +124,15 @@ trial_flag() {
 }
 
 # validate_trials -> announce the run's trial and reject an unknown id: a typo
-# would leave every workaround in place and make the result meaningless
+# would leave every workaround in place and make the result meaningless.
+# `reset` is reserved: it leaves every workaround in place but still makes the
+# run reset the cached build state, which a manual per-library flag trial needs
+# (see docs/BUILD-WORKAROUNDS.md).
 validate_trials() {
   ids=$(printf '%s' "${NO_WORKAROUNDS:-}" | tr ',' ' ' | tr -s ' ' | sed 's/^ *//;s/ *$//')
   [ -n "$ids" ] || return 0
   for id in $ids; do
+    [ "$id" = reset ] && continue
     grep -qE "^$id\|" "$TRIALS" || {
       echo "ERROR: unknown trial workaround id '$id' (see $TRIALS)" >&2
       echo "       known ids:" >&2

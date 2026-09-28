@@ -4,6 +4,9 @@
 # 各回避策の「外せる条件」は docs/BUILD-WORKAROUNDS.md が正。
 #
 # id|節|trial で外れるもの
+#
+# 予約語: `reset` — 回避策は何も外さず、ビルド状態のリセットだけを行う（per-library
+# フラグを手で外して試すときに使う。id と併記すれば「リセット + その id を外す」）
 wno-unknown-warning-option|D|CFLAGS/CXXFLAGS の -Wno-unknown-warning-option
 size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include
 meson-werror-false|D|meson ライブラリの -Dwerror=false
