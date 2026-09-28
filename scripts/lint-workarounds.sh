@@ -10,6 +10,7 @@
 #   [I] an artifact-consumers skip is unnecessary    -> drop the skip entry
 #   [J] python3 is no longer PEP 668 managed         -> drop the meson venv
 #   [H] a custom-built library gained a build system -> consider switching to it
+#   [T] a trial id is listed but never consulted     -> the trial does nothing
 set -u
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -139,6 +140,27 @@ if [ -n "$hit" ]; then
   fired=1
 else
   echo "  (none: custom builders still needed)"
+fi
+
+# --- [T] trial ids: is every listed id consulted? ----------------------------
+echo
+echo "== [T] trial workaround ids (trial-workarounds.txt vs the scripts) =="
+trials="$HERE/trial-workarounds.txt"
+scanned="$HERE/build-deps.sh $HERE/build-ffmpeg.sh"
+listed=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$trials" | cut -d'|' -f1 | sort -u)
+consulted=$(grep -hoE 'trial_(disabled|flag) [a-z0-9-]+' $scanned | awk '{print $2}' | sort -u)
+unused=$(printf '%s\n' "$listed" | grep -vE '^$' | grep -vxF "$consulted" | tr '\n' ' ' || true)
+unlisted=$(printf '%s\n' "$consulted" | grep -vE '^$' | grep -vxF "$listed" | tr '\n' ' ' || true)
+if [ -n "$unused" ] || [ -n "$unlisted" ]; then
+  if [ -n "$unused" ]; then
+    echo "  listed but never consulted:$unused"
+    echo "  -> the trial would silently do nothing; wire it up or drop the id"
+  fi
+  if [ -n "$unlisted" ]; then
+    echo "  consulted but not listed:$unlisted -> add it to trial-workarounds.txt"
+  fi
+else
+  echo "  every listed id is consulted, and every consulted id is listed"
 fi
 
 echo
