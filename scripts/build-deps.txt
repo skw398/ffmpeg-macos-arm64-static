@@ -25,10 +25,10 @@ brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
 lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
 leptonica|cmake|-DSW_BUILD=OFF -DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_GIF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF|no image codecs: OCR only needs raw frames, and they pull Homebrew dylibs / break lept.pc Requires
-libudfread|meson|-Denable_examples=false|
+libudfread|meson||
 
 # ---- video codecs ----
-dav1d|meson|-Denable_tools=false -Denable_tests=false -Denable_examples=false|
+dav1d|meson|-Denable_tools=false -Denable_tests=false|
 libaom|custom||git pin (clone); cmake in build_deps_libaom
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
 librav1e|custom||Rust + cargo-c
@@ -53,7 +53,7 @@ opencore-amr|autotools||
 vo-amrwbenc|autotools||
 libcodec2|cmake|-DUNITTEST=OFF|
 libilbc|cmake||
-liblc3|meson|-Dtools=false -Dpython=false|
+liblc3|meson||
 libgme|cmake|-DGME_ENABLE_UBSAN=OFF|
 libopenmpt|autotools|--without-mpg123 --without-portaudio --without-portaudiocpp --without-flac --without-sndfile --without-vorbis --without-vorbisfile --without-ogg --without-zlib --disable-openmpt123 --disable-examples --disable-tests|
 rubberband|meson|-Dtests=disabled -Dcmdline=disabled -Dvamp=disabled -Dladspa=disabled -Dlv2=disabled|
@@ -73,9 +73,9 @@ libvmaf|custom||meson under libvmaf/ (build_libvmaf)
 libass|meson|-Dfontconfig=disabled -Dtest=disabled -Dcompare=disabled|
 libaribb24|autotools||
 libaribcaption|cmake|-DARIBCC_BUILD_TESTS=OFF|
-libbluray|meson|-Denable_docs=false -Denable_tools=false -Dbdj_jar=disabled -Dfontconfig=disabled -Dfreetype=disabled -Dlibxml2=disabled|
-libdvdread|meson|-Denable_docs=false|
-libdvdnav|meson|-Denable_docs=false -Denable_examples=false|
+libbluray|meson|-Denable_tools=false -Dbdj_jar=disabled -Dfontconfig=disabled -Dfreetype=disabled -Dlibxml2=disabled|
+libdvdread|meson||
+libdvdnav|meson||
 zvbi|autotools|--disable-nls|libpng: no configure option; AC_CHECK_LIB finds the prefix libpng
 
 # ---- network / messaging ----
