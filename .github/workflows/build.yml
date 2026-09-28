@@ -15,6 +15,10 @@ on:
         description: Ignore every cache, including pinned tools and downloads
         type: boolean
         default: false
+      no_workarounds:
+        description: "Trial: space/comma separated workaround ids to leave out (scripts/trial-workarounds.txt)"
+        type: string
+        default: ""
   push:
     branches: [ main ]
   pull_request:
@@ -37,6 +41,12 @@ jobs:
       CMAKE_VERSION: "4.4.3"
       NINJA_VERSION: "1.13.2"
       MESON_VERSION: "1.12.1"
+      # A workaround trial (input no_workarounds) must build without the
+      # build-output caches and must not save any: a trial-built prefix would
+      # otherwise mask the trial or poison the next normal build. The git-source
+      # cache is still restored, since one of the trials (libvpx-git-clean) is
+      # about build output that cache carries.
+      WORKAROUND_TRIAL: ${{ inputs.no_workarounds }}
     steps:
       - uses: actions/checkout@v4
 
@@ -141,7 +151,7 @@ jobs:
 
       - name: Restore prefix cache
         id: cache-prefix
-        if: ${{ !inputs.clean_build && !inputs.cold_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && env.WORKAROUND_TRIAL == '' }}
         uses: actions/cache/restore@v4
         with:
           path: build/prefix
@@ -207,7 +217,7 @@ jobs:
 
       - name: Restore FFmpeg pass-1 cache
         id: cache-ffmpeg-pass1
-        if: ${{ !inputs.clean_build && !inputs.cold_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && env.WORKAROUND_TRIAL == '' }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -216,7 +226,7 @@ jobs:
 
       - name: Restore FFmpeg full cache
         id: cache-ffmpeg-full
-        if: ${{ !inputs.clean_build && !inputs.cold_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && env.WORKAROUND_TRIAL == '' }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg
@@ -233,6 +243,7 @@ jobs:
       - name: Build dependencies
         env:
           FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
+          NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
         run: sh scripts/build-deps.sh
 
       - name: Check ambient dependencies
@@ -249,14 +260,14 @@ jobs:
           key: downloads-${{ hashFiles('deps.txt') }}
 
       - name: Save prefix cache
-        if: always() && steps.cache-prefix.outputs.cache-hit != 'true'
+        if: always() && env.WORKAROUND_TRIAL == '' && steps.cache-prefix.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/prefix
           key: prefix-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
 
       - name: Save git sources cache
-        if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
+        if: always() && env.WORKAROUND_TRIAL == '' && steps.cache-gitsrc.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
@@ -311,10 +322,12 @@ jobs:
           key: gitsrc-${{ hashFiles('deps.txt') }}
 
       - name: FFmpeg pass 1 (for chromaprint)
+        env:
+          NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
 
       - name: Save FFmpeg pass-1 cache
-        if: ${{ always() && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
+        if: ${{ always() && env.WORKAROUND_TRIAL == '' && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -324,10 +337,12 @@ jobs:
         run: sh scripts/build-chromaprint.sh
 
       - name: FFmpeg (full)
+        env:
+          NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
         run: sh scripts/build-ffmpeg.sh
 
       - name: Save FFmpeg full cache
-        if: ${{ always() && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+        if: ${{ always() && env.WORKAROUND_TRIAL == '' && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
           path: build/src/ffmpeg
@@ -359,7 +374,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-macos-arm64
+          # a trial artifact must not be mistaken for a release candidate
+          name: ffmpeg-macos-arm64${{ env.WORKAROUND_TRIAL != '' && '-trial' || '' }}
           path: |
             build/prefix/bin/ffmpeg
             build/prefix/bin/ffprobe

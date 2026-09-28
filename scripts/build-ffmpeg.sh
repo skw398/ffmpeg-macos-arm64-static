@@ -31,6 +31,9 @@ export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # pin verification is enabled, but it must not be a prerequisite)
 PINS="$ROOT/deps.txt"
 . "$HERE/lib.sh"
+# a trial run leaves out the listed workarounds; an unknown id is an error
+# rather than a silent no-op (see scripts/trial-workarounds.txt)
+validate_trials
 if [ ! -d "$SRC/ffmpeg" ]; then
   fetch ffmpeg
 fi
@@ -50,13 +53,19 @@ fi
 # NOTE: the extra libs below are private dependencies that some of the static
 # libraries' pkg-config files omit (e.g. libjxl_threads.pc lacks -lc++, and
 # libssh.pc lacks -lssl -lcrypto -lz; chromaprint.pc lacks the Accelerate
-# framework it uses for vDSP), so they are supplied explicitly.
+# framework it uses for vDSP), so they are supplied explicitly. An empty
+# --extra-libs= is the same as passing none, which is what a trial run wants.
+extra_libs="-lpthread -lm -lc++ -lssl -lcrypto -lz -framework Accelerate"
+if trial_disabled ffmpeg-extra-libs; then
+  extra_libs=""
+  echo "== trial: dropping FFmpeg --extra-libs"
+fi
 set -- \
   --prefix="$PREFIX" \
   --pkg-config-flags=--static \
   --extra-cflags="-I$PREFIX/include" \
   --extra-ldflags="-L$PREFIX/lib" \
-  --extra-libs="-lpthread -lm -lc++ -lssl -lcrypto -lz -framework Accelerate" \
+  --extra-libs="$extra_libs" \
   --enable-gpl --enable-version3 \
   --enable-static --disable-shared --disable-debug \
   --enable-libxml2 --enable-openssl --enable-lzma \

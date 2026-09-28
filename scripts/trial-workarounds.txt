@@ -1,0 +1,16 @@
+# trial で無効化できる回避策の id（`NO_WORKAROUNDS` / workflow 入力 `no_workarounds`）。
+# ここに挙げた id を指定すると、その回避策を外してビルドする（外せるかの判定用）。
+# 未知の id はビルドを失敗させる（打ち間違いが「何も外さない trial」になるのを防ぐ）。
+# 各回避策の「外せる条件」は docs/BUILD-WORKAROUNDS.md が正。
+#
+# id|節|trial で外れるもの
+wno-unknown-warning-option|D|CFLAGS/CXXFLAGS の -Wno-unknown-warning-option
+size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include
+meson-werror-false|D|meson ライブラリの -Dwerror=false
+autotools-touch|B|autotools 生成ファイルの touch
+libvpx-target|H|libvpx の --target=arm64-darwin20-gcc
+libvpx-git-clean|H|libvpx の configure 前の git clean -xffdq
+quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=
+libaom-target-cpu|H|libaom の -DAOM_TARGET_CPU=arm64
+libaom-runtime-cpu-detect|H|libaom の -DCONFIG_RUNTIME_CPU_DETECT=0
+ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs

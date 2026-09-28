@@ -25,12 +25,17 @@ LINKAGE=static
 # bump when build logic changes, to force rebuilds
 RECIPE_REV=5
 
+. "$HERE/lib.sh"
+# a trial run leaves out the listed workarounds; an unknown id is an error
+# rather than a silent no-op (see scripts/trial-workarounds.txt)
+validate_trials
+
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 # some libraries pass GCC-only -Wno-* flags; keep clang from failing on the
 # unknown options (the -Werror promotion is removed separately in lib.sh)
-export CFLAGS="-Wno-unknown-warning-option ${CFLAGS:-}"
+export CFLAGS="$(trial_flag wno-unknown-warning-option -Wno-unknown-warning-option) ${CFLAGS:-}"
 # Newer libc++ no longer provides size_t transitively, so force it into every
 # translation unit. The preinclude is language-aware because some libraries
 # compile C sources through the C++ driver (opencore-amr sets "-x c" in
@@ -43,7 +48,7 @@ cat > "$preinc/size_t.h" <<'EOF'
 #include <stddef.h>
 #endif
 EOF
-export CXXFLAGS="-include $preinc/size_t.h -Wno-unknown-warning-option ${CXXFLAGS:-}"
+export CXXFLAGS="$(trial_flag size-t-preinclude -include "$preinc/size_t.h") $(trial_flag wno-unknown-warning-option -Wno-unknown-warning-option) ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # close the pkg-config search to the prefix so Homebrew/system .pc files are
 # never picked up (any missing dependency must be provided in the prefix)
@@ -57,8 +62,6 @@ LOGS="${LOGS:-$ROOT/build/logs}"; mkdir -p "$LOGS"
 # per-library record of the files its install created, so a rebuild can remove
 # the previous ones first (a cached prefix may hold files from an older install)
 MANIFEST="$PREFIX/.manifest"
-
-. "$HERE/lib.sh"
 
 # Apply the source patches listed for a library in scripts/patches.txt. Each is
 # checked with `git apply --check` first: a patch that no longer applies means
@@ -100,7 +103,11 @@ build_generic() {
         # the runner's newer autotools would regenerate pre-generated files
         # during make (autoheader drops the legacy VERSION define in config.h.in);
         # keep the generated files newer than their autotools inputs.
-        touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
+        if trial_disabled autotools-touch; then
+          echo "== trial: skipping the generated-file touch"
+        else
+          touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
+        fi
         # modern macOS ld rejects the obsolete -force_cpusubtype_ALL that some
         # configure scripts inject for darwin; strip it generically. Report the
         # count: 0 occurrences over many runs means the strip can be dropped.
@@ -127,7 +134,7 @@ build_generic() {
       cmake --install "$src/.build" ;;
     meson)
       meson setup "$src/.build" "$src" --prefix="$PREFIX" \
-        --default-library=static --buildtype=release -Dwerror=false $flags
+        --default-library=static --buildtype=release $(trial_flag meson-werror-false -Dwerror=false) $flags
       ninja -C "$src/.build"
       ninja -C "$src/.build" install ;;
     perl)
@@ -142,11 +149,14 @@ build_generic() {
 
 build_libaom() {
   src="$SRC/libaom"
+  # AOM_TARGET_CPU / CONFIG_RUNTIME_CPU_DETECT: state the target and drop runtime
+  # CPU detection (static build); both are switchable by a trial run.
   cmake -S "$src" -B "$src/.build" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DAOM_TARGET_CPU=arm64 -DCONFIG_RUNTIME_CPU_DETECT=0 \
+    $(trial_flag libaom-target-cpu -DAOM_TARGET_CPU=arm64) \
+    $(trial_flag libaom-runtime-cpu-detect -DCONFIG_RUNTIME_CPU_DETECT=0) \
     -DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 \
     -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1
   cmake --build "$src/.build" -j "$JOBS"
@@ -155,13 +165,27 @@ build_libaom() {
 
 build_libvpx() {
   flags="$1"
+  # libvpx reads a plain `darwin` target as iOS, so the recipe pins macOS via
+  # --target=arm64-darwin20-gcc (darwin20 = macOS 11 = the runtime floor).
+  # Switchable by a trial run (libvpx-target).
+  if trial_disabled libvpx-target; then
+    echo "== trial: dropping the libvpx --target flag"
+    flags=$(printf '%s' "$flags" | sed -E 's/--target=[^ ]+ ?//')
+  fi
   # libvpx does not support switching the target in a tree that still holds
   # build output; the git-source cache keeps them, so clean before configuring
-  ( cd "$SRC/libvpx" \
-    && { [ -d .git ] && git clean -xffdq || true; } \
-    && ./configure --prefix="$PREFIX" $flags \
-    && { grep -E '^(CFLAGS|ASFLAGS|LDFLAGS)=' config.mk || true; } \
-    && make -j"$JOBS" && make install )
+  # (switchable by a trial run: libvpx-git-clean)
+  ( cd "$SRC/libvpx"
+    if [ -d .git ]; then
+      if trial_disabled libvpx-git-clean; then
+        echo "== trial: skipping the libvpx git clean"
+      else
+        git clean -xffdq || true
+      fi
+    fi
+    ./configure --prefix="$PREFIX" $flags
+    grep -E '^(CFLAGS|ASFLAGS|LDFLAGS)=' config.mk || true
+    make -j"$JOBS" && make install )
 }
 
 build_librav1e() {
@@ -185,7 +209,8 @@ build_libgsm() {
 build_quirc() {
   # SDL is only needed by quirc's demos; its makefile captures pkg-config's
   # stderr into SDL_CFLAGS, whose quotes break the compile command, so blank it
-  ( cd "$SRC/quirc" && make -j"$JOBS" SDL_CFLAGS= libquirc.a ) \
+  # (switchable by a trial run: quirc-sdl-cflags)
+  ( cd "$SRC/quirc" && make -j"$JOBS" $(trial_flag quirc-sdl-cflags SDL_CFLAGS=) libquirc.a ) \
     && mkdir -p "$PREFIX/lib" "$PREFIX/include" \
     && cp "$SRC/quirc/libquirc.a" "$PREFIX/lib/" \
     && cp "$SRC/quirc/lib/quirc.h" "$PREFIX/include/"
