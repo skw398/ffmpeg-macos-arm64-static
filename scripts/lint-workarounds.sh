@@ -40,7 +40,10 @@ cmake_projects() {
 # lib.sh rewrites these files before configure. Scanning the sources (not the
 # build logs) is what makes the answer independent of which libraries this run
 # happened to rebuild: the strip was once dropped on a "0 occurrences" count
-# from a partial build, and the next full build broke libxeve.
+# from a partial build, and the next full build broke libxeve. The pattern is
+# exactly what the strip removes: a bare -Werror. -Werror=<w> / -Werror-<w> are
+# kept (they are specific diagnostics, often passed as check_c_compiler_flag
+# arguments, where removing them would corrupt the CMake code).
 echo "== [B] CMake sources adding -Werror (the CMake -Werror strip) =="
 hits=""
 scanned=0
@@ -48,8 +51,8 @@ for name in $(all_projects); do
   src="$SRC/$name"
   [ -d "$src" ] || continue
   scanned=$((scanned + 1))
-  h=$(find "$src" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
-        -exec grep -lE '(^|[^-])-Werror(=[A-Za-z0-9_-]+)?([^A-Za-z0-9_-]|$)' {} + 2>/dev/null \
+  h=$(find "$src" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+        -exec grep -lE ' ?-Werror([^=A-Za-z0-9_,-]|$)' {} + 2>/dev/null \
         | sed "s|$SRC/||" | tr '\n' ' ')
   [ -n "$h" ] && hits="$hits $h"
 done
