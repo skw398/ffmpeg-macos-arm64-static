@@ -3,16 +3,20 @@
 # 未知の id はビルドを失敗させる（打ち間違いが「何も外さない trial」になるのを防ぐ）。
 # 各回避策の「外せる条件」は docs/BUILD-WORKAROUNDS.md が正。
 #
-# id|節|trial で外れるもの
-#
 # 予約語: `reset` — 回避策は何も外さず、ビルド状態のリセットだけを行う（per-library
 # フラグを手で外して試すときに使う。id と併記すれば「リセット + その id を外す」）
-wno-unknown-warning-option|D|CFLAGS/CXXFLAGS の -Wno-unknown-warning-option
-size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include
-meson-werror-false|D|meson ライブラリの -Dwerror=false
-autotools-touch|B|autotools 生成ファイルの touch
-libvpx-target|H|libvpx の --target=arm64-darwin20-gcc
-libvpx-git-clean|H|libvpx の configure 前の git clean -xffdq
-quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=
-libaom-target-cpu|H|libaom の -DAOM_TARGET_CPU=arm64
-ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs
+#
+# id|節|trial で外れるもの|影響ライブラリ
+#   影響ライブラリは fast trial（workflow 入力 trial_fast）が強制再ビルドする対象。
+#     *      = 全ライブラリに効く（fast では扱えないのでエラーにする）
+#     ffmpeg = FFmpeg 本体（configure 引数が変わるので stamp で再構成される）
+#   ここに挙げたライブラリは、fast trial で「実際に再ビルドされたか」を検査される。
+wno-unknown-warning-option|D|CFLAGS/CXXFLAGS の -Wno-unknown-warning-option|*
+size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include|*
+meson-werror-false|D|meson ライブラリの -Dwerror=false|*
+autotools-touch|B|autotools 生成ファイルの touch|*
+libvpx-target|H|libvpx の --target=arm64-darwin20-gcc|libvpx
+libvpx-git-clean|H|libvpx の configure 前の git clean -xffdq|libvpx
+quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=|quirc
+libaom-target-cpu|H|libaom の -DAOM_TARGET_CPU=arm64|libaom
+ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs|ffmpeg

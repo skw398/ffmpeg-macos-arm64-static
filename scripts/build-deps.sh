@@ -31,6 +31,24 @@ RECIPE_REV=6
 # rather than a silent no-op (see scripts/trial-workarounds.txt)
 validate_trials
 
+# fast trial (workflow input trial_fast): the workflow keeps the cached prefix
+# and FFmpeg trees, so only the libraries the trialed ids affect get rebuilt.
+# Force those, and remember them: after the loop we check that they really were
+# built, so a stale cache cannot make the trial pass for the wrong reason.
+TRIAL_EXPECT=""
+if [ "${TRIAL_FAST:-}" = true ] && [ -n "${NO_WORKAROUNDS:-}" ]; then
+  for id in $(printf '%s' "$NO_WORKAROUNDS" | tr ',' ' '); do
+    libs=$(trial_libs "$id")
+    case "$libs" in
+      '')     echo "ERROR: trial id '$id' has no affected-library mapping" >&2; exit 1 ;;
+      '*')    echo "ERROR: trial id '$id' affects every library: run without trial_fast" >&2; exit 1 ;;
+      ffmpeg) ;; # FFmpeg is rebuilt because its configure stamp changes
+      *)      FORCE_REBUILD="$FORCE_REBUILD $libs"; TRIAL_EXPECT="$TRIAL_EXPECT $libs" ;;
+    esac
+  done
+  echo "== trial: fast mode, forcing a rebuild of:$TRIAL_EXPECT"
+fi
+
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
@@ -398,6 +416,11 @@ EOF
 # FFmpeg's libsnappy check links -lstdc++, which macOS lacks; alias it to libc++.
 rm -f "$PREFIX/lib/libstdc++.tbd"; ln -s "$sdk/usr/lib/libc++.tbd" "$PREFIX/lib/libstdc++.tbd"
 
+# fast trial: record which libraries were actually built. The loop below runs in
+# a subshell, so the record goes through a file.
+BUILT=""
+if [ -n "$TRIAL_EXPECT" ]; then BUILT=$(mktemp); fi
+
 grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name kind flags note; do
   name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -410,8 +433,23 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   fi
   fetch "$name"
   trial_reset_sources "$name"
+  if [ -n "$BUILT" ]; then echo "$name" >> "$BUILT"; fi
   build_one "$name" "$kind" "$flags" "$marker"
 done
+
+# fast trial: every library the trialed ids affect must have been rebuilt
+if [ -n "$TRIAL_EXPECT" ]; then
+  missing=""
+  for lib in $TRIAL_EXPECT; do
+    grep -qx "$lib" "$BUILT" 2>/dev/null || missing="$missing $lib"
+  done
+  if [ -n "$missing" ]; then
+    echo "ERROR: trial did not rebuild:$missing (a stale cache would make it meaningless)" >&2
+    exit 1
+  fi
+  echo "== trial: fast mode rebuilt:$TRIAL_EXPECT"
+  rm -f "$BUILT"
+fi
 
 # Some libraries install their static archive into a subdirectory while their
 # pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it. Always

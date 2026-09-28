@@ -121,6 +121,13 @@ trial_disabled() {
   return 1
 }
 
+# trial_libs <id> -> the libraries a fast trial must force-rebuild, from the
+# mapping in scripts/trial-workarounds.txt ("*" = every library, "ffmpeg" = the
+# FFmpeg build itself). Empty for an unknown id.
+trial_libs() {
+  awk -F'|' -v n="$1" '$1 == n { print $4; exit }' "$TRIALS"
+}
+
 # trial_flag <id> <value...> -> the value, unless <id> is disabled (then nothing,
 # with a note on stderr). Keeps a workaround switchable at its use site.
 trial_flag() {

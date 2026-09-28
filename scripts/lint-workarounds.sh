@@ -255,6 +255,29 @@ else
   echo "  every listed id is consulted, and every consulted id is listed"
 fi
 
+# every id also needs an affected-library mapping for fast trials, and each name
+# must be a real recipe (or the * / ffmpeg markers)
+nomap=""
+badlibs=""
+while IFS='|' read -r id section what libs; do
+  case "$id" in ''|'#'*) continue ;; esac
+  if [ -z "$libs" ]; then nomap="$nomap $id"; continue; fi
+  case "$libs" in '*'|ffmpeg) continue ;; esac
+  for l in $libs; do
+    grep -qE "^$l\|" "$HERE/build-deps.txt" || badlibs="$badlibs $id:$l"
+  done
+done < "$trials"
+if [ -n "$nomap$badlibs" ]; then
+  if [ -n "$nomap" ]; then
+    echo "  no affected-library mapping:$nomap -> a fast trial would fail"
+  fi
+  if [ -n "$badlibs" ]; then
+    echo "  mapping names that are not recipes in build-deps.txt:$badlibs"
+  fi
+else
+  echo "  every id has an affected-library mapping, and the names are real recipes"
+fi
+
 echo
 if [ "$fired" -eq 0 ]; then
   echo "RESULT: no workaround looks removable yet (report only)"
