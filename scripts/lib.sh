@@ -91,10 +91,17 @@ fetch() {
       ;;
   esac
 
-  # NOTE: a generic strip of bare -Werror from CMake files used to live here.
-  # Its occurrence count came out 0 for every dependency, so it was removed as
-  # dead weight (see docs/BUILD-WORKAROUNDS.md); re-add it if a dependency
-  # starts promoting warnings to errors.
+  # Some CMake projects add -Werror to their own flags: libxeve does, in the
+  # branch it takes for AppleClang (it only special-cases the id "Clang"), and
+  # the newer clang then fails on warnings upstream has not fixed. Strip it from
+  # the CMake sources before configuring and report the count: on a full build,
+  # 0 occurrences means the strip can be dropped (a partial build cannot tell,
+  # which is how it was once dropped and then broke libxeve).
+  n=$(find "$dest" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
+        -exec grep -hoE '(^|[^-])-Werror(=[A-Za-z0-9_-]+)?([^A-Za-z0-9_-]|$)' {} + 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -gt 0 ]; then echo "== patch: CMake -Werror strip: $n occurrence(s)"; fi
+  find "$dest" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
+    -exec perl -pi -e 's/(^|[^-])-Werror(?:=[A-Za-z0-9_-]+)?(?![A-Za-z0-9_-])/$1/g' {} + 2>/dev/null || true
 }
 
 # --- workaround trials -------------------------------------------------------
