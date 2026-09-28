@@ -104,7 +104,11 @@ build_generic() {
         # during make (autoheader drops the legacy VERSION define in config.h.in);
         # keep the generated files newer than their autotools inputs.
         if trial_disabled autotools-touch; then
-          echo "== trial: skipping the generated-file touch"
+          # Leaving the touch out only tells us something if the regeneration
+          # path is actually taken, so provoke it: make the autotools inputs
+          # newer than the generated files.
+          echo "== trial: provoking autotools regeneration (inputs newer than the generated files)"
+          touch configure.ac configure.in m4/*.m4 2>/dev/null || true
         else
           touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
         fi
@@ -178,7 +182,16 @@ build_libvpx() {
   ( cd "$SRC/libvpx"
     if [ -d .git ]; then
       if trial_disabled libvpx-git-clean; then
-        echo "== trial: skipping the libvpx git clean"
+        # That trial only means something when the tree still holds build
+        # output, which is what the clean protects against: a fresh tree would
+        # pass trivially, so refuse to conclude anything from one.
+        if [ -f config.mk ]; then
+          echo "== trial: skipping the libvpx git clean (cached build output is present)"
+        else
+          echo "ERROR: trial libvpx-git-clean: $SRC/libvpx holds no build output" >&2
+          echo "       (its premise is a cached tree; do not combine it with cold_build)" >&2
+          exit 1
+        fi
       else
         git clean -xffdq || true
       fi
@@ -328,6 +341,25 @@ build_one() {
   touch "$marker"
 }
 
+# In a trial, drop the build output a previous run left in a git-pinned source
+# tree. cmake and meson keep the configured option values inside the build
+# directory, so a workaround that only changes a flag would otherwise be
+# silently ignored (the dropped -D comes back from the cache) and the trial
+# would pass for the wrong reason. Tarball pins are re-extracted on every run
+# and are already fresh.
+# libvpx is left alone when its own clean is the workaround under trial: that
+# trial's premise is a tree that still holds build output.
+trial_reset_sources() { # <name>
+  [ -n "${NO_WORKAROUNDS:-}" ] || return 0
+  case "$(pin "$1" | cut -d'|' -f3)" in COMMIT=*) ;; *) return 0 ;; esac
+  if [ "$1" = libvpx ] && trial_disabled libvpx-git-clean; then return 0; fi
+  n=$(git -C "$SRC/$1" clean -xffdn 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -gt 0 ]; then
+    echo "== trial: resetting $n cached build file(s) in $1"
+    git -C "$SRC/$1" clean -xffdq 2>/dev/null || true
+  fi
+}
+
 # --- main --------------------------------------------------------------------
 
 # --- prefix-local shims needed by FFmpeg's configure ---
@@ -376,6 +408,7 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
     continue
   fi
   fetch "$name"
+  trial_reset_sources "$name"
   build_one "$name" "$kind" "$flags" "$marker"
 done
 
