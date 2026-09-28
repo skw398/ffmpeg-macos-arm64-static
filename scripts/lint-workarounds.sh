@@ -19,6 +19,7 @@ ROOT="$HERE/.."
 SRC="${SRC:-$ROOT/build/src}"
 DL="${DL:-$ROOT/build/downloads}"
 PREFIX="${PREFIX:-$ROOT/build/prefix}"
+PINS="$ROOT/deps.txt"
 BIN="$PREFIX/bin/ffmpeg"
 
 fired=0
@@ -37,32 +38,48 @@ cmake_projects() {
 }
 
 # --- [B] CMake sources adding -Werror (the CMake -Werror strip) ---------------
-# lib.sh rewrites these files before configure. Scanning the sources (not the
-# build logs) is what makes the answer independent of which libraries this run
-# happened to rebuild: the strip was once dropped on a "0 occurrences" count
-# from a partial build, and the next full build broke libxeve. The pattern is
-# exactly what the strip removes: a bare -Werror. -Werror=<w> / -Werror-<w> are
-# kept (they are specific diagnostics, often passed as check_c_compiler_flag
-# arguments, where removing them would corrupt the CMake code).
+# lib.sh rewrites the working tree before configure, so this must read the
+# PRISTINE sources: the committed files for git pins, the pinned tarball for
+# SHA-256 pins. Scanning the working tree always finds nothing, which is exactly
+# the false negative that let the strip be dropped once. The pattern is what the
+# strip removes: a bare -Werror. -Werror=<w> / -Werror-<w> are kept (they are
+# specific diagnostics, often passed as check_c_compiler_flag arguments, where
+# removing them would corrupt the CMake code).
 echo "== [B] CMake sources adding -Werror (the CMake -Werror strip) =="
+werror_pat=' ?-Werror([^=A-Za-z0-9_,-]|$)'
 hits=""
 scanned=0
 for name in $(all_projects); do
   src="$SRC/$name"
-  [ -d "$src" ] || continue
-  scanned=$((scanned + 1))
-  h=$(find "$src" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
-        -exec grep -lE ' ?-Werror([^=A-Za-z0-9_,-]|$)' {} + 2>/dev/null \
-        | sed "s|$SRC/||" | tr '\n' ' ')
+  ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
+  hash=$(awk -F'|' -v n="$name" '$1 == n { print $4; exit }' "$PINS")
+  case "$hash" in
+    COMMIT=*)
+      [ -d "$src/.git" ] || continue
+      scanned=$((scanned + 1))
+      h=$(git -C "$src" grep -lE "$werror_pat" HEAD -- '*CMakeLists.txt' '*.cmake' 2>/dev/null \
+            | sed "s|^HEAD:||;s|^|$name/|" | tr '\n' ' ')
+      ;;
+    *)
+      tb="$DL/$name-$ver.tarball"
+      [ -f "$tb" ] || continue
+      scanned=$((scanned + 1))
+      h=$(tar -tf "$tb" 2>/dev/null | grep -E '(^|/)(CMakeLists\.txt|[^/]*\.cmake)$' \
+            | while IFS= read -r p; do
+                tar -xOf "$tb" "$p" 2>/dev/null | grep -qE "$werror_pat" \
+                  && printf '%s/%s\n' "$name" "$p"
+              done | tr '\n' ' ')
+      ;;
+  esac
   [ -n "$h" ] && hits="$hits $h"
 done
 if [ "$scanned" -eq 0 ]; then
-  echo "  (no sources present: skipped)"
+  echo "  (no pinned sources present: skipped)"
 elif [ -n "$hits" ]; then
-  echo "  still adding -Werror:$hits"
+  echo "  still adding a bare -Werror:$hits"
   echo "  -> the CMake -Werror strip is still needed"
 else
-  echo "  none of the $scanned project(s) adds -Werror"
+  echo "  none of the $scanned project(s) adds a bare -Werror"
   echo "  -> the CMake -Werror strip can be dropped"
   fired=1
 fi
