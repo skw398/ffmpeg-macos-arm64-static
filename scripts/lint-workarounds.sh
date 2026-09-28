@@ -4,6 +4,7 @@
 # Report only: it never fails the build. Each section names the workaround it
 # tracks in docs/BUILD-WORKAROUNDS.md and says what to remove when it fires.
 #
+#   [B] no CMake source adds -Werror                 -> drop the CMake -Werror strip
 #   [C] SDK now ships libxml-2.0.pc / zlib.pc        -> drop the prefix shim
 #   [C] FFmpeg no longer asks for -lstdc++           -> drop the libc++ alias
 #   [D] no CMake project declares < 3.5              -> drop CMAKE_POLICY_VERSION_MINIMUM
@@ -21,6 +22,47 @@ PREFIX="${PREFIX:-$ROOT/build/prefix}"
 BIN="$PREFIX/bin/ffmpeg"
 
 fired=0
+
+# projects we build: the recipes in build-deps.txt, plus chromaprint, which is
+# built outside that file (between the FFmpeg passes) but gets the same flags
+all_projects() {
+  grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" | awk -F'|' '{print $1}'
+  echo chromaprint
+}
+
+# the subset built with CMake (for the -D flag checks)
+cmake_projects() {
+  grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" | awk -F'|' '$2=="cmake"{print $1}'
+  echo chromaprint
+}
+
+# --- [B] CMake sources adding -Werror (the CMake -Werror strip) ---------------
+# lib.sh rewrites these files before configure. Scanning the sources (not the
+# build logs) is what makes the answer independent of which libraries this run
+# happened to rebuild: the strip was once dropped on a "0 occurrences" count
+# from a partial build, and the next full build broke libxeve.
+echo "== [B] CMake sources adding -Werror (the CMake -Werror strip) =="
+hits=""
+scanned=0
+for name in $(all_projects); do
+  src="$SRC/$name"
+  [ -d "$src" ] || continue
+  scanned=$((scanned + 1))
+  h=$(find "$src" -maxdepth 3 \( -name CMakeLists.txt -o -name '*.cmake' \) \
+        -exec grep -lE '(^|[^-])-Werror(=[A-Za-z0-9_-]+)?([^A-Za-z0-9_-]|$)' {} + 2>/dev/null \
+        | sed "s|$SRC/||" | tr '\n' ' ')
+  [ -n "$h" ] && hits="$hits $h"
+done
+if [ "$scanned" -eq 0 ]; then
+  echo "  (no sources present: skipped)"
+elif [ -n "$hits" ]; then
+  echo "  still adding -Werror:$hits"
+  echo "  -> the CMake -Werror strip is still needed"
+else
+  echo "  none of the $scanned project(s) adds -Werror"
+  echo "  -> the CMake -Werror strip can be dropped"
+  fired=1
+fi
 
 # --- [C] SDK pkg-config files (libxml2 / zlib shims) --------------------------
 echo "== [C] SDK pkg-config files (libxml-2.0.pc / zlib.pc shims) =="
@@ -57,13 +99,6 @@ else
 fi
 
 # --- [D] cmake_minimum_required < 3.5 (CMAKE_POLICY_VERSION_MINIMUM) ----------
-# cmake projects we build: the recipes, plus chromaprint, which is built outside
-# build-deps.txt (between the FFmpeg passes) but gets the same global -D flags
-cmake_projects() {
-  grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" | awk -F'|' '$2=="cmake"{print $1}'
-  echo chromaprint
-}
-
 echo
 echo "== [D] CMake projects declaring < 3.5 (CMAKE_POLICY_VERSION_MINIMUM) =="
 low=""
