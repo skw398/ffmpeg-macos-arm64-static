@@ -15,5 +15,4 @@ libvpx-target|H|libvpx の --target=arm64-darwin20-gcc
 libvpx-git-clean|H|libvpx の configure 前の git clean -xffdq
 quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=
 libaom-target-cpu|H|libaom の -DAOM_TARGET_CPU=arm64
-libaom-runtime-cpu-detect|H|libaom の -DCONFIG_RUNTIME_CPU_DETECT=0
 ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs

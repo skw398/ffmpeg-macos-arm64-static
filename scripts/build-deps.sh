@@ -22,8 +22,9 @@ PINS="$ROOT/deps.txt"
 PATCHES="$HERE/patches.txt"
 # this build always links statically, so `linkage=static` patches always apply
 LINKAGE=static
-# bump when build logic changes, to force rebuilds
-RECIPE_REV=5
+# bump when build logic changes, to force rebuilds (the per-library marker uses
+# the data flags, so a flag that lives in code needs this to take effect)
+RECIPE_REV=6
 
 . "$HERE/lib.sh"
 # a trial run leaves out the listed workarounds; an unknown id is an error
@@ -153,14 +154,14 @@ build_generic() {
 
 build_libaom() {
   src="$SRC/libaom"
-  # AOM_TARGET_CPU / CONFIG_RUNTIME_CPU_DETECT: state the target and drop runtime
-  # CPU detection (static build); both are switchable by a trial run.
+  # AOM_TARGET_CPU: state the target explicitly (switchable by a trial run).
+  # CONFIG_RUNTIME_CPU_DETECT=0 was removed on 2026-09-28: a trial run without it
+  # built and passed every check, so the upstream default (detection on) is fine.
   cmake -S "$src" -B "$src/.build" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     $(trial_flag libaom-target-cpu -DAOM_TARGET_CPU=arm64) \
-    $(trial_flag libaom-runtime-cpu-detect -DCONFIG_RUNTIME_CPU_DETECT=0) \
     -DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 \
     -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1
   cmake --build "$src/.build" -j "$JOBS"
