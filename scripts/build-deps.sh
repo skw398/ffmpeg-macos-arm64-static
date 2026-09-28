@@ -34,7 +34,7 @@ export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
 # some libraries pass GCC-only -Wno-* flags; keep clang from failing on the
-# unknown options (the -Werror promotion is removed separately in lib.sh)
+# unknown options (the -Werror promotion is stripped in the autotools recipe)
 export CFLAGS="$(trial_flag wno-unknown-warning-option -Wno-unknown-warning-option) ${CFLAGS:-}"
 # Newer libc++ no longer provides size_t transitively, so force it into every
 # translation unit. The preinclude is language-aware because some libraries
