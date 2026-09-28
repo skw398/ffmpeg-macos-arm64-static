@@ -24,7 +24,7 @@ PATCHES="$HERE/patches.txt"
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
 # the data flags, so a flag that lives in code needs this to take effect)
-RECIPE_REV=6
+RECIPE_REV=7
 
 . "$HERE/lib.sh"
 # a trial run leaves out the listed workarounds; an unknown id is an error
@@ -52,9 +52,9 @@ fi
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
-# some libraries pass GCC-only -Wno-* flags; keep clang from failing on the
-# unknown options (the -Werror promotion is stripped in the autotools recipe)
-export CFLAGS="$(trial_flag wno-unknown-warning-option -Wno-unknown-warning-option) ${CFLAGS:-}"
+# -Wno-unknown-warning-option was removed on 2026-09-28: a trial without it
+# built and passed every check, so no library passes a GCC-only -W flag anymore.
+export CFLAGS="${CFLAGS:-}"
 # Newer libc++ no longer provides size_t transitively, so force it into every
 # translation unit. The preinclude is language-aware because some libraries
 # compile C sources through the C++ driver (opencore-amr sets "-x c" in
@@ -67,7 +67,7 @@ cat > "$preinc/size_t.h" <<'EOF'
 #include <stddef.h>
 #endif
 EOF
-export CXXFLAGS="$(trial_flag size-t-preinclude -include "$preinc/size_t.h") $(trial_flag wno-unknown-warning-option -Wno-unknown-warning-option) ${CXXFLAGS:-}"
+export CXXFLAGS="$(trial_flag size-t-preinclude -include "$preinc/size_t.h") ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # close the pkg-config search to the prefix so Homebrew/system .pc files are
 # never picked up (any missing dependency must be provided in the prefix)
@@ -157,7 +157,7 @@ build_generic() {
       cmake --install "$src/.build" ;;
     meson)
       meson setup "$src/.build" "$src" --prefix="$PREFIX" \
-        --default-library=static --buildtype=release $(trial_flag meson-werror-false -Dwerror=false) $flags
+        --default-library=static --buildtype=release $flags
       ninja -C "$src/.build"
       ninja -C "$src/.build" install ;;
     perl)
@@ -172,14 +172,13 @@ build_generic() {
 
 build_libaom() {
   src="$SRC/libaom"
-  # AOM_TARGET_CPU: state the target explicitly (switchable by a trial run).
-  # CONFIG_RUNTIME_CPU_DETECT=0 was removed on 2026-09-28: a trial run without it
-  # built and passed every check, so the upstream default (detection on) is fine.
+  # AOM_TARGET_CPU=arm64 and CONFIG_RUNTIME_CPU_DETECT=0 were removed on
+  # 2026-09-28: trials without them built and passed every check, so aom's
+  # defaults (host target, runtime CPU detection on) are fine.
   cmake -S "$src" -B "$src/.build" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    $(trial_flag libaom-target-cpu -DAOM_TARGET_CPU=arm64) \
     -DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 \
     -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1
   cmake --build "$src/.build" -j "$JOBS"
@@ -188,33 +187,10 @@ build_libaom() {
 
 build_libvpx() {
   flags="$1"
-  # libvpx reads a plain `darwin` target as iOS, so the recipe pins macOS via
-  # --target=arm64-darwin20-gcc (darwin20 = macOS 11 = the runtime floor).
-  # Switchable by a trial run (libvpx-target).
-  if trial_disabled libvpx-target; then
-    echo "== trial: dropping the libvpx --target flag"
-    flags=$(printf '%s' "$flags" | sed -E 's/--target=[^ ]+ ?//')
-  fi
-  # libvpx does not support switching the target in a tree that still holds
-  # build output; the git-source cache keeps them, so clean before configuring
-  # (switchable by a trial run: libvpx-git-clean)
+  # --target=arm64-darwin20-gcc and the pre-configure `git clean` were removed on
+  # 2026-09-28: trials without them built and passed every check, including one
+  # that reproduced a target switch on a tree still holding build output.
   ( cd "$SRC/libvpx"
-    if [ -d .git ]; then
-      if trial_disabled libvpx-git-clean; then
-        # That trial only means something when the tree still holds build
-        # output, which is what the clean protects against: a fresh tree would
-        # pass trivially, so refuse to conclude anything from one.
-        if [ -f config.mk ]; then
-          echo "== trial: skipping the libvpx git clean (cached build output is present)"
-        else
-          echo "ERROR: trial libvpx-git-clean: $SRC/libvpx holds no build output" >&2
-          echo "       (its premise is a cached tree; do not combine it with cold_build)" >&2
-          exit 1
-        fi
-      else
-        git clean -xffdq || true
-      fi
-    fi
     ./configure --prefix="$PREFIX" $flags
     grep -E '^(CFLAGS|ASFLAGS|LDFLAGS)=' config.mk || true
     make -j"$JOBS" && make install )
@@ -366,12 +342,9 @@ build_one() {
 # silently ignored (the dropped -D comes back from the cache) and the trial
 # would pass for the wrong reason. Tarball pins are re-extracted on every run
 # and are already fresh.
-# libvpx is left alone when its own clean is the workaround under trial: that
-# trial's premise is a tree that still holds build output.
 trial_reset_sources() { # <name>
   [ -n "${NO_WORKAROUNDS:-}" ] || return 0
   case "$(pin "$1" | cut -d'|' -f3)" in COMMIT=*) ;; *) return 0 ;; esac
-  if [ "$1" = libvpx ] && trial_disabled libvpx-git-clean; then return 0; fi
   n=$(git -C "$SRC/$1" clean -xffdn 2>/dev/null | wc -l | tr -d ' ')
   if [ "$n" -gt 0 ]; then
     echo "== trial: resetting $n cached build file(s) in $1"

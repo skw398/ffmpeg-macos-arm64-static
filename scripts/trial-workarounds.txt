@@ -11,12 +11,7 @@
 #     *      = 全ライブラリに効く（fast では扱えないのでエラーにする）
 #     ffmpeg = FFmpeg 本体（configure 引数が変わるので stamp で再構成される）
 #   ここに挙げたライブラリは、fast trial で「実際に再ビルドされたか」を検査される。
-wno-unknown-warning-option|D|CFLAGS/CXXFLAGS の -Wno-unknown-warning-option|*
 size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include|*
-meson-werror-false|D|meson ライブラリの -Dwerror=false|*
 autotools-touch|B|autotools 生成ファイルの touch|*
-libvpx-target|H|libvpx の --target=arm64-darwin20-gcc|libvpx
-libvpx-git-clean|H|libvpx の configure 前の git clean -xffdq|libvpx
 quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=|quirc
-libaom-target-cpu|H|libaom の -DAOM_TARGET_CPU=arm64|libaom
 ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs|ffmpeg
