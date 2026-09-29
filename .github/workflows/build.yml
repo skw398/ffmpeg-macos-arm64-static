@@ -27,6 +27,10 @@ on:
         description: "Trial: space/comma separated lib:flag entries to leave out of that recipe (build-deps.txt data)"
         type: string
         default: ""
+      install_rules:
+        description: "Also run the libgsm / quirc install-rule check (bridge until workarounds.yml can be dispatched)"
+        type: boolean
+        default: false
   # Reusable: the workarounds workflow runs one trial per id through this one.
   workflow_call:
     inputs:
@@ -48,6 +52,9 @@ on:
       drop_flags:
         type: string
         default: ""
+      install_rules:
+        type: boolean
+        default: false
       artifact_suffix:
         description: Appended to the artifact name, to keep matrix runs apart
         type: string
@@ -423,3 +430,20 @@ jobs:
             build/toolchain-versions.txt
             build/src/ffmpeg/ffbuild/config.log
             build/src/ffmpeg-pass1/ffbuild/config.log
+
+  # libgsm / quirc: can their own install rules replace the copy build-deps.sh
+  # makes? Report only (never fails). This mirrors the job in workarounds.yml,
+  # which cannot be dispatched until that workflow is on the default branch;
+  # drop this copy once workarounds.yml is dispatchable.
+  install-rules:
+    if: inputs.install_rules
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and build libgsm / quirc only
+        env:
+          ONLY: libgsm quirc
+        run: sh scripts/build-deps.sh
+      - name: Check the install rules
+        run: sh scripts/check-install-rules.sh
