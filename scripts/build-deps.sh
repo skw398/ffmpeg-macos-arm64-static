@@ -224,10 +224,24 @@ dispatch_build() {
   # precondition check; see apply_patches() and docs/PATCH-POLICY.md
   apply_patches "$name"
 
+  # custom builders. A trial id can fall back to the standard path, so whether
+  # the custom builder is still needed can be tested without editing this code
+  # (the ids are in scripts/trial-workarounds.txt; the [T] lint checks the
+  # wiring).
   case "$name" in
-    libvpx)      build_libvpx "$flags" ;;
+    libvpx)
+      if trial_disabled libvpx-custom-builder; then
+        build_generic "$name" autotools "$flags" "$subdir"
+      else
+        build_libvpx "$flags"
+      fi ;;
     librav1e)    build_librav1e "$flags" ;;
-    openh264)    build_openh264 ;;
+    openh264)
+      if trial_disabled openh264-custom-builder; then
+        build_generic "$name" meson "$flags" "$subdir"
+      else
+        build_openh264
+      fi ;;
     libgsm)      build_libgsm ;;
     quirc)       build_quirc ;;
     *)           build_generic "$name" "$kind" "$flags" "$subdir" ;;

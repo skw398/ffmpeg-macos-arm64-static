@@ -252,13 +252,24 @@ fi
 echo
 echo "== [H] custom builders: did upstream gain a standard build system? =="
 hit=""
-for name in libgsm quirc openh264; do
-  src="$SRC/$name"
-  [ -d "$src" ] || continue
-  for f in CMakeLists.txt meson.build configure; do
-    if [ -f "$src/$f" ]; then hit="$hit $name($f)"; fi
+# libgsm / quirc / openh264 have no standard build system today, so any of the
+# three is news. libvpx already ships its own ./configure (not autotools), so
+# only a CMake/meson build is news there; librav1e is built with cargo-c.
+# Switching is then tested with a trial id (libvpx-custom-builder /
+# openh264-custom-builder), not by editing the code.
+check_buildsystem() {
+  bs_name="$1"; shift
+  bs_src="$SRC/$bs_name"
+  [ -d "$bs_src" ] || return 0
+  for bs_f in "$@"; do
+    [ -f "$bs_src/$bs_f" ] && hit="$hit $bs_name($bs_f)"
   done
-done
+}
+check_buildsystem libgsm CMakeLists.txt meson.build configure
+check_buildsystem quirc CMakeLists.txt meson.build configure
+check_buildsystem openh264 CMakeLists.txt meson.build configure
+check_buildsystem libvpx CMakeLists.txt meson.build
+check_buildsystem librav1e CMakeLists.txt meson.build
 if [ -n "$hit" ]; then
   echo "  standard build system found:$hit -> consider switching to it"
   fired=1
