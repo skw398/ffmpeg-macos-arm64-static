@@ -31,6 +31,10 @@ on:
         description: "Also run the libgsm / quirc install-rule check (bridge until workarounds.yml can be dispatched)"
         type: boolean
         default: false
+      report_updates:
+        description: "Also report the latest upstream version of every pinned dependency"
+        type: boolean
+        default: false
   # Reusable: the workarounds workflow runs one trial per id through this one.
   workflow_call:
     inputs:
@@ -53,6 +57,9 @@ on:
         type: string
         default: ""
       install_rules:
+        type: boolean
+        default: false
+      report_updates:
         type: boolean
         default: false
       artifact_suffix:
@@ -447,3 +454,17 @@ jobs:
         run: sh scripts/build-deps.sh
       - name: Check the install rules
         run: sh scripts/check-install-rules.sh
+
+  # Report the latest upstream release/tag of every pinned dependency, so a
+  # human can see what moved. Report only. ubuntu is enough: this is a metadata
+  # check, not a build.
+  report-updates:
+    if: inputs.report_updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report upstream versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/report-updates.py
