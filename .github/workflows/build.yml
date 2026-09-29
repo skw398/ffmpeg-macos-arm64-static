@@ -72,6 +72,8 @@ on:
 
 jobs:
   macos-arm64:
+    # a metadata-only dispatch (report_updates) must not run the build
+    if: ${{ !inputs.report_updates }}
     # Policy: newest GA arm64 image, explicit label (never macos-latest);
     # beta/preview images are not used. The runtime floor is set independently
     # via MACOSX_DEPLOYMENT_TARGET, not by the runner OS.
