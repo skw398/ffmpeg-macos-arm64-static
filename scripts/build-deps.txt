@@ -1,6 +1,7 @@
 # build-deps.txt — build order and per-library build recipe (data for build-deps.sh)
 #
-# Format (no spaces around "|"): name|kind|flags|note
+# Format (no spaces around "|"): name|kind|flags|note|subdir
+#   subdir: source subdirectory for the build system (default: the tree root)
 #   kind : autotools | cmake | meson | perl | make | custom
 #   flags: passed verbatim after the common args; use @PREFIX@ for the install prefix
 #   order: build order (transitive dependencies first)
@@ -34,7 +35,7 @@ SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
 librav1e|custom|--release --library-type staticlib --locked|Rust + cargo-c
 libvpx|custom|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone); configure in build_libvpx; --target was removed 2026-09-28 (trial green)
 x264|autotools|--enable-pic|
-x265|custom|-DENABLE_CLI=OFF -DENABLE_SHARED=OFF|cmake in build_x265 (source/ subdir)
+x265|cmake|-DENABLE_CLI=OFF -DENABLE_SHARED=OFF|cmake in the source/ subdir|source/
 openh264|make||make-based (build_deps_openh264)
 libvvenc|cmake|-DVVENC_LIBRARY_ONLY=ON|
 liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DENABLE_TESTS=OFF -DOAPV_BUILD_SHARED_LIB=OFF|
@@ -67,7 +68,7 @@ libwebp|cmake|-DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DW
 libopenjpeg|cmake|-DBUILD_CODEC=OFF -DBUILD_JPIP=OFF|
 libzimg|autotools||
 libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
-libvmaf|custom|-Denable_tests=false -Denable_docs=false -Denable_tools=false|meson under libvmaf/ (build_libvmaf)
+libvmaf|meson|-Denable_tests=false -Denable_docs=false -Denable_tools=false|meson under libvmaf/|libvmaf/
 
 # ---- subtitles / text / disc / teletext ----
 libass|meson|-Dfontconfig=disabled -Dtest=disabled -Dcompare=disabled|

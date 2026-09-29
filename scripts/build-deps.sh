@@ -120,12 +120,12 @@ apply_patches() { # <name>
 }
 
 build_generic() {
-  name="$1"; kind="$2"; flags="$3"
+  name="$1"; kind="$2"; flags="$3"; subdir="$4"
   flags=$(printf '%s' "$flags" | sed "s|@PREFIX@|$PREFIX|g")
   src="$SRC/$name"
   case "$kind" in
     autotools)
-      ( cd "$src"
+      ( cd "$src/$subdir"
         # git archives often have no generated configure; bootstrap if needed.
         [ -x ./configure ] || { echo "== patch: bootstrapping (no generated configure)"; [ -x ./autogen.sh ] && NOCONFIGURE=1 ./autogen.sh || autoreconf -fi; }
         # the runner's newer autotools would regenerate pre-generated files
@@ -157,7 +157,7 @@ build_generic() {
         find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
         make -j"$JOBS" && make install ) ;;
     cmake)
-      cmake -S "$src" -B "$src/.build" \
+      cmake -S "$src/$subdir" -B "$src/.build" \
         -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
@@ -165,12 +165,12 @@ build_generic() {
       cmake --build "$src/.build" -j "$JOBS"
       cmake --install "$src/.build" ;;
     meson)
-      meson setup "$src/.build" "$src" --prefix="$PREFIX" \
+      meson setup "$src/.build" "$src/$subdir" --prefix="$PREFIX" \
         --default-library=static --buildtype=release $flags
       ninja -C "$src/.build"
       ninja -C "$src/.build" install ;;
     perl)
-      ( cd "$src" && ./Configure --prefix="$PREFIX" --openssldir="$PREFIX/ssl" $flags \
+      ( cd "$src/$subdir" && ./Configure --prefix="$PREFIX" --openssldir="$PREFIX/ssl" $flags \
         && make -j"$JOBS" && make install_sw ) ;;
     *)
       echo "ERROR: unknown kind '$kind' for $name" >&2; exit 1 ;;
@@ -217,25 +217,8 @@ build_quirc() {
     && cp "$SRC/quirc/lib/quirc.h" "$PREFIX/include/"
 }
 
-build_x265() { # <flags from the recipe>
-  cmake -S "$SRC/x265/source" -B "$SRC/x265/build-cmake" \
-    -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF \
-    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" $1
-  cmake --build "$SRC/x265/build-cmake" -j "$JOBS"
-  cmake --install "$SRC/x265/build-cmake"
-}
-
-build_libvmaf() { # <flags from the recipe>
-  meson setup "$SRC/libvmaf/.build" "$SRC/libvmaf/libvmaf" --prefix="$PREFIX" \
-    --default-library=static --buildtype=release $1
-  ninja -C "$SRC/libvmaf/.build"
-  ninja -C "$SRC/libvmaf/.build" install
-}
-
 dispatch_build() {
-  name="$1"; kind="$2"; flags="$3"
+  name="$1"; kind="$2"; flags="$3"; subdir="$4"
 
   # source patches come from data (scripts/patches.txt) and are applied with a
   # precondition check; see apply_patches() and docs/PATCH-POLICY.md
@@ -247,19 +230,17 @@ dispatch_build() {
     openh264)    build_openh264 ;;
     libgsm)      build_libgsm ;;
     quirc)       build_quirc ;;
-    x265)        build_x265 "$flags" ;;
-    libvmaf)     build_libvmaf "$flags" ;;
-    *)           build_generic "$name" "$kind" "$flags" ;;
+    *)           build_generic "$name" "$kind" "$flags" "$subdir" ;;
   esac
 }
 
 # per-library marker keyed by recipe revision, build kind, flags and version;
 # changing any of them forces a rebuild of just that library
-marker_for() { # name kind flags
-  name="$1"; kind="$2"; flags="$3"
+marker_for() { # name kind flags subdir
+  name="$1"; kind="$2"; flags="$3"; subdir="$4"
   ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
   printf '%s/.built-%s-%s' "$PREFIX" "$name" \
-    "$(printf '%s|%s|%s|%s' "$RECIPE_REV" "$kind" "$flags" "$ver" | shasum -a 256 | cut -c1-12)"
+    "$(printf '%s|%s|%s|%s|%s' "$RECIPE_REV" "$kind" "$flags" "$subdir" "$ver" | shasum -a 256 | cut -c1-12)"
 }
 
 # true when the named library is listed in FORCE_REBUILD
@@ -303,7 +284,7 @@ prefix_files() {
 }
 
 build_one() {
-  name="$1"; kind="$2"; flags="$3"; marker="$4"
+  name="$1"; kind="$2"; flags="$3"; marker="$4"; subdir="$5"
   echo "== build $name ($kind)"
   log="$LOGS/$name.log"
 
@@ -328,7 +309,7 @@ build_one() {
   # would disable errexit inside it, letting a late success mask an earlier
   # failure, so capture the status separately.
   set +e
-  ( set -e; dispatch_build "$name" "$kind" "$flags" ) > "$log" 2>&1
+  ( set -e; dispatch_build "$name" "$kind" "$flags" "$subdir" ) > "$log" 2>&1
   st=$?
   set -e
   if [ "$st" -ne 0 ]; then
@@ -406,16 +387,17 @@ rm -f "$PREFIX/lib/libstdc++.tbd"; ln -s "$sdk/usr/lib/libc++.tbd" "$PREFIX/lib/
 BUILT=""
 if [ -n "$TRIAL_EXPECT" ]; then BUILT=$(mktemp); fi
 
-grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name kind flags note; do
+grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name kind flags note subdir; do
   name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  subdir=$(printf '%s' "$subdir" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$name" ] || continue
   is_selected "$name" || continue
   # a dropped flag changes the effective flags (and so the marker), which makes
   # this library rebuild without touching the cached state
   flags=$(apply_drop_flags "$name" "$flags")
-  marker=$(marker_for "$name" "$kind" "$flags")
+  marker=$(marker_for "$name" "$kind" "$flags" "$subdir")
   if [ -f "$marker" ] && ! is_forced "$name"; then
     echo "== skip $name (already built)"
     continue
@@ -423,7 +405,7 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   fetch "$name"
   trial_reset_sources "$name"
   if [ -n "$BUILT" ]; then echo "$name" >> "$BUILT"; fi
-  build_one "$name" "$kind" "$flags" "$marker"
+  build_one "$name" "$kind" "$flags" "$marker" "$subdir"
 done
 
 # fast trial: every library the trialed ids affect must have been rebuilt
