@@ -1,168 +1,172 @@
 # flag-categories.txt — per-library フラグの分類（build-deps.txt の 3 列目）
 #
 # 規則は docs/BUILD-FLAG-CLASSIFICATION.md が正。ここは機械可読な一覧で、
-# lint-workarounds.sh の [E] が build-deps.txt と突合する。
+# lint-workarounds.sh の [E] が build-deps.txt と突合し、dep は到達性まで見る。
 #
-#   T = trial 候補（環境の都合。drop_flags で外して試す）
-#   G = triage 候補（テスト/ツール/docs 無効化、prefix ヒント。毎ビルドの triage が見る）
-#   I = 意図（製品に入れる機能の選択。人が要件と見直す）
+# 形式: lib|flag|purpose|target|note
 #
-# 形式: lib|flag|category|note
-#   note: 主に I の「なぜ積むか」。T/G では空。
+#   purpose  何のためのフラグか（これで「外せる」の確定方法が決まる）
+#     build   ビルドが壊れるのを避ける      -> trial（外してビルドが通れば外せる）
+#     dep     依存を避ける                 -> target が到達可能か（不能なら no-op=外せる）
+#     extras  余計なもの(tests/tools/docs)を作らない -> triage（no-op なら外せる）
+#     find    prefix を見つけさせる         -> triage（未使用なら外せる）
+#     feature 製品に入れる機能の選択         -> 人が要件と照らす（CI では決まらない）
+#   target   dep のときだけ: 避けている依存（レシピ名。SDK 提供は zlib / libxml2）
+#   note     主に feature の「なぜ積むか」
 #
 # 方針系（static/共有）と標準ビルド設定、グローバルに隠れる -DBUILD_TESTING=OFF は
 # 分類の対象外なのでここに載せない（lint [E] も除外する）。
-libtheora|--disable-examples|G|
-freetype|--without-bzip2|T|
-freetype|--without-png|T|
-fribidi|-Ddocs=false|G|
-fribidi|-Dtests=false|G|
-libpng|-DPNG_TESTS=OFF|G|
-harfbuzz|-Dcairo=disabled|T|
-harfbuzz|-Ddocs=disabled|G|
-harfbuzz|-Dfreetype=enabled|I|freetype のラスタライズを使う
-harfbuzz|-Dglib=disabled|T|
-harfbuzz|-Dgobject=disabled|T|
-harfbuzz|-Dicu=disabled|T|
-harfbuzz|-Dintrospection=disabled|T|
-harfbuzz|-Dtests=disabled|G|
-harfbuzz|-Dutilities=disabled|T|
-brotli|-DBROTLI_DISABLE_TESTS=ON|G|
-highway|-DHWY_ENABLE_CONTRIB=OFF|G|
-highway|-DHWY_ENABLE_EXAMPLES=OFF|G|
-highway|-DHWY_ENABLE_TESTS=OFF|G|
-lcms2|-DLCMS2_BUILD_JPGICC=OFF|G|
-lcms2|-DLCMS2_BUILD_TESTS=OFF|G|
-lcms2|-DLCMS2_BUILD_TIFDIFF=OFF|G|
-lcms2|-DLCMS2_BUILD_TIFICC=OFF|G|
-lcms2|-DLCMS2_BUILD_TOOLS=OFF|G|
-leptonica|-DENABLE_GIF=OFF|T|
-leptonica|-DENABLE_JPEG=OFF|T|
-leptonica|-DENABLE_OPENJPEG=OFF|T|
-leptonica|-DENABLE_PNG=OFF|T|
-leptonica|-DENABLE_TIFF=OFF|T|
-leptonica|-DENABLE_WEBP=OFF|T|
-leptonica|-DENABLE_ZLIB=OFF|T|
-leptonica|-DSW_BUILD=OFF|G|
-dav1d|-Denable_tests=false|G|
-dav1d|-Denable_tools=false|G|
-libaom|-DCONFIG_AV1_DECODER=1|I|AV1 デコードを提供する
-libaom|-DCONFIG_AV1_ENCODER=1|I|AV1 エンコードを提供する
-libaom|-DENABLE_EXAMPLES=0|G|
-libaom|-DENABLE_TESTS=0|G|
-libaom|-DENABLE_TOOLS=0|G|
-SVT-AV1|-DBUILD_APPS=OFF|G|
-libvpx|--disable-docs|G|
-libvpx|--disable-examples|G|
-libvpx|--disable-tools|G|
-libvpx|--disable-unit-tests|G|
-libvpx|--enable-multi-res-encoding|I|VP9 の multi-res encoding を提供する
-libvpx|--enable-postproc|I|VP9 の postproc を提供する
-libvpx|--enable-vp8|I|VP8 を提供する
-libvpx|--enable-vp9|I|VP9 を提供する
-libvpx|--enable-vp9-highbitdepth|I|VP9 の high bit depth を提供する
-x265|-DENABLE_CLI=OFF|G|
-libvvenc|-DVVENC_LIBRARY_ONLY=ON|G|
-liboapv|-DENABLE_TESTS=OFF|G|
-liboapv|-DOAPV_BUILD_APPS=OFF|G|
-libvidstab|-DUSE_OMP=OFF|T|
-libsnappy|-DSNAPPY_BUILD_BENCHMARKS=OFF|G|
-libsnappy|-DSNAPPY_BUILD_TESTS=OFF|G|
-libopus|--disable-doc|G|
-libopus|--disable-extra-programs|G|
-libspeex|--disable-binaries|G|
-lame|--disable-decoder|I|MP3 エンコーダ専用（デコーダは FFmpeg 本体）
-lame|--disable-frontend|G|
-libtwolame|--disable-sndfile|T|
-libcodec2|-DUNITTEST=OFF|G|
-libgme|-DGME_ENABLE_UBSAN=OFF|T|
-libopenmpt|--disable-examples|G|
-libopenmpt|--disable-openmpt123|G|
-libopenmpt|--disable-tests|G|
-libopenmpt|--without-flac|T|
-libopenmpt|--without-mpg123|T|
-libopenmpt|--without-ogg|T|
-libopenmpt|--without-portaudio|T|
-libopenmpt|--without-portaudiocpp|T|
-libopenmpt|--without-sndfile|T|
-libopenmpt|--without-vorbis|T|
-libopenmpt|--without-vorbisfile|T|
-libopenmpt|--without-zlib|T|
-rubberband|-Dcmdline=disabled|G|
-rubberband|-Dladspa=disabled|G|
-rubberband|-Dlv2=disabled|G|
-rubberband|-Dtests=disabled|G|
-rubberband|-Dvamp=disabled|G|
-libsndfile|--disable-external-libs|T|
-libsoxr|-DWITH_CR32S=OFF|I|使わないレート変換バリアントを外す
-libsoxr|-DWITH_CR64S=OFF|I|使わないレート変換バリアントを外す
-libsoxr|-DWITH_OPENMP=OFF|T|
-libmysofa|-DBUILD_TESTS=OFF|G|
-libwebp|-DWEBP_BUILD_ANIM_UTILS=OFF|G|
-libwebp|-DWEBP_BUILD_CWEBP=OFF|G|
-libwebp|-DWEBP_BUILD_DWEBP=OFF|G|
-libwebp|-DWEBP_BUILD_EXTRAS=OFF|G|
-libwebp|-DWEBP_BUILD_GIF2WEBP=OFF|G|
-libwebp|-DWEBP_BUILD_IMG2WEBP=OFF|G|
-libwebp|-DWEBP_BUILD_VWEBP=OFF|G|
-libwebp|-DWEBP_BUILD_WEBPMUX=OFF|G|
-libopenjpeg|-DBUILD_CODEC=OFF|G|
-libopenjpeg|-DBUILD_JPIP=OFF|G|
-libjxl|-DJPEGXL_ENABLE_BENCHMARK=OFF|G|
-libjxl|-DJPEGXL_ENABLE_EXAMPLES=OFF|G|
-libjxl|-DJPEGXL_ENABLE_MANPAGES=OFF|G|
-libjxl|-DJPEGXL_ENABLE_SJPEG=OFF|G|
-libjxl|-DJPEGXL_ENABLE_SKCMS=OFF|T|
-libjxl|-DJPEGXL_ENABLE_TOOLS=OFF|G|
-libjxl|-DJPEGXL_ENABLE_VIEWERS=OFF|G|
-libjxl|-DJPEGXL_FORCE_SYSTEM_BROTLI=ON|G|
-libjxl|-DJPEGXL_FORCE_SYSTEM_HWY=ON|G|
-libjxl|-DJPEGXL_FORCE_SYSTEM_LCMS2=ON|G|
-libvmaf|-Denable_docs=false|G|
-libvmaf|-Denable_tests=false|G|
-libvmaf|-Denable_tools=false|G|
-libass|-Dcompare=disabled|G|
-libass|-Dfontconfig=disabled|T|
-libass|-Dtest=disabled|G|
-libaribcaption|-DARIBCC_BUILD_TESTS=OFF|G|
-libbluray|-Dbdj_jar=disabled|T|
-libbluray|-Denable_tools=false|G|
-libbluray|-Dfontconfig=disabled|T|
-libbluray|-Dfreetype=disabled|T|
-libbluray|-Dlibxml2=disabled|T|
-zvbi|--disable-nls|T|
-openssl|no-tests|G|
-libssh|-DOPENSSL_ROOT_DIR=@PREFIX@|G|
-libssh|-DUNIT_TESTING=OFF|G|
-libssh|-DWITH_EXAMPLES=OFF|G|
-libssh|-DWITH_GSSAPI=OFF|T|
-libssh|-DWITH_SERVER=OFF|I|クライアント専用
-libssh|-DWITH_ZLIB=ON|I|zlib 対応
-libsrt|-DENABLE_APPS=OFF|G|
-libsrt|-DENABLE_TESTING=OFF|G|
-libsrt|-DUSE_ENCLIB=openssl-evp|I|暗号バックエンドを OpenSSL に固定
-librist|-Dbuiltin_cjson=true|T|
-librist|-Dbuiltin_lz4=true|T|
-librist|-Dbuiltin_mbedtls=true|T|
-librist|-Dtest=false|G|
-libzmq|--without-libsodium|T|
-librabbitmq|-DENABLE_SSL_SUPPORT=ON|I|SSL 対応
-librabbitmq|-DOPENSSL_ROOT_DIR=@PREFIX@|G|
-libqrencode|--without-tools|G|
-libtesseract|-DBUILD_TRAINING_TOOLS=OFF|G|
-libtesseract|-DDISABLE_ARCHIVE=ON|T|
-libtesseract|-DDISABLE_CURL=ON|T|
-libtesseract|-DDISABLE_TIFF=ON|T|
-libtesseract|-DLeptonica_DIR=@PREFIX@|G|
-libcaca|--disable-cocoa|T|
-libcaca|--disable-csharp|G|
-libcaca|--disable-cxx|G|
-libcaca|--disable-imlib2|T|
-libcaca|--disable-java|G|
-libcaca|--disable-ncurses|T|
-libcaca|--disable-python|G|
-libcaca|--disable-ruby|G|
-libcaca|--disable-slang|T|
-xz|--disable-doc|G|
-xz|--disable-nls|T|
-SDL2|-DSDL_TEST=OFF|G|
+libtheora|--disable-examples|build||
+freetype|--without-bzip2|dep|bzip2|
+freetype|--without-png|dep|libpng|
+fribidi|-Ddocs=false|build||
+fribidi|-Dtests=false|extras||
+libpng|-DPNG_TESTS=OFF|extras||
+harfbuzz|-Dcairo=disabled|dep|cairo|
+harfbuzz|-Ddocs=disabled|extras||
+harfbuzz|-Dfreetype=enabled|feature||freetype のラスタライズを使う
+harfbuzz|-Dglib=disabled|dep|glib|
+harfbuzz|-Dgobject=disabled|dep|glib|
+harfbuzz|-Dicu=disabled|dep|icu|
+harfbuzz|-Dintrospection=disabled|dep|gobject-introspection|
+harfbuzz|-Dtests=disabled|extras||
+harfbuzz|-Dutilities=disabled|extras||
+brotli|-DBROTLI_DISABLE_TESTS=ON|extras||
+highway|-DHWY_ENABLE_CONTRIB=OFF|extras||
+highway|-DHWY_ENABLE_EXAMPLES=OFF|extras||
+highway|-DHWY_ENABLE_TESTS=OFF|build||
+lcms2|-DLCMS2_BUILD_JPGICC=OFF|extras||
+lcms2|-DLCMS2_BUILD_TESTS=OFF|extras||
+lcms2|-DLCMS2_BUILD_TIFDIFF=OFF|extras||
+lcms2|-DLCMS2_BUILD_TIFICC=OFF|extras||
+lcms2|-DLCMS2_BUILD_TOOLS=OFF|extras||
+leptonica|-DENABLE_GIF=OFF|dep|giflib|
+leptonica|-DENABLE_JPEG=OFF|dep|libjpeg|
+leptonica|-DENABLE_OPENJPEG=OFF|dep|libopenjpeg|
+leptonica|-DENABLE_PNG=OFF|dep|libpng|
+leptonica|-DENABLE_TIFF=OFF|dep|libtiff|
+leptonica|-DENABLE_WEBP=OFF|dep|libwebp|
+leptonica|-DENABLE_ZLIB=OFF|dep|zlib|
+leptonica|-DSW_BUILD=OFF|extras||
+dav1d|-Denable_tests=false|extras||
+dav1d|-Denable_tools=false|extras||
+libaom|-DCONFIG_AV1_DECODER=1|feature||AV1 デコードを提供する
+libaom|-DCONFIG_AV1_ENCODER=1|feature||AV1 エンコードを提供する
+libaom|-DENABLE_EXAMPLES=0|extras||
+libaom|-DENABLE_TESTS=0|extras||
+libaom|-DENABLE_TOOLS=0|extras||
+SVT-AV1|-DBUILD_APPS=OFF|extras||
+libvpx|--disable-docs|extras||
+libvpx|--disable-examples|extras||
+libvpx|--disable-tools|extras||
+libvpx|--disable-unit-tests|extras||
+libvpx|--enable-multi-res-encoding|feature||VP9 の multi-res encoding を提供する
+libvpx|--enable-postproc|feature||VP9 の postproc を提供する
+libvpx|--enable-vp8|feature||VP8 を提供する
+libvpx|--enable-vp9|feature||VP9 を提供する
+libvpx|--enable-vp9-highbitdepth|feature||VP9 の high bit depth を提供する
+x265|-DENABLE_CLI=OFF|extras||
+libvvenc|-DVVENC_LIBRARY_ONLY=ON|extras||
+liboapv|-DENABLE_TESTS=OFF|extras||
+liboapv|-DOAPV_BUILD_APPS=OFF|extras||
+libvidstab|-DUSE_OMP=OFF|dep|libomp|
+libsnappy|-DSNAPPY_BUILD_BENCHMARKS=OFF|extras||
+libsnappy|-DSNAPPY_BUILD_TESTS=OFF|extras||
+libopus|--disable-doc|extras||
+libopus|--disable-extra-programs|extras||
+libspeex|--disable-binaries|extras||
+lame|--disable-decoder|feature||MP3 エンコーダ専用（デコーダは FFmpeg 本体）
+lame|--disable-frontend|extras||
+libtwolame|--disable-sndfile|dep|libsndfile|
+libcodec2|-DUNITTEST=OFF|extras||
+libgme|-DGME_ENABLE_UBSAN=OFF|feature||
+libopenmpt|--disable-examples|extras||
+libopenmpt|--disable-openmpt123|extras||
+libopenmpt|--disable-tests|extras||
+libopenmpt|--without-flac|dep|libflac|
+libopenmpt|--without-mpg123|dep|mpg123|
+libopenmpt|--without-ogg|dep|libogg|
+libopenmpt|--without-portaudio|dep|portaudio|
+libopenmpt|--without-portaudiocpp|dep|portaudio|
+libopenmpt|--without-sndfile|dep|libsndfile|
+libopenmpt|--without-vorbis|dep|libvorbis|
+libopenmpt|--without-vorbisfile|dep|libvorbis|
+libopenmpt|--without-zlib|dep|zlib|
+rubberband|-Dcmdline=disabled|extras||
+rubberband|-Dladspa=disabled|extras||
+rubberband|-Dlv2=disabled|extras||
+rubberband|-Dtests=disabled|extras||
+rubberband|-Dvamp=disabled|extras||
+libsndfile|--disable-external-libs|dep|libvorbis|
+libsoxr|-DWITH_CR32S=OFF|feature||使わないレート変換バリアントを外す
+libsoxr|-DWITH_CR64S=OFF|feature||使わないレート変換バリアントを外す
+libsoxr|-DWITH_OPENMP=OFF|dep|libomp|
+libmysofa|-DBUILD_TESTS=OFF|extras||
+libwebp|-DWEBP_BUILD_ANIM_UTILS=OFF|extras||
+libwebp|-DWEBP_BUILD_CWEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_DWEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_EXTRAS=OFF|extras||
+libwebp|-DWEBP_BUILD_GIF2WEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_IMG2WEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_VWEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_WEBPMUX=OFF|extras||
+libopenjpeg|-DBUILD_CODEC=OFF|extras||
+libopenjpeg|-DBUILD_JPIP=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_BENCHMARK=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_EXAMPLES=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_MANPAGES=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_SJPEG=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_SKCMS=OFF|find||
+libjxl|-DJPEGXL_ENABLE_TOOLS=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_VIEWERS=OFF|extras||
+libjxl|-DJPEGXL_FORCE_SYSTEM_BROTLI=ON|find||
+libjxl|-DJPEGXL_FORCE_SYSTEM_HWY=ON|find||
+libjxl|-DJPEGXL_FORCE_SYSTEM_LCMS2=ON|find||
+libvmaf|-Denable_docs=false|extras||
+libvmaf|-Denable_tests=false|extras||
+libvmaf|-Denable_tools=false|extras||
+libass|-Dcompare=disabled|extras||
+libass|-Dfontconfig=disabled|dep|fontconfig|
+libass|-Dtest=disabled|extras||
+libaribcaption|-DARIBCC_BUILD_TESTS=OFF|extras||
+libbluray|-Dbdj_jar=disabled|dep|java|
+libbluray|-Denable_tools=false|extras||
+libbluray|-Dfontconfig=disabled|dep|fontconfig|
+libbluray|-Dfreetype=disabled|dep|freetype|
+libbluray|-Dlibxml2=disabled|dep|libxml2|
+zvbi|--disable-nls|dep|gettext|
+openssl|no-tests|extras||
+libssh|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
+libssh|-DUNIT_TESTING=OFF|extras||
+libssh|-DWITH_EXAMPLES=OFF|extras||
+libssh|-DWITH_GSSAPI=OFF|dep|gssapi|
+libssh|-DWITH_SERVER=OFF|feature||クライアント専用
+libssh|-DWITH_ZLIB=ON|feature||zlib 対応
+libsrt|-DENABLE_APPS=OFF|extras||
+libsrt|-DENABLE_TESTING=OFF|extras||
+libsrt|-DUSE_ENCLIB=openssl-evp|feature||暗号バックエンドを OpenSSL に固定
+librist|-Dbuiltin_cjson=true|dep|cjson|
+librist|-Dbuiltin_lz4=true|dep|lz4|
+librist|-Dbuiltin_mbedtls=true|dep|mbedtls|
+librist|-Dtest=false|extras||
+libzmq|--without-libsodium|dep|libsodium|
+librabbitmq|-DENABLE_SSL_SUPPORT=ON|feature||SSL 対応
+librabbitmq|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
+libqrencode|--without-tools|extras||
+libtesseract|-DBUILD_TRAINING_TOOLS=OFF|extras||
+libtesseract|-DDISABLE_ARCHIVE=ON|dep|libarchive|
+libtesseract|-DDISABLE_CURL=ON|dep|curl|
+libtesseract|-DDISABLE_TIFF=ON|dep|libtiff|
+libtesseract|-DLeptonica_DIR=@PREFIX@|find||
+libcaca|--disable-cocoa|build||
+libcaca|--disable-csharp|extras||
+libcaca|--disable-cxx|extras||
+libcaca|--disable-imlib2|dep|imlib2|
+libcaca|--disable-java|extras||
+libcaca|--disable-ncurses|dep|ncurses|
+libcaca|--disable-python|extras||
+libcaca|--disable-ruby|extras||
+libcaca|--disable-slang|dep|slang|
+xz|--disable-doc|extras||
+xz|--disable-nls|dep|gettext|
+SDL2|-DSDL_TEST=OFF|extras||

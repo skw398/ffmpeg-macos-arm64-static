@@ -14,7 +14,8 @@
 #   [G] the .pc files now declare their private deps  -> drop FFmpeg --extra-libs
 #   [H] quirc no longer captures pkg-config stderr    -> drop the SDL_CFLAGS=
 #   [T] a trial id is listed but never consulted     -> the trial does nothing
-#   [E] a per-library flag is unclassified           -> the trial scope went stale
+#   [E] a per-library flag is unclassified / its avoided dependency is not
+#       reachable                                    -> the flag is a no-op
 set -u
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -332,16 +333,20 @@ else
   echo "  every id has an affected-library mapping, and the names are real recipes"
 fi
 
-# --- [E] per-library flags: classification coverage ---------------------------
+# --- [E] per-library flags: classification and dep reachability ---------------
 # Every per-library flag in build-deps.txt must be classified in
-# flag-categories.txt (T/G/I; see docs/BUILD-FLAG-CLASSIFICATION.md), so "which
-# flags do we trial?" cannot silently go stale when a flag is added. Policy
-# flags (static/shared), standard build settings and the globally-supplied
-# -DBUILD_TESTING=OFF are not classified.
+# flag-categories.txt with the *purpose* that decides how "removable" is
+# determined (see docs/BUILD-FLAG-CLASSIFICATION.md):
+#   build   -> trial (does the build survive without it?)
+#   dep     -> is the avoided dependency reachable? decided here, no build needed
+#   extras  -> triage (is the option a no-op?)
+#   find    -> triage (is the -D variable unused?)
+#   feature -> a human requirement decision (CI cannot decide)
 echo
-echo "== [E] per-library flags: every one classified (flag-categories.txt) =="
+echo "== [E] per-library flags: classification (flag-categories.txt) =="
 cats="$HERE/flag-categories.txt"
 policy_flags="--enable-static --disable-shared --enable-pic --default-library=static no-shared -DBUILD_SHARED_LIBS=OFF -DPNG_SHARED=OFF -DSDL_SHARED=OFF -DSDL_STATIC=ON -DOAPV_BUILD_SHARED_LIB=OFF -DENABLE_SHARED=OFF -DBUILD_TESTING=OFF --release --library-type staticlib --locked"
+recipes=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" | awk -F'|' '{print $1}')
 recipes_tmp=$(mktemp)
 grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" > "$recipes_tmp"
 missing=""
@@ -360,16 +365,20 @@ done < "$recipes_tmp"
 rm -f "$recipes_tmp"
 
 stale=""
-badcat=""
-nt=0; ng=0; ni=0
-while IFS='|' read -r lib flag cls note; do
+badpurpose=""
+badtarget=""
+nbuild=0; ndep=0; nextras=0; nfind=0; nfeature=0
+while IFS='|' read -r lib flag purpose target note; do
   case "$lib" in ''|'#'*) continue ;; esac
-  case "$cls" in
-    T) nt=$((nt + 1)) ;;
-    G) ng=$((ng + 1)) ;;
-    I) ni=$((ni + 1)) ;;
-    *) badcat="$badcat $lib:$flag($cls)"; continue ;;
+  case "$purpose" in
+    build)   nbuild=$((nbuild + 1)) ;;
+    dep)     ndep=$((ndep + 1)) ;;
+    extras)  nextras=$((nextras + 1)) ;;
+    find)    nfind=$((nfind + 1)) ;;
+    feature) nfeature=$((nfeature + 1)) ;;
+    *) badpurpose="$badpurpose $lib:$flag($purpose)"; continue ;;
   esac
+  if [ "$purpose" = dep ] && [ -z "$target" ]; then badtarget="$badtarget $lib:$flag"; fi
   row=$(awk -F'|' -v n="$lib" '$1==n {print $3; exit}' "$HERE/build-deps.txt")
   case " $row " in
     *" $flag "*) ;;
@@ -377,19 +386,50 @@ while IFS='|' read -r lib flag cls note; do
   esac
 done < "$cats"
 
-if [ -n "$missing$stale$badcat" ]; then
+if [ -n "$missing$stale$badpurpose$badtarget" ]; then
   if [ -n "$missing" ]; then
     echo "  unclassified flags:$missing"
-    echo "  -> add them to flag-categories.txt (T/G/I)"
+    echo "  -> add them to flag-categories.txt (with a purpose)"
   fi
   if [ -n "$stale" ]; then
     echo "  classified but not in build-deps.txt:$stale -> remove them"
   fi
-  if [ -n "$badcat" ]; then
-    echo "  unknown category (T/G/I only):$badcat"
+  if [ -n "$badpurpose" ]; then
+    echo "  unknown purpose (build/dep/extras/find/feature only):$badpurpose"
+  fi
+  if [ -n "$badtarget" ]; then
+    echo "  dep without a target (the dependency it avoids):$badtarget"
   fi
 else
-  echo "  all $nflags flags classified (T=$nt G=$ng I=$ni)"
+  echo "  all $nflags flags classified (build=$nbuild dep=$ndep extras=$nextras find=$nfind feature=$nfeature)"
+fi
+
+# dep: the flag exists to avoid a dependency. It can only change anything if that
+# dependency is reachable at all -- something we build (a recipe in build-deps.txt)
+# or the SDK provides (zlib / libxml2, via the prefix shims). If it is not
+# reachable, dropping the flag cannot pull it in: the flag is a no-op.
+sdk_libs="zlib libxml2"
+dep_removable=""
+dep_needed=0
+while IFS='|' read -r lib flag purpose target note; do
+  case "$lib" in ''|'#'*) continue ;; esac
+  [ "$purpose" = dep ] || continue
+  reach=no
+  for r in $recipes $sdk_libs; do
+    [ "$r" = "$target" ] && reach=yes
+  done
+  if [ "$reach" = yes ]; then
+    dep_needed=$((dep_needed + 1))
+  else
+    dep_removable="$dep_removable $lib:$flag($target)"
+  fi
+done < "$cats"
+if [ -n "$dep_removable" ]; then
+  echo "  dep: the avoided dependency is not reachable -> no-op (removable):$dep_removable"
+  fired=1
+fi
+if [ "$dep_needed" -gt 0 ]; then
+  echo "  dep: still needed (the dependency is reachable): $dep_needed flag(s)"
 fi
 
 echo
