@@ -17,18 +17,12 @@
 # 方針系（static/共有）と標準ビルド設定、グローバルに隠れる -DBUILD_TESTING=OFF は
 # 分類の対象外なのでここに載せない（lint [E] も除外する）。
 libtheora|--disable-examples|build||
-freetype|--without-bzip2|dep|bzip2|
 freetype|--without-png|dep|libpng|
 fribidi|-Ddocs=false|build||
 fribidi|-Dtests=false|extras||
 libpng|-DPNG_TESTS=OFF|extras||
-harfbuzz|-Dcairo=disabled|dep|cairo|
 harfbuzz|-Ddocs=disabled|extras||
 harfbuzz|-Dfreetype=enabled|feature||freetype のラスタライズを使う
-harfbuzz|-Dglib=disabled|dep|glib|
-harfbuzz|-Dgobject=disabled|dep|glib|
-harfbuzz|-Dicu=disabled|dep|icu|
-harfbuzz|-Dintrospection=disabled|dep|gobject-introspection|
 harfbuzz|-Dtests=disabled|extras||
 harfbuzz|-Dutilities=disabled|extras||
 brotli|-DBROTLI_DISABLE_TESTS=ON|extras||
@@ -69,7 +63,6 @@ x265|-DENABLE_CLI=OFF|extras||
 libvvenc|-DVVENC_LIBRARY_ONLY=ON|extras||
 liboapv|-DENABLE_TESTS=OFF|extras||
 liboapv|-DOAPV_BUILD_APPS=OFF|extras||
-libvidstab|-DUSE_OMP=OFF|dep|libomp|
 libsnappy|-DSNAPPY_BUILD_BENCHMARKS=OFF|build||
 libsnappy|-DSNAPPY_BUILD_TESTS=OFF|build||
 libopus|--disable-doc|extras||
@@ -83,11 +76,8 @@ libgme|-DGME_ENABLE_UBSAN=OFF|feature||
 libopenmpt|--disable-examples|extras||
 libopenmpt|--disable-openmpt123|extras||
 libopenmpt|--disable-tests|extras||
-libopenmpt|--without-flac|dep|libflac|
 libopenmpt|--without-mpg123|dep|mpg123|
 libopenmpt|--without-ogg|dep|libogg|
-libopenmpt|--without-portaudio|dep|portaudio|
-libopenmpt|--without-portaudiocpp|dep|portaudio|
 libopenmpt|--without-sndfile|dep|libsndfile|
 libopenmpt|--without-vorbis|dep|libvorbis|
 libopenmpt|--without-vorbisfile|dep|libvorbis|
@@ -100,7 +90,6 @@ rubberband|-Dvamp=disabled|extras||
 libsndfile|--disable-external-libs|dep|libvorbis|
 libsoxr|-DWITH_CR32S=OFF|feature||使わないレート変換バリアントを外す
 libsoxr|-DWITH_CR64S=OFF|feature||使わないレート変換バリアントを外す
-libsoxr|-DWITH_OPENMP=OFF|dep|libomp|
 libmysofa|-DBUILD_TESTS=OFF|extras||
 libwebp|-DWEBP_BUILD_ANIM_UTILS=OFF|extras||
 libwebp|-DWEBP_BUILD_CWEBP=OFF|extras||
@@ -126,15 +115,11 @@ libvmaf|-Denable_docs=false|extras||
 libvmaf|-Denable_tests=false|extras||
 libvmaf|-Denable_tools=false|extras||
 libass|-Dcompare=disabled|extras||
-libass|-Dfontconfig=disabled|dep|fontconfig|
 libass|-Dtest=disabled|extras||
 libaribcaption|-DARIBCC_BUILD_TESTS=OFF|extras||
-libbluray|-Dbdj_jar=disabled|dep|java|
 libbluray|-Denable_tools=false|extras||
-libbluray|-Dfontconfig=disabled|dep|fontconfig|
 libbluray|-Dfreetype=disabled|dep|freetype|
 libbluray|-Dlibxml2=disabled|dep|libxml2|
-zvbi|--disable-nls|dep|gettext|
 openssl|no-tests|extras||
 libssh|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
 libssh|-DUNIT_TESTING=OFF|extras||
@@ -145,28 +130,18 @@ libssh|-DWITH_ZLIB=ON|feature||zlib 対応
 libsrt|-DENABLE_APPS=OFF|extras||
 libsrt|-DENABLE_TESTING=OFF|extras||
 libsrt|-DUSE_ENCLIB=openssl-evp|feature||暗号バックエンドを OpenSSL に固定
-librist|-Dbuiltin_cjson=true|dep|cjson|
-librist|-Dbuiltin_lz4=true|dep|lz4|
-librist|-Dbuiltin_mbedtls=true|dep|mbedtls|
 librist|-Dtest=false|extras||
-libzmq|--without-libsodium|dep|libsodium|
 librabbitmq|-DENABLE_SSL_SUPPORT=ON|feature||SSL 対応
 librabbitmq|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
 libqrencode|--without-tools|extras||
 libtesseract|-DBUILD_TRAINING_TOOLS=OFF|extras||
-libtesseract|-DDISABLE_ARCHIVE=ON|dep|libarchive|
-libtesseract|-DDISABLE_CURL=ON|dep|curl|
-libtesseract|-DDISABLE_TIFF=ON|dep|libtiff|
 libtesseract|-DLeptonica_DIR=@PREFIX@|find||
 libcaca|--disable-cocoa|build||
 libcaca|--disable-csharp|extras||
 libcaca|--disable-cxx|extras||
-libcaca|--disable-imlib2|dep|imlib2|
 libcaca|--disable-java|extras||
 libcaca|--disable-ncurses|dep|ncurses|
 libcaca|--disable-python|extras||
 libcaca|--disable-ruby|extras||
-libcaca|--disable-slang|dep|slang|
 xz|--disable-doc|extras||
-xz|--disable-nls|dep|gettext|
 SDL2|-DSDL_TEST=OFF|extras||
