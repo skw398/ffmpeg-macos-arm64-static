@@ -53,14 +53,15 @@ def fetch_json(url, headers=None):
 def version_key(v):
     # best effort: split into digit/letter runs so "1.3.7" > "1.0rc2" and
     # "1.2.1" > "1.2rc2" (a number ranks above a pre-release marker).
+    # rank: a number > the end of the version > a letter run. So "9.0.2" > "9.0"
+    # (a number follows) but "1.2.0" > "1.2.0beta1" (a letter run follows).
     out = []
     for part in re.findall(r"\d+|[A-Za-z]+", v):
         if part.isdigit():
-            out.append((1, int(part), ""))
+            out.append((2, int(part), ""))
         else:
             out.append((0, 0, part.lower()))
-    # pad so a release ("1.2.0") outranks its pre-release ("1.2.0beta1")
-    return out + [(2, 0, "")] * 8
+    return out + [(1, 0, "")] * 8
 
 
 def looks_like_version(s):
