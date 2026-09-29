@@ -23,6 +23,10 @@ on:
         description: "Trial: keep the cached prefix/FFmpeg trees and rebuild only the affected libraries (per-library ids only)"
         type: boolean
         default: false
+      drop_flags:
+        description: "Trial: space/comma separated lib:flag entries to leave out of that recipe (build-deps.txt data)"
+        type: string
+        default: ""
   # Reusable: the workarounds workflow runs one trial per id through this one.
   workflow_call:
     inputs:
@@ -41,6 +45,9 @@ on:
       trial_fast:
         type: boolean
         default: false
+      drop_flags:
+        type: string
+        default: ""
       artifact_suffix:
         description: Appended to the artifact name, to keep matrix runs apart
         type: string
@@ -67,15 +74,14 @@ jobs:
       CMAKE_VERSION: "4.4.3"
       NINJA_VERSION: "1.13.2"
       MESON_VERSION: "1.12.1"
-      # A workaround trial (input no_workarounds) must build without the
+      # A trial (no_workarounds or drop_flags) must build without the
       # build-output caches and must not save any: a trial-built prefix would
       # otherwise mask the trial or poison the next normal build. The git-source
-      # cache is still restored, since one of the trials (libvpx-git-clean) is
-      # about build output that cache carries.
+      # cache is still restored (trials reset build output in those trees).
       # trial_fast keeps the prefix/FFmpeg caches and rebuilds only the affected
       # libraries (build-deps.sh forces and then checks them); it still saves
       # nothing.
-      WORKAROUND_TRIAL: ${{ inputs.no_workarounds }}
+      TRIAL_RUN: ${{ inputs.no_workarounds != '' || inputs.drop_flags != '' }}
       TRIAL_FAST: ${{ inputs.trial_fast }}
     steps:
       - uses: actions/checkout@v4
@@ -181,7 +187,7 @@ jobs:
 
       - name: Restore prefix cache
         id: cache-prefix
-        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.WORKAROUND_TRIAL == '' || env.TRIAL_FAST == 'true') }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.TRIAL_RUN != 'true' || env.TRIAL_FAST == 'true') }}
         uses: actions/cache/restore@v4
         with:
           path: build/prefix
@@ -247,7 +253,7 @@ jobs:
 
       - name: Restore FFmpeg pass-1 cache
         id: cache-ffmpeg-pass1
-        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.WORKAROUND_TRIAL == '' || env.TRIAL_FAST == 'true') }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.TRIAL_RUN != 'true' || env.TRIAL_FAST == 'true') }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -256,7 +262,7 @@ jobs:
 
       - name: Restore FFmpeg full cache
         id: cache-ffmpeg-full
-        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.WORKAROUND_TRIAL == '' || env.TRIAL_FAST == 'true') }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.TRIAL_RUN != 'true' || env.TRIAL_FAST == 'true') }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg
@@ -274,6 +280,7 @@ jobs:
         env:
           FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
           NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
+          DROP_FLAGS: ${{ inputs.drop_flags }}
           TRIAL_FAST: ${{ inputs.trial_fast }}
         run: sh scripts/build-deps.sh
 
@@ -291,14 +298,14 @@ jobs:
           key: downloads-${{ hashFiles('deps.txt') }}
 
       - name: Save prefix cache
-        if: always() && env.WORKAROUND_TRIAL == '' && steps.cache-prefix.outputs.cache-hit != 'true'
+        if: always() && env.TRIAL_RUN != 'true' && steps.cache-prefix.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/prefix
           key: prefix-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
 
       - name: Save git sources cache
-        if: always() && env.WORKAROUND_TRIAL == '' && steps.cache-gitsrc.outputs.cache-hit != 'true'
+        if: always() && env.TRIAL_RUN != 'true' && steps.cache-gitsrc.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
@@ -358,7 +365,7 @@ jobs:
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
 
       - name: Save FFmpeg pass-1 cache
-        if: ${{ always() && env.WORKAROUND_TRIAL == '' && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
+        if: ${{ always() && env.TRIAL_RUN != 'true' && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -373,7 +380,7 @@ jobs:
         run: sh scripts/build-ffmpeg.sh
 
       - name: Save FFmpeg full cache
-        if: ${{ always() && env.WORKAROUND_TRIAL == '' && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+        if: ${{ always() && env.TRIAL_RUN != 'true' && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
           path: build/src/ffmpeg
@@ -406,7 +413,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # a trial artifact must not be mistaken for a release candidate
-          name: ffmpeg-macos-arm64${{ env.WORKAROUND_TRIAL != '' && (env.TRIAL_FAST == 'true' && '-trial-fast' || '-trial') || '' }}${{ inputs.artifact_suffix }}
+          name: ffmpeg-macos-arm64${{ env.TRIAL_RUN == 'true' && (env.TRIAL_FAST == 'true' && '-trial-fast' || '-trial') || '' }}${{ inputs.artifact_suffix }}
           path: |
             build/prefix/bin/ffmpeg
             build/prefix/bin/ffprobe

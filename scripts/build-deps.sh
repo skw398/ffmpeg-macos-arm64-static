@@ -20,6 +20,9 @@ FORCE_REBUILD="${FORCE_REBUILD:-}"
 # space-separated library names to build (default: every recipe); the
 # workarounds workflow uses it to fetch and build just libgsm and quirc
 ONLY="${ONLY:-}"
+# "lib:flag" entries to leave out of that recipe's flags, so a per-library flag
+# (build-deps.txt data) can be trialed without editing the file
+DROP_FLAGS="${DROP_FLAGS:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
 PATCHES="$HERE/patches.txt"
@@ -33,6 +36,9 @@ RECIPE_REV=7
 # a trial run leaves out the listed workarounds; an unknown id is an error
 # rather than a silent no-op (see scripts/trial-workarounds.txt)
 validate_trials
+if [ -n "$DROP_FLAGS" ]; then
+  echo "== trial run: dropping flags: $DROP_FLAGS"
+fi
 
 # fast trial (workflow input trial_fast): the workflow keeps the cached prefix
 # and FFmpeg trees, so only the libraries the trialed ids affect get rebuilt.
@@ -267,6 +273,28 @@ is_selected() {
   case " $ONLY " in *" $1 "*) return 0 ;; *) return 1 ;; esac
 }
 
+# drop_flags_for <name> -> the flags DROP_FLAGS removes from this recipe
+drop_flags_for() {
+  for e in $(printf '%s' "${DROP_FLAGS:-}" | tr ',' ' '); do
+    case "$e" in "$1:"*) printf '%s\n' "${e#*:}" ;; esac
+  done
+}
+
+# apply_drop_flags <name> <flags> -> the flags with those entries removed (an
+# exact token match, so a prefix of another flag is never touched)
+apply_drop_flags() {
+  [ -n "${DROP_FLAGS:-}" ] || { printf '%s' "$2"; return 0; }
+  out=""
+  for w in $2; do
+    keep=1
+    for d in $(drop_flags_for "$1"); do
+      [ "$w" = "$d" ] && keep=0
+    done
+    [ "$keep" = 1 ] && out="$out $w"
+  done
+  printf '%s' "${out# }"
+}
+
 # every file in the prefix (relative), excluding the manifest bookkeeping.
 # Directories are not recorded: an install recreates the ones it needs, and a
 # lingering empty one is harmless, while rm -f cannot remove it.
@@ -327,7 +355,7 @@ build_one() {
 # would pass for the wrong reason. Tarball pins are re-extracted on every run
 # and are already fresh.
 trial_reset_sources() { # <name>
-  [ -n "${NO_WORKAROUNDS:-}" ] || return 0
+  [ -n "${NO_WORKAROUNDS:-}" ] || [ -n "${DROP_FLAGS:-}" ] || return 0
   case "$(pin "$1" | cut -d'|' -f3)" in COMMIT=*) ;; *) return 0 ;; esac
   n=$(git -C "$SRC/$1" clean -xffdn 2>/dev/null | wc -l | tr -d ' ')
   if [ "$n" -gt 0 ]; then
@@ -384,6 +412,9 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$name" ] || continue
   is_selected "$name" || continue
+  # a dropped flag changes the effective flags (and so the marker), which makes
+  # this library rebuild without touching the cached state
+  flags=$(apply_drop_flags "$name" "$flags")
   marker=$(marker_for "$name" "$kind" "$flags")
   if [ -f "$marker" ] && ! is_forced "$name"; then
     echo "== skip $name (already built)"

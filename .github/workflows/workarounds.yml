@@ -19,6 +19,10 @@ on:
         description: "Trial ids, space/comma separated (empty = decide from the trigger)"
         type: string
         default: ""
+      drop_flags:
+        description: "Trial per-library flags from the data: space/comma separated lib:flag entries"
+        type: string
+        default: ""
       install_rules:
         description: "Also run the install-rule check (libgsm / quirc)"
         type: boolean
@@ -47,6 +51,15 @@ jobs:
           INPUT_TRIALS: ${{ inputs.trials }}
           INPUT_INSTALL: ${{ inputs.install_rules }}
         run: sh scripts/plan-workaround-runs.sh
+
+  # Trial one or more per-library flags from build-deps.txt (no id needed).
+  drop-flags:
+    if: inputs.drop_flags != ''
+    uses: ./.github/workflows/build.yml
+    with:
+      drop_flags: ${{ inputs.drop_flags }}
+      trial_fast: true
+      artifact_suffix: -drop-flags
 
   # One trial per id, each in its own runner (build.yml is reusable).
   trials:
