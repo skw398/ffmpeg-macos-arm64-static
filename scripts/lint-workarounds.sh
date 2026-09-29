@@ -14,6 +14,7 @@
 #   [G] the .pc files now declare their private deps  -> drop FFmpeg --extra-libs
 #   [H] quirc no longer captures pkg-config stderr    -> drop the SDL_CFLAGS=
 #   [T] a trial id is listed but never consulted     -> the trial does nothing
+#   [E] a per-library flag is unclassified           -> the trial scope went stale
 set -u
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -329,6 +330,66 @@ if [ -n "$nomap$badlibs" ]; then
   fi
 else
   echo "  every id has an affected-library mapping, and the names are real recipes"
+fi
+
+# --- [E] per-library flags: classification coverage ---------------------------
+# Every per-library flag in build-deps.txt must be classified in
+# flag-categories.txt (T/G/I; see docs/BUILD-FLAG-CLASSIFICATION.md), so "which
+# flags do we trial?" cannot silently go stale when a flag is added. Policy
+# flags (static/shared), standard build settings and the globally-supplied
+# -DBUILD_TESTING=OFF are not classified.
+echo
+echo "== [E] per-library flags: every one classified (flag-categories.txt) =="
+cats="$HERE/flag-categories.txt"
+policy_flags="--enable-static --disable-shared --enable-pic --default-library=static no-shared -DBUILD_SHARED_LIBS=OFF -DPNG_SHARED=OFF -DSDL_SHARED=OFF -DSDL_STATIC=ON -DOAPV_BUILD_SHARED_LIB=OFF -DENABLE_SHARED=OFF -DBUILD_TESTING=OFF --release --library-type staticlib --locked"
+recipes_tmp=$(mktemp)
+grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" > "$recipes_tmp"
+missing=""
+nflags=0
+while IFS='|' read -r name kind flags note subdir; do
+  name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  [ -n "$name" ] || continue
+  for f in $flags; do
+    case " $policy_flags " in *" $f "*) continue ;; esac
+    nflags=$((nflags + 1))
+    awk -F'|' -v n="$name" -v f="$f" '$1==n && $2==f {ok=1} END{exit !ok}' "$cats" \
+      || missing="$missing $name:$f"
+  done
+done < "$recipes_tmp"
+rm -f "$recipes_tmp"
+
+stale=""
+badcat=""
+nt=0; ng=0; ni=0
+while IFS='|' read -r lib flag cls note; do
+  case "$lib" in ''|'#'*) continue ;; esac
+  case "$cls" in
+    T) nt=$((nt + 1)) ;;
+    G) ng=$((ng + 1)) ;;
+    I) ni=$((ni + 1)) ;;
+    *) badcat="$badcat $lib:$flag($cls)"; continue ;;
+  esac
+  row=$(awk -F'|' -v n="$lib" '$1==n {print $3; exit}' "$HERE/build-deps.txt")
+  case " $row " in
+    *" $flag "*) ;;
+    *) stale="$stale $lib:$flag" ;;
+  esac
+done < "$cats"
+
+if [ -n "$missing$stale$badcat" ]; then
+  if [ -n "$missing" ]; then
+    echo "  unclassified flags:$missing"
+    echo "  -> add them to flag-categories.txt (T/G/I)"
+  fi
+  if [ -n "$stale" ]; then
+    echo "  classified but not in build-deps.txt:$stale -> remove them"
+  fi
+  if [ -n "$badcat" ]; then
+    echo "  unknown category (T/G/I only):$badcat"
+  fi
+else
+  echo "  all $nflags flags classified (T=$nt G=$ng I=$ni)"
 fi
 
 echo
