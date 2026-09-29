@@ -1,0 +1,78 @@
+name: workarounds
+
+# Checks that need an *extra build* (an experiment), kept out of the build
+# workflow: one trial per workaround id, plus the libgsm / quirc install rules.
+# See docs/BUILD-WORKAROUNDS.md ("検知の実装").
+#
+# Triggers:
+#   - a push that changes deps.txt -> the per-library trials whose library's pin
+#     changed (fast trial, ~7 min each)
+#   - a weekly schedule            -> the global ids (no fast mode) + the
+#     install-rule check
+#   - manual dispatch              -> any subset
+on:
+  workflow_dispatch:
+    inputs:
+      trials:
+        description: "Trial ids, space/comma separated (empty = decide from the trigger)"
+        type: string
+        default: ""
+      install_rules:
+        description: "Also run the install-rule check (libgsm / quirc)"
+        type: boolean
+        default: false
+  push:
+    branches: [ main ]
+    paths: [ deps.txt ]
+  schedule:
+    - cron: "0 18 * * 0"
+
+jobs:
+  # Decide what to run: the ids whose library's pin changed (push), the global
+  # ids (schedule), or whatever was asked for (manual dispatch).
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      trials: ${{ steps.plan.outputs.trials }}
+      install_rules: ${{ steps.plan.outputs.install_rules }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Plan the run
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          INPUT_TRIALS: ${{ inputs.trials }}
+          INPUT_INSTALL: ${{ inputs.install_rules }}
+        run: sh scripts/plan-workaround-runs.sh
+
+  # One trial per id, each in its own runner (build.yml is reusable).
+  trials:
+    needs: plan
+    if: needs.plan.outputs.trials != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.trials) }}
+    uses: ./.github/workflows/build.yml
+    with:
+      no_workarounds: ${{ matrix.id }}
+      trial_fast: ${{ matrix.fast }}
+      artifact_suffix: -${{ matrix.id }}
+
+  # Can libgsm's and quirc's own install rules replace the copies we do?
+  install-rules:
+    needs: plan
+    if: needs.plan.outputs.install_rules == 'true'
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and build libgsm / quirc only
+        env:
+          ONLY: libgsm quirc
+        run: sh scripts/build-deps.sh
+      - name: Check the install rules
+        run: sh scripts/check-install-rules.sh

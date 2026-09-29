@@ -17,6 +17,9 @@ PREFIX="${PREFIX:-$ROOT/build/prefix}"
 JOBS="${JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 # space-separated library names to rebuild even if their marker exists
 FORCE_REBUILD="${FORCE_REBUILD:-}"
+# space-separated library names to build (default: every recipe); the
+# workarounds workflow uses it to fetch and build just libgsm and quirc
+ONLY="${ONLY:-}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
 PATCHES="$HERE/patches.txt"
@@ -258,6 +261,12 @@ is_forced() {
   case " $FORCE_REBUILD " in *" $1 "*) return 0 ;; *) return 1 ;; esac
 }
 
+# true when ONLY is empty or lists the named library
+is_selected() {
+  [ -z "$ONLY" ] && return 0
+  case " $ONLY " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+}
+
 # every file in the prefix (relative), excluding the manifest bookkeeping.
 # Directories are not recorded: an install recreates the ones it needs, and a
 # lingering empty one is harmless, while rm -f cannot remove it.
@@ -374,6 +383,7 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$name" ] || continue
+  is_selected "$name" || continue
   marker=$(marker_for "$name" "$kind" "$flags")
   if [ -f "$marker" ] && ! is_forced "$name"; then
     echo "== skip $name (already built)"
