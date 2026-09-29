@@ -70,13 +70,13 @@ libvvenc|-DVVENC_LIBRARY_ONLY=ON|extras||
 liboapv|-DENABLE_TESTS=OFF|extras||
 liboapv|-DOAPV_BUILD_APPS=OFF|extras||
 libvidstab|-DUSE_OMP=OFF|dep|libomp|
-libsnappy|-DSNAPPY_BUILD_BENCHMARKS=OFF|extras||
-libsnappy|-DSNAPPY_BUILD_TESTS=OFF|extras||
+libsnappy|-DSNAPPY_BUILD_BENCHMARKS=OFF|build||
+libsnappy|-DSNAPPY_BUILD_TESTS=OFF|build||
 libopus|--disable-doc|extras||
 libopus|--disable-extra-programs|extras||
 libspeex|--disable-binaries|extras||
-lame|--disable-decoder|feature||MP3 エンコーダ専用（デコーダは FFmpeg 本体）
-lame|--disable-frontend|extras||
+lame|--disable-decoder|build||MP3 エンコーダ専用（デコーダは FFmpeg 本体）
+lame|--disable-frontend|build||
 libtwolame|--disable-sndfile|dep|libsndfile|
 libcodec2|-DUNITTEST=OFF|extras||
 libgme|-DGME_ENABLE_UBSAN=OFF|feature||
