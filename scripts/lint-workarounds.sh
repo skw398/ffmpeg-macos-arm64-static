@@ -14,8 +14,7 @@
 #   [G] the .pc files now declare their private deps  -> drop FFmpeg --extra-libs
 #   [H] quirc no longer captures pkg-config stderr    -> drop the SDL_CFLAGS=
 #   [T] a trial id is listed but never consulted     -> the trial does nothing
-#   [E] a per-library flag is unclassified / its avoided dependency is not
-#       reachable                                    -> the flag is a no-op
+#   [E] a per-library flag is unclassified           -> the trial scope went stale
 set -u
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -344,12 +343,12 @@ else
   echo "  every id has an affected-library mapping, and the names are real recipes"
 fi
 
-# --- [E] per-library flags: classification and dep reachability ---------------
+# --- [E] per-library flags: classification ------------------------------------
 # Every per-library flag in build-deps.txt must be classified in
 # flag-categories.txt with the *purpose* that decides how "removable" is
 # determined (see docs/BUILD-FLAG-CLASSIFICATION.md):
 #   build   -> trial (does the build survive without it?)
-#   dep     -> is the avoided dependency reachable? decided here, no build needed
+#   dep     -> trial (the ambient check catches a dependency it would pull in)
 #   extras  -> triage (is the option a no-op?)
 #   find    -> triage (is the -D variable unused?)
 #   feature -> a human requirement decision (CI cannot decide)
@@ -415,33 +414,13 @@ else
   echo "  all $nflags flags classified (build=$nbuild dep=$ndep extras=$nextras find=$nfind feature=$nfeature)"
 fi
 
-# dep: the flag exists to avoid a dependency. It can only change anything if that
-# dependency is reachable at all -- something we build (a recipe in build-deps.txt)
-# or the SDK provides (zlib / libxml2, via the prefix shims). If it is not
-# reachable, dropping the flag cannot pull it in: the flag is a no-op.
-sdk_libs="zlib libxml2"
-dep_removable=""
-dep_needed=0
-while IFS='|' read -r lib flag purpose target note; do
-  case "$lib" in ''|'#'*) continue ;; esac
-  [ "$purpose" = dep ] || continue
-  reach=no
-  for r in $recipes $sdk_libs; do
-    [ "$r" = "$target" ] && reach=yes
-  done
-  if [ "$reach" = yes ]; then
-    dep_needed=$((dep_needed + 1))
-  else
-    dep_removable="$dep_removable $lib:$flag($target)"
-  fi
-done < "$cats"
-if [ -n "$dep_removable" ]; then
-  echo "  dep: the avoided dependency is not reachable -> no-op (removable):$dep_removable"
-  fired=1
-fi
-if [ "$dep_needed" -gt 0 ]; then
-  echo "  dep: still needed (the dependency is reachable): $dep_needed flag(s)"
-fi
+# build and dep are decided by a trial (drop_flags): red = still needed. The
+# ambient check in the same run catches a dependency a dep flag would otherwise
+# pull in, so the trial decides those too (a static reachability guess got
+# leptonica's TIFF/JPEG/GIF wrong: CMake found them outside the closed
+# pkg-config and lept.pc then required them). The rest are triage (extras /
+# find) or a human decision (feature).
+echo "  trial targets (build+dep): $((nbuild + ndep)) -> run drop_flags one at a time (see the runbook)"
 
 echo
 if [ "$fired" -eq 0 ]; then
