@@ -7,9 +7,11 @@ name: workarounds
 # Triggers:
 #   - a push that changes deps.txt -> the per-library trials whose library's pin
 #     changed (fast trial, ~7 min each)
-#   - a weekly schedule            -> the global ids (no fast mode) + the
-#     install-rule check
-#   - manual dispatch              -> any subset
+#   - manual dispatch              -> any subset (including the global ids, which
+#     cannot use a fast trial)
+#
+# No schedule: when these run is a separate decision. plan-workaround-runs.sh
+# already understands EVENT=schedule, so a schedule can be added later.
 on:
   workflow_dispatch:
     inputs:
@@ -24,8 +26,6 @@ on:
   push:
     branches: [ main ]
     paths: [ deps.txt ]
-  schedule:
-    - cron: "0 18 * * 0"
 
 jobs:
   # Decide what to run: the ids whose library's pin changed (push), the global
