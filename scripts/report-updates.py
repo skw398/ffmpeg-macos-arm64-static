@@ -15,6 +15,7 @@ Usage:   python3 scripts/report-updates.py [name ...]
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -68,6 +69,18 @@ def looks_like_version(s):
     return bool(re.match(r"^v?\d", s))
 
 
+def looks_like_strict_version(s):
+    return bool(re.match(r"^v?\d+(\.\d+)*$", s))
+
+
+def pick_version(tags):
+    """the max tag, preferring dotted versions over odd ones (libaom has tags
+    like "3gpp-2021-10-15-5" that a loose match would otherwise pick)."""
+    strict = [t for t in tags if looks_like_strict_version(t)]
+    pool = strict or [t for t in tags if looks_like_version(t)]
+    return sorted(pool, key=version_key)[-1] if pool else None
+
+
 # --- per-host resolvers ------------------------------------------------------
 
 def latest_github(owner, repo):
@@ -85,9 +98,9 @@ def latest_github(owner, repo):
     # no releases: fall back to tags, preferring version-looking ones (a repo
     # may have non-version tags such as libwebp's "webp-rfc9649").
     d = fetch_json("https://api.github.com/repos/%s/%s/tags?per_page=100" % (owner, repo), h)
-    vers = [t["name"] for t in d if looks_like_version(t["name"])]
-    if vers:
-        return sorted(vers, key=version_key)[-1], "github tag (max version)"
+    best = pick_version([t["name"] for t in d])
+    if best:
+        return best, "github tag (max version)"
     if d:
         return d[0]["name"], "github tag (first)"
     return None, None
@@ -105,9 +118,9 @@ def latest_googlesource(url):
     t = fetch(url.rstrip("/") + "/+refs?format=JSON")
     t = t.split("\n", 1)[-1]         # strip the )]}' guard line
     d = json.loads(t)
-    tags = sorted((k.split("/")[-1] for k in d if k.startswith("refs/tags/")), key=version_key)
-    if tags:
-        return tags[-1], "googlesource tag (max version)"
+    best = pick_version([k.split("/")[-1] for k in d if k.startswith("refs/tags/")])
+    if best:
+        return best, "googlesource tag (max version)"
     return None, None
 
 
@@ -168,8 +181,56 @@ def latest_sourceforge(project, subpath, pinned_file):
     return top_versions(vers), "sourceforge rss (newest 3)"
 
 
+GIT_HOSTS = ("github.com", "gitlab.com", "code.videolan.org", "bitbucket.org")
+
+
+def is_git_repo(url):
+    return url.endswith(".git") or any("/" + h + "/" in url for h in GIT_HOSTS) \
+        or ".googlesource.com/" in url
+
+
+def latest_git(url):
+    """git ls-remote works where a host's HTTP API does not (googlesource 503),
+    and gives the branch head for a repo with no tags (x264)."""
+    out = subprocess.run(["git", "ls-remote", "--tags", url],
+                         capture_output=True, text=True, timeout=90)
+    tags = set()
+    for line in out.stdout.splitlines():
+        ref = line.split("\t")[-1]
+        if ref.startswith("refs/tags/"):
+            tags.add(ref[len("refs/tags/"):].rstrip("^{}"))
+    best = pick_version(tags)
+    if best:
+        return best, "git ls-remote tags (max version)"
+    out = subprocess.run(["git", "ls-remote", url, "HEAD"],
+                         capture_output=True, text=True, timeout=90)
+    for line in out.stdout.splitlines():
+        sha, _, ref = line.partition("\t")
+        if ref.strip() == "HEAD" and sha:
+            return sha[:12], "git ls-remote HEAD (no tags)"
+    return None, None
+
+
 def resolve(name, version, url):
     """best effort: the latest upstream name for this dep, or (None, where)."""
+    latest, where = None, None
+    try:
+        latest, where = resolve_primary(url)
+    except Exception as e:
+        where = "error: %s" % e
+    if latest:
+        return latest, where
+    if is_git_repo(url):                 # fall back to the git protocol
+        try:
+            got = latest_git(url)
+            if got[0]:
+                return got
+        except Exception:
+            pass
+    return None, where
+
+
+def resolve_primary(url):
     u = url
     # a release-asset download URL: the repo is still the first two segments
     m = re.match(r"https://github\.com/([^/]+)/([^/]+)/(?:releases|archive)/", u)
