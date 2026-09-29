@@ -29,12 +29,12 @@ libudfread|meson||
 
 # ---- video codecs ----
 dav1d|meson|-Denable_tools=false -Denable_tests=false|
-libaom|custom||git pin (clone); cmake in build_deps_libaom
+libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1|git pin (clone)
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
-librav1e|custom||Rust + cargo-c
+librav1e|custom|--release --library-type staticlib --locked|Rust + cargo-c
 libvpx|custom|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone); configure in build_libvpx; --target was removed 2026-09-28 (trial green)
 x264|autotools|--enable-pic|
-x265|custom||cmake in build_x265 (source/ subdir)
+x265|custom|-DENABLE_CLI=OFF -DENABLE_SHARED=OFF|cmake in build_x265 (source/ subdir)
 openh264|make||make-based (build_deps_openh264)
 libvvenc|cmake|-DVVENC_LIBRARY_ONLY=ON|
 liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DENABLE_TESTS=OFF -DOAPV_BUILD_SHARED_LIB=OFF|
@@ -67,7 +67,7 @@ libwebp|cmake|-DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DW
 libopenjpeg|cmake|-DBUILD_CODEC=OFF -DBUILD_JPIP=OFF|
 libzimg|autotools||
 libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
-libvmaf|custom||meson under libvmaf/ (build_libvmaf)
+libvmaf|custom|-Denable_tests=false -Denable_docs=false -Denable_tools=false|meson under libvmaf/ (build_libvmaf)
 
 # ---- subtitles / text / disc / teletext ----
 libass|meson|-Dfontconfig=disabled -Dtest=disabled -Dcompare=disabled|
@@ -91,6 +91,6 @@ libqrencode|autotools|--without-tools|
 quirc|make-copy||make + copy artifacts (build_quirc)
 libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON -DLeptonica_DIR=@PREFIX@|
 libcaca|autotools|--disable-slang --disable-ncurses --disable-imlib2 --disable-cocoa --disable-ruby --disable-python --disable-java --disable-csharp --disable-cxx|C lib only: cocoa driver is broken on modern AppKit, and the language bindings are unneeded
-libflite|make||configure-based (build_deps_libflite)
+libflite|autotools||install rule's GNU-only cp -pd is fixed by the patch
 xz|autotools|--disable-doc --disable-nls|
 SDL2|cmake|-DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST=OFF|

@@ -50,11 +50,12 @@ meson_option_defaults() { # <file>
       done
 }
 
-# locate the meson options file for a recipe (git checkout first, else tarball)
+# locate the meson options file for a recipe (git checkout first, else tarball).
+# Search subdirectories too: libvmaf keeps its meson build in libvmaf/.
 meson_options_file() { # <name> <version> <hash>
   name="$1"; ver="$2"; hash="$3"
-  for f in "$SRC/$name/meson_options.txt" "$SRC/$name/meson.options"; do
-    [ -f "$f" ] && { printf '%s\n' "$f"; return 0; }
+  for f in $(find "$SRC/$name" -maxdepth 2 \( -name meson_options.txt -o -name meson.options \) 2>/dev/null); do
+    printf '%s\n' "$f"; return 0
   done
   case "$hash" in COMMIT=*|"") return 1 ;; esac
   tb="$DL/$name-$ver.tarball"
@@ -110,7 +111,7 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  [ "$kind" = meson ] || continue
+  [ "$kind" = meson ] || [ "$kind" = custom ] || continue
   ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
   hash=$(awk -F'|' -v n="$name" '$1 == n { print $4; exit }' "$PINS")
   ofile=$(meson_options_file "$name" "$ver" "$hash") || continue

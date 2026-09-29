@@ -170,21 +170,6 @@ build_generic() {
 
 # --- special cases -----------------------------------------------------------
 
-build_libaom() {
-  src="$SRC/libaom"
-  # AOM_TARGET_CPU=arm64 and CONFIG_RUNTIME_CPU_DETECT=0 were removed on
-  # 2026-09-28: trials without them built and passed every check, so aom's
-  # defaults (host target, runtime CPU detection on) are fine.
-  cmake -S "$src" -B "$src/.build" \
-    -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DCMAKE_PREFIX_PATH="$PREFIX" \
-    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 \
-    -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1
-  cmake --build "$src/.build" -j "$JOBS"
-  cmake --install "$src/.build"
-}
-
 build_libvpx() {
   flags="$1"
   # --target=arm64-darwin20-gcc and the pre-configure `git clean` were removed on
@@ -196,9 +181,8 @@ build_libvpx() {
     make -j"$JOBS" && make install )
 }
 
-build_librav1e() {
-  ( cd "$SRC/librav1e" && cargo cinstall --release --prefix "$PREFIX" \
-      --library-type staticlib --locked )
+build_librav1e() { # <flags from the recipe>
+  ( cd "$SRC/librav1e" && cargo cinstall --prefix "$PREFIX" $1 )
 }
 
 build_openh264() {
@@ -224,26 +208,19 @@ build_quirc() {
     && cp "$SRC/quirc/lib/quirc.h" "$PREFIX/include/"
 }
 
-build_libflite() {
-  # the install rule's GNU-only `cp -pd` is fixed by the data-driven patch
-  # (patches/libflite/v2.2/001-cp-pd-macos.patch, applied by apply_patches)
-  ( cd "$SRC/libflite" && ./configure --prefix="$PREFIX" && make -j"$JOBS" && make install )
-}
-
-build_x265() {
+build_x265() { # <flags from the recipe>
   cmake -S "$SRC/x265/source" -B "$SRC/x265/build-cmake" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DENABLE_CLI=OFF -DENABLE_SHARED=OFF \
+    -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET"
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" $1
   cmake --build "$SRC/x265/build-cmake" -j "$JOBS"
   cmake --install "$SRC/x265/build-cmake"
 }
 
-build_libvmaf() {
+build_libvmaf() { # <flags from the recipe>
   meson setup "$SRC/libvmaf/.build" "$SRC/libvmaf/libvmaf" --prefix="$PREFIX" \
-    --default-library=static --buildtype=release \
-    -Denable_tests=false -Denable_docs=false -Denable_tools=false
+    --default-library=static --buildtype=release $1
   ninja -C "$SRC/libvmaf/.build"
   ninja -C "$SRC/libvmaf/.build" install
 }
@@ -256,15 +233,13 @@ dispatch_build() {
   apply_patches "$name"
 
   case "$name" in
-    libaom)      build_libaom ;;
     libvpx)      build_libvpx "$flags" ;;
-    librav1e)    build_librav1e ;;
+    librav1e)    build_librav1e "$flags" ;;
     openh264)    build_openh264 ;;
     libgsm)      build_libgsm ;;
     quirc)       build_quirc ;;
-    libflite)    build_libflite ;;
-    x265)        build_x265 ;;
-    libvmaf)     build_libvmaf ;;
+    x265)        build_x265 "$flags" ;;
+    libvmaf)     build_libvmaf "$flags" ;;
     *)           build_generic "$name" "$kind" "$flags" ;;
   esac
 }
