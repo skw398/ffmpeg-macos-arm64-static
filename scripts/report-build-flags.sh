@@ -29,6 +29,23 @@ trap cleanup EXIT
 
 [ -d "$LOGS" ] || { echo "ERROR: no build logs at $LOGS (run build-deps.sh first)" >&2; exit 1; }
 
+# --- how much of the build this run actually did ------------------------------
+# Every signal below reads per-library build logs, so it only covers the
+# libraries that were rebuilt here. A cached (partial) run cannot tell whether a
+# workaround is still needed: say so up front instead of letting the counts be
+# misread (this is how the CMake -Werror strip was once dropped by mistake).
+total=0; built=0
+for name in $(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | cut -d'|' -f1); do
+  total=$((total + 1))
+  [ -f "$LOGS/$name.log" ] && built=$((built + 1))
+done
+echo "== build coverage: $built of $total libraries were rebuilt in this run =="
+if [ "$built" -lt "$total" ]; then
+  echo "  NOTE: the counts below only cover those libraries; read them on a full"
+  echo "        build (clean_build) before concluding anything."
+fi
+echo
+
 # normalise a boolean-ish flag value: meson accepts enabled/disabled for booleans
 norm_bool() {
   case "$1" in
