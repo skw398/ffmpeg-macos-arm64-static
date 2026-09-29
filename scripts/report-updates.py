@@ -51,8 +51,20 @@ def fetch_json(url, headers=None):
 
 
 def version_key(v):
-    # best effort: digits compare as numbers, the rest lexically
-    return [(0, int(p), "") if p.isdigit() else (1, 0, p) for p in re.split(r"[._+-]", v)]
+    # best effort: split into digit/letter runs so "1.3.7" > "1.0rc2" and
+    # "1.2.1" > "1.2rc2" (a number ranks above a pre-release marker).
+    out = []
+    for part in re.findall(r"\d+|[A-Za-z]+", v):
+        if part.isdigit():
+            out.append((1, int(part), ""))
+        else:
+            out.append((0, 0, part.lower()))
+    # pad so a release ("1.2.0") outranks its pre-release ("1.2.0beta1")
+    return out + [(2, 0, "")] * 8
+
+
+def looks_like_version(s):
+    return bool(re.match(r"^v?\d", s))
 
 
 # --- per-host resolvers ------------------------------------------------------
@@ -69,9 +81,14 @@ def latest_github(owner, repo):
     except urllib.error.HTTPError as e:
         if e.code != 404:            # 404 = no releases -> try tags
             raise
-    d = fetch_json("https://api.github.com/repos/%s/%s/tags?per_page=1" % (owner, repo), h)
+    # no releases: fall back to tags, preferring version-looking ones (a repo
+    # may have non-version tags such as libwebp's "webp-rfc9649").
+    d = fetch_json("https://api.github.com/repos/%s/%s/tags?per_page=100" % (owner, repo), h)
+    vers = [t["name"] for t in d if looks_like_version(t["name"])]
+    if vers:
+        return sorted(vers, key=version_key)[-1], "github tag (max version)"
     if d:
-        return d[0]["name"], "github tag"
+        return d[0]["name"], "github tag (first)"
     return None, None
 
 
@@ -105,40 +122,46 @@ def top_versions(versions, n=3):
     return " / ".join(sorted(set(versions), key=version_key)[-n:][::-1])
 
 
-def latest_listing(dir_url, pinned_file):
-    """A plain directory listing: match the pinned file's shape and report the
-    newest few versions (listings are alphabetical, so 'the last one' is not
-    the newest; 'doc' and other variants are filtered out by requiring a digit)."""
-    html = fetch(dir_url)
-    names = [n.rstrip("/").split("/")[-1] for n in re.findall(r'href="([^"?#]+)"', html)]
+def extract_versions(names, pinned_file):
+    """Pull the version out of each archive name, using the pinned file as the
+    template (so a 'doc' variant or another project is not mistaken for one)."""
     m = re.match(r"^(.*?)([0-9][^/]*?)(\.tar\.(?:gz|xz|bz2)|\.tgz|\.zip)$", pinned_file)
     if not m:
-        return None, None
+        return set()
     prefix, ext = m.group(1), m.group(3)
-    cands = set()
+    out = set()
     for n in names:
         mm = re.match(r"^%s([0-9][^/]*?)%s$" % (re.escape(prefix), re.escape(ext)), n)
         if mm:
-            cands.add(mm.group(1))
-    if not cands:
+            out.add(mm.group(1))
+    return out
+
+
+def latest_listing(dir_url, pinned_file):
+    """A plain directory listing: report the newest few versions (listings are
+    alphabetical, so 'the last one' is not the newest)."""
+    html = fetch(dir_url)
+    names = [n.rstrip("/").split("/")[-1] for n in re.findall(r'href="([^"?#]+)"', html)]
+    vers = extract_versions(names, pinned_file)
+    if not vers:
         return None, None
-    return top_versions(cands), "listing (newest 3)"
+    return top_versions(vers), "listing (newest 3)"
 
 
-def latest_sourceforge(project, subpath):
-    """sourceforge's files/ listing blocks bots, but its RSS works and is
-    newest-first; the version is the directory above the file."""
-    # subpath is <sub>/<version>/<file>; list the directory that holds the versions
+def latest_sourceforge(project, subpath, pinned_file):
+    """sourceforge's files/ listing blocks bots, but its RSS works. The version
+    comes from the file name (the directory layout differs between releases:
+    opencore-amr has both files/opencore-amr/<file> and .../0.1.2/<file>)."""
     sub = "/".join(subpath.split("/")[:-2])
     xml = fetch("https://sourceforge.net/projects/%s/rss?path=/%s" % (project, sub))
-    vers = []
+    names = []
     for link in re.findall(r"<link>([^<]+)</link>", xml):
         parts = link.rstrip("/").split("/")
         if parts and parts[-1] == "download":
             parts.pop()
-        if not parts or not ARCHIVE.search(parts[-1]):
-            continue
-        vers.append(parts[-2] if len(parts) >= 2 else parts[-1])
+        if parts:
+            names.append(parts[-1])
+    vers = extract_versions(names, pinned_file)
     if not vers:
         return None, None
     return top_versions(vers), "sourceforge rss (newest 3)"
@@ -147,6 +170,10 @@ def latest_sourceforge(project, subpath):
 def resolve(name, version, url):
     """best effort: the latest upstream name for this dep, or (None, where)."""
     u = url
+    # a release-asset download URL: the repo is still the first two segments
+    m = re.match(r"https://github\.com/([^/]+)/([^/]+)/(?:releases|archive)/", u)
+    if m:
+        return latest_github(m.group(1), m.group(2))
     m = re.match(r"https://github\.com/([^/]+)/([^/]+?)(?:\.git)?$", u)
     if m:
         return latest_github(m.group(1), m.group(2))
@@ -158,12 +185,13 @@ def resolve(name, version, url):
     m = re.match(r"https://bitbucket\.org/([^/]+)/([^/]+)/", u)
     if m:
         return latest_bitbucket(m.group(1), m.group(2))
+    fname = u.rsplit("/", 1)[-1]
     m = re.match(r"https://downloads\.sourceforge\.net/project/([^/]+)/(.*)$", u)
     if m:
-        return latest_sourceforge(m.group(1), m.group(2))
+        return latest_sourceforge(m.group(1), m.group(2), fname)
     m = re.match(r"https://download\.sourceforge\.net/([^/]+)/", u)
     if m:
-        return latest_sourceforge(m.group(1), "")
+        return latest_sourceforge(m.group(1), "", fname)
     if u.startswith("https://"):
         return latest_listing(u.rsplit("/", 1)[0] + "/", u.rsplit("/", 1)[-1])
     return None, None
