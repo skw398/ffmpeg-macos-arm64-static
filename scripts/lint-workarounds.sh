@@ -11,6 +11,8 @@
 #   [I] an artifact-consumers skip is unnecessary    -> drop the skip entry
 #   [J] python3 is no longer PEP 668 managed         -> drop the meson venv
 #   [H] a custom-built library gained a build system -> consider switching to it
+#   [G] the .pc files now declare their private deps  -> drop FFmpeg --extra-libs
+#   [H] quirc no longer captures pkg-config stderr    -> drop the SDL_CFLAGS=
 #   [T] a trial id is listed but never consulted     -> the trial does nothing
 set -u
 
@@ -216,6 +218,34 @@ else
   fired=1
 fi
 
+# --- [G] FFmpeg --extra-libs: private deps the .pc files used to omit ---------
+# --extra-libs supplies private dependencies that some static libraries' .pc
+# files omit. These are the known gaps (from the trial that failed on
+# libjxl_threads without -lc++): when every one is declared by its .pc file, the
+# flag can be dropped. A *new* gap shows up as a build failure, not here.
+echo "== [G] private deps FFmpeg's --extra-libs supplies =="
+missing=""
+check_pc_lib() { # <module> <token>
+  pkg-config --static --libs "$1" 2>/dev/null | tr ' ' '\n' | grep -qx -- "$2" \
+    || missing="$missing $1:$2"
+}
+if [ -d "$PREFIX/lib/pkgconfig" ]; then
+  check_pc_lib libjxl_threads -lc++
+  check_pc_lib libssh -lssl
+  check_pc_lib libssh -lcrypto
+  check_pc_lib libssh -lz
+  check_pc_lib chromaprint Accelerate
+  if [ -n "$missing" ]; then
+    echo "  still not declared by the .pc file:$missing"
+    echo "  -> FFmpeg's --extra-libs is still needed"
+  else
+    echo "  every one of them is declared: --extra-libs can be dropped"
+    fired=1
+  fi
+else
+  echo "  (no pkg-config dir in the prefix: skipped)"
+fi
+
 # --- [H] custom-built libraries that gained a build system -------------------
 echo
 echo "== [H] custom builders: did upstream gain a standard build system? =="
@@ -232,6 +262,29 @@ if [ -n "$hit" ]; then
   fired=1
 else
   echo "  (none: custom builders still needed)"
+fi
+
+# --- [H] quirc's makefile capturing pkg-config stderr (SDL_CFLAGS) -----------
+# quirc's Makefile does `SDL_CFLAGS := $(shell pkg-config --cflags sdl 2>&1)`,
+# so the "package not found" message (which contains quotes) lands in CFLAGS and
+# breaks the compile command; we blank SDL_CFLAGS on the make line to work
+# around it. When no CFLAGS assignment captures stderr anymore, drop that.
+echo
+echo "== [H] quirc's makefile capturing pkg-config stderr (SDL_CFLAGS) =="
+qm="$SRC/quirc/Makefile"
+if [ -f "$qm" ]; then
+  hits=$(grep -nE 'CFLAGS.*pkg-config.*2>&1' "$qm" 2>/dev/null | head -3)
+  if [ -n "$hits" ]; then
+    echo "  still capturing stderr:"
+    printf '%s\n' "$hits" | sed 's/^/    /'
+    echo "  -> the SDL_CFLAGS= workaround is still needed"
+  else
+    echo "  no CFLAGS assignment captures pkg-config stderr"
+    echo "  -> the SDL_CFLAGS= workaround can be dropped"
+    fired=1
+  fi
+else
+  echo "  (no quirc source present: skipped)"
 fi
 
 # --- [T] trial ids: is every listed id consulted? ----------------------------
