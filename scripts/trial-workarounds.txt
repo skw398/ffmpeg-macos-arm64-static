@@ -14,6 +14,4 @@
 size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include|*
 autotools-touch|B|autotools 生成ファイルの touch|*
 quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=|quirc
-libvpx-custom-builder|H|libvpx の個別ビルダー（汎用 autotools 経路に載るか）|libvpx
-openh264-custom-builder|H|openh264 の make ビルダー（標準 meson に載るか）|openh264
 ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs|ffmpeg

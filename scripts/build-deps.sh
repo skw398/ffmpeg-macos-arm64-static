@@ -179,23 +179,8 @@ build_generic() {
 
 # --- special cases -----------------------------------------------------------
 
-build_libvpx() {
-  flags="$1"
-  # --target=arm64-darwin20-gcc and the pre-configure `git clean` were removed on
-  # 2026-09-28: trials without them built and passed every check, including one
-  # that reproduced a target switch on a tree still holding build output.
-  ( cd "$SRC/libvpx"
-    ./configure --prefix="$PREFIX" $flags
-    grep -E '^(CFLAGS|ASFLAGS|LDFLAGS)=' config.mk || true
-    make -j"$JOBS" && make install )
-}
-
 build_librav1e() { # <flags from the recipe>
   ( cd "$SRC/librav1e" && cargo cinstall --prefix "$PREFIX" $1 )
-}
-
-build_openh264() {
-  ( cd "$SRC/openh264" && make -j"$JOBS" && make install PREFIX="$PREFIX" )
 }
 
 build_libgsm() {
@@ -224,24 +209,11 @@ dispatch_build() {
   # precondition check; see apply_patches() and docs/PATCH-POLICY.md
   apply_patches "$name"
 
-  # custom builders. A trial id can fall back to the standard path, so whether
-  # the custom builder is still needed can be tested without editing this code
-  # (the ids are in scripts/trial-workarounds.txt; the [T] lint checks the
-  # wiring).
+  # remaining custom builders. libvpx and openh264 moved to the generic
+  # autotools / meson paths on 2026-09-29 (their trial ids were green), so only
+  # these three are left.
   case "$name" in
-    libvpx)
-      if trial_disabled libvpx-custom-builder; then
-        build_generic "$name" autotools "$flags" "$subdir"
-      else
-        build_libvpx "$flags"
-      fi ;;
     librav1e)    build_librav1e "$flags" ;;
-    openh264)
-      if trial_disabled openh264-custom-builder; then
-        build_generic "$name" meson "$flags" "$subdir"
-      else
-        build_openh264
-      fi ;;
     libgsm)      build_libgsm ;;
     quirc)       build_quirc ;;
     *)           build_generic "$name" "$kind" "$flags" "$subdir" ;;
