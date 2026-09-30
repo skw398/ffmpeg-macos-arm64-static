@@ -108,8 +108,6 @@ libjxl|-DJPEGXL_ENABLE_SJPEG=OFF|build||
 libjxl|-DJPEGXL_ENABLE_SKCMS=OFF|build||
 libjxl|-DJPEGXL_ENABLE_TOOLS=OFF|extras||
 libjxl|-DJPEGXL_ENABLE_VIEWERS=OFF|extras||
-libjxl|-DJPEGXL_FORCE_SYSTEM_BROTLI=ON|find||
-libjxl|-DJPEGXL_FORCE_SYSTEM_HWY=ON|find||
 libjxl|-DJPEGXL_FORCE_SYSTEM_LCMS2=ON|build||
 libvmaf|-Denable_docs=false|extras||
 libvmaf|-Denable_tests=false|extras||
@@ -121,7 +119,6 @@ libbluray|-Denable_tools=false|extras||
 libbluray|-Dfreetype=disabled|dep|freetype|
 libbluray|-Dlibxml2=disabled|dep|libxml2|
 openssl|no-tests|extras||
-libssh|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
 libssh|-DUNIT_TESTING=OFF|extras||
 libssh|-DWITH_EXAMPLES=OFF|extras||
 libssh|-DWITH_GSSAPI=OFF|dep|gssapi|
@@ -132,13 +129,11 @@ libsrt|-DENABLE_TESTING=OFF|extras||
 libsrt|-DUSE_ENCLIB=openssl-evp|feature||暗号バックエンドを OpenSSL に固定
 librist|-Dtest=false|extras||
 librabbitmq|-DENABLE_SSL_SUPPORT=ON|feature||SSL 対応
-librabbitmq|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
 libqrencode|--without-tools|extras||
 libtesseract|-DBUILD_TRAINING_TOOLS=OFF|extras||
 libtesseract|-DDISABLE_ARCHIVE=ON|dep|libarchive|
 libtesseract|-DDISABLE_CURL=ON|dep|curl|
 libtesseract|-DDISABLE_TIFF=ON|dep|libtiff|
-libtesseract|-DLeptonica_DIR=@PREFIX@|find||
 libcaca|--disable-cocoa|build||
 libcaca|--disable-csharp|extras||
 libcaca|--disable-cxx|extras||

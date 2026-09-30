@@ -67,7 +67,7 @@ libmysofa|cmake|-DBUILD_TESTS=OFF|
 libwebp|cmake|-DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF|
 libopenjpeg|cmake|-DBUILD_CODEC=OFF -DBUILD_JPIP=OFF|
 libzimg|autotools||
-libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
+libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
 libvmaf|meson|-Denable_tests=false -Denable_docs=false -Denable_tools=false|meson under libvmaf/|libvmaf/
 
 # ---- subtitles / text / disc / teletext ----
@@ -81,16 +81,16 @@ zvbi|autotools||libpng: no configure option; AC_CHECK_LIB finds the prefix libpn
 
 # ---- network / messaging ----
 openssl|perl|no-shared no-tests|
-libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
+libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp|static only: a dylib would be linked instead of the static lib
 librist|meson|-Dtest=false|
 libzmq|autotools||
-librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|
+librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON|
 
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|
 quirc|make-copy||make + copy artifacts (build_quirc)
-libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DLeptonica_DIR=@PREFIX@ -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON|
+libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON|
 libcaca|autotools|--disable-ncurses --disable-cocoa --disable-ruby --disable-python --disable-java --disable-csharp --disable-cxx|C lib only: cocoa driver is broken on modern AppKit, and the language bindings are unneeded
 libflite|autotools||install rule's GNU-only cp -pd is fixed by the patch
 xz|autotools|--disable-doc|
