@@ -135,6 +135,9 @@ librabbitmq|-DENABLE_SSL_SUPPORT=ON|feature||SSL 対応
 librabbitmq|-DOPENSSL_ROOT_DIR=@PREFIX@|find||
 libqrencode|--without-tools|extras||
 libtesseract|-DBUILD_TRAINING_TOOLS=OFF|extras||
+libtesseract|-DDISABLE_ARCHIVE=ON|dep|libarchive|
+libtesseract|-DDISABLE_CURL=ON|dep|curl|
+libtesseract|-DDISABLE_TIFF=ON|dep|libtiff|
 libtesseract|-DLeptonica_DIR=@PREFIX@|find||
 libcaca|--disable-cocoa|build||
 libcaca|--disable-csharp|extras||

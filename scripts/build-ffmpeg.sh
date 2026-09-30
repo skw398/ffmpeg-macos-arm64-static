@@ -99,6 +99,13 @@ if [ "$CHROMAPRINT" -eq 1 ]; then PASS=full; else PASS=pass1; fi
 # Reuse an existing configuration when the tree (possibly restored from the CI
 # cache) was configured with identical arguments, so make runs incrementally.
 stamp="$builddir/ffbuild/.configure-stamp"
+# A trial (no_workarounds / drop_flags) must always re-run configure: a dropped
+# flag can change a dependency's .pc file or its link, and only the configure
+# tests catch that. A cached stamp once hid a tesseract/libcurl link failure, so
+# a flag was dropped on a false green.
+if [ -n "${NO_WORKAROUNDS:-}${DROP_FLAGS:-}" ]; then
+  rm -f "$stamp"
+fi
 if [ -f "$stamp" ] && [ -f "$builddir/ffbuild/config.mak" ] \
    && [ "$(cat "$stamp")" = "$(printf '%s\n' "$@")" ]; then
   echo "== reuse existing FFmpeg configuration ($PASS)"

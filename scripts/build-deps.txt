@@ -90,7 +90,7 @@ librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|
 quirc|make-copy||make + copy artifacts (build_quirc)
-libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DLeptonica_DIR=@PREFIX@|
+libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DLeptonica_DIR=@PREFIX@ -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON|
 libcaca|autotools|--disable-ncurses --disable-cocoa --disable-ruby --disable-python --disable-java --disable-csharp --disable-cxx|C lib only: cocoa driver is broken on modern AppKit, and the language bindings are unneeded
 libflite|autotools||install rule's GNU-only cp -pd is fixed by the patch
 xz|autotools|--disable-doc|

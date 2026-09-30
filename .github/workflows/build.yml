@@ -378,6 +378,7 @@ jobs:
       - name: FFmpeg pass 1 (for chromaprint)
         env:
           NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
+          DROP_FLAGS: ${{ inputs.drop_flags }}
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
 
       - name: Save FFmpeg pass-1 cache
@@ -393,6 +394,7 @@ jobs:
       - name: FFmpeg (full)
         env:
           NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
+          DROP_FLAGS: ${{ inputs.drop_flags }}
         run: sh scripts/build-ffmpeg.sh
 
       - name: Save FFmpeg full cache
