@@ -13,5 +13,8 @@
 #   ここに挙げたライブラリは、fast trial で「実際に再ビルドされたか」を検査される。
 size-t-preinclude|D|CXXFLAGS の size_t.h 強制 include|*
 autotools-touch|B|autotools 生成ファイルの touch|*
+force-cpusubtype-strip|B|autotools configure の -force_cpusubtype_ALL 除去|*
+autotools-werror-strip|B|autotools 生成 Makefile の -Werror 除去|*
+cmake-werror-strip|B|CMake ソースの bare -Werror 除去|*
 quirc-sdl-cflags|H|quirc の make 行の SDL_CFLAGS=|quirc
 ffmpeg-extra-libs|G|FFmpeg configure の --extra-libs|ffmpeg

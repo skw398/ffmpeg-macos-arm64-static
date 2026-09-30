@@ -300,7 +300,7 @@ fi
 echo
 echo "== [T] trial workaround ids (trial-workarounds.txt vs the scripts) =="
 trials="$HERE/trial-workarounds.txt"
-scanned="$HERE/build-deps.sh $HERE/build-ffmpeg.sh"
+scanned="$HERE/build-deps.sh $HERE/build-ffmpeg.sh $HERE/lib.sh"
 listed=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$trials" | cut -d'|' -f1 | sort -u)
 consulted=$(grep -hoE 'trial_(disabled|flag) [a-z0-9-]+' $scanned | awk '{print $2}' | sort -u)
 unused=$(printf '%s\n' "$listed" | grep -vE '^$' | grep -vxF "$consulted" | tr '\n' ' ' || true)

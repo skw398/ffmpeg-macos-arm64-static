@@ -143,18 +143,24 @@ build_generic() {
         # modern macOS ld rejects the obsolete -force_cpusubtype_ALL that some
         # configure scripts inject for darwin; strip it generically. Report the
         # count: 0 occurrences over many runs means the strip can be dropped.
-        if [ -f ./configure ]; then
+        if [ -f ./configure ] && ! trial_disabled force-cpusubtype-strip; then
           n=$(grep -coE ' -force_cpusubtype_ALL' ./configure || true)
           if [ "$n" -gt 0 ]; then echo "== patch: -force_cpusubtype_ALL strip: $n occurrence(s)"; fi
           perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure
+        elif trial_disabled force-cpusubtype-strip; then
+          echo "== trial: skipping the -force_cpusubtype_ALL strip"
         fi
         ./configure --prefix="$PREFIX" --enable-static --disable-shared $flags
         # some configure scripts promote GCC-targeted warnings to errors
         # (-Werror), which newer clang trips on; strip it from the generated
         # makefiles (after configure, so feature detection is unaffected).
-        n=$(find . -name Makefile -exec grep -hoE ' ?-Werror(=[A-Za-z0-9_-]+)?' {} + 2>/dev/null | wc -l | tr -d ' ')
-        if [ "$n" -gt 0 ]; then echo "== patch: -Werror strip: $n occurrence(s)"; fi
-        find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
+        if trial_disabled autotools-werror-strip; then
+          echo "== trial: skipping the autotools -Werror strip"
+        else
+          n=$(find . -name Makefile -exec grep -hoE ' ?-Werror(=[A-Za-z0-9_-]+)?' {} + 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$n" -gt 0 ]; then echo "== patch: -Werror strip: $n occurrence(s)"; fi
+          find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
+        fi
         make -j"$JOBS" && make install ) ;;
     cmake)
       cmake -S "$src/$subdir" -B "$src/.build" \
