@@ -13,7 +13,7 @@ import subprocess
 import sys
 import tarfile
 
-from build_data import HERE, ROOT, archive_text, read_pins, rows
+from build_data import DATA, ROOT, archive_text, read_pins, rows
 
 
 LIB_LIST = re.compile(r'^EXTERNAL_LIBRARY(?:_GPL|_NONFREE|_VERSION3|_GPLV3)?_LIST="')
@@ -126,7 +126,7 @@ def main():
         check = ConsumerCheck(args.disabled.split(), args.config_header, args.binary)
         overrides = {}
         if args.binary:
-            path = Path(os.environ.get("OVERRIDES") or HERE / "artifact-consumers.txt")
+            path = Path(os.environ.get("OVERRIDES") or DATA / "artifact-consumers.txt")
             if path.is_file():
                 overrides = {row[0]: row[1:] for row in rows(path)}
         failed = False

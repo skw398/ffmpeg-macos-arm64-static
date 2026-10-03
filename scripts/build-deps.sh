@@ -1,6 +1,6 @@
 #!/bin/sh
 # build-deps.sh — fetch, verify and build the adopted external libraries
-# statically into build/prefix, in the order given by scripts/build-deps.txt.
+# statically into build/prefix, in the order given by scripts/data/build-deps.txt.
 #
 # This script is meant to run on the CI macOS arm64 runner (it downloads and
 # compiles). It does not build FFmpeg itself (see build-ffmpeg.sh).
@@ -23,9 +23,9 @@ ONLY="${ONLY:-}"
 # "lib:flag" entries to leave out of that recipe's flags, so a per-library flag
 # (build-deps.txt data) can be trialed without editing the file
 DROP_FLAGS="${DROP_FLAGS:-}"
-RECIPES="$HERE/build-deps.txt"
+RECIPES="$HERE/data/build-deps.txt"
 PINS="$ROOT/deps.txt"
-PATCHES="$HERE/patches.txt"
+PATCHES="$HERE/data/patches.txt"
 # this build always links statically, so `linkage=static` patches always apply
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
@@ -34,7 +34,7 @@ RECIPE_REV=7
 
 . "$HERE/lib.sh"
 # a trial run leaves out the listed workarounds; an unknown id is an error
-# rather than a silent no-op (see scripts/trial-workarounds.txt)
+# rather than a silent no-op (see scripts/data/trial-workarounds.txt)
 validate_trials
 if [ -n "$DROP_FLAGS" ]; then
   echo "== trial run: dropping flags: $DROP_FLAGS"
@@ -91,7 +91,7 @@ LOGS="${LOGS:-$ROOT/build/logs}"; mkdir -p "$LOGS"
 # the previous ones first (a cached prefix may hold files from an older install)
 MANIFEST="$PREFIX/.manifest"
 
-# Apply the source patches listed for a library in scripts/patches.txt. Each is
+# Apply the source patches listed for a library in scripts/data/patches.txt. Each is
 # checked with `git apply --check` first: a patch that no longer applies means
 # upstream changed the code, so the build fails loudly instead of silently
 # skipping the patch (see docs/PATCH-POLICY.md).
@@ -211,7 +211,7 @@ build_quirc() {
 dispatch_build() {
   name="$1"; kind="$2"; flags="$3"; subdir="$4"
 
-  # source patches come from data (scripts/patches.txt) and are applied with a
+  # source patches come from data (scripts/data/patches.txt) and are applied with a
   # precondition check; see apply_patches() and docs/PATCH-POLICY.md
   apply_patches "$name"
 

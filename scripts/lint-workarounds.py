@@ -12,7 +12,7 @@ import tarfile
 import tempfile
 
 from build_data import (
-    HERE, ROOT, Recipe, archive_files, archive_text, env_path, is_cmake,
+    DATA, HERE, ROOT, Recipe, archive_files, archive_text, env_path, is_cmake,
     read_pins, read_recipes, rows, source_files,
 )
 
@@ -151,7 +151,7 @@ def artifact_skips(prefix):
     if not os.access(binary, os.X_OK):
         print(f"  (no ffmpeg binary at {binary}: skipped)")
         return False
-    overrides = list(rows(HERE / "artifact-consumers.txt"))
+    overrides = list(rows(DATA / "artifact-consumers.txt"))
     skips = [row[0] for row in overrides if row[1] == "skip"]
     fired = False
     if not skips:
@@ -250,7 +250,7 @@ def quirc_stderr(sources):
 
 def trial_ids(recipes):
     print("\n== [T] trial workaround ids (trial-workarounds.txt vs the scripts) ==")
-    trials = list(rows(HERE / "trial-workarounds.txt"))
+    trials = list(rows(DATA / "trial-workarounds.txt"))
     listed = {row[0] for row in trials}
     consulted = {trial for name in ("build-deps.sh", "build-ffmpeg.sh", "lib.sh")
                  for trial in re.findall(r"trial_(?:disabled|flag) ([a-z0-9-]+)", (HERE / name).read_text())}
@@ -277,7 +277,7 @@ def trial_ids(recipes):
 
 def flag_classification(recipes):
     print("\n== [E] per-library flags: classification (flag-categories.txt) ==")
-    categories = list(rows(HERE / "flag-categories.txt"))
+    categories = list(rows(DATA / "flag-categories.txt"))
     classified = {(row[0], row[1]) for row in categories}
     flags = {(recipe.name, flag) for recipe in recipes for flag in recipe.flags.split() if flag not in POLICY_FLAGS}
     recipe_flags = {recipe.name: set(recipe.flags.split()) for recipe in recipes}

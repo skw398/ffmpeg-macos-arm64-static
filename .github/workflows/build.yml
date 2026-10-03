@@ -16,7 +16,7 @@ on:
         type: boolean
         default: false
       no_workarounds:
-        description: "Trial: space/comma separated workaround ids to leave out (scripts/trial-workarounds.txt)"
+        description: "Trial: space/comma separated workaround ids to leave out (scripts/data/trial-workarounds.txt)"
         type: string
         default: ""
       trial_fast:
@@ -364,12 +364,12 @@ jobs:
 
       - name: Check library consumers (configure)
         run: |
-          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
+          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/data/adopted-libs.txt | tr '\n' ' ')
           uv run python scripts/lib-consumers.py --check --config-header build/src/ffmpeg $libs
 
       - name: Check library consumers (artifact)
         run: |
-          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
+          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/data/adopted-libs.txt | tr '\n' ' ')
           uv run python scripts/lib-consumers.py --check --binary build/prefix/bin/ffmpeg $libs
 
       - name: Lint workarounds

@@ -9,13 +9,13 @@ then print the run plan. No command-line arguments are used.
 import argparse
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
 
+from build_data import DATA, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-TRIALS = ROOT / "scripts/trial-workarounds.txt"
+
+TRIALS = DATA / "trial-workarounds.txt"
 
 
 def read_trials():

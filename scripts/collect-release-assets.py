@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tarfile
 
-from build_data import HERE, ROOT, archive_files, env_path, read_pins, source_files
+from build_data import DATA, ROOT, archive_files, env_path, read_pins, source_files
 
 
 def is_license(name):
@@ -52,7 +52,7 @@ def main():
                 file.write(f"ERROR: {error}\n")
     if (ROOT / "patches").is_dir():
         shutil.copytree(ROOT / "patches", output / "patches", dirs_exist_ok=True)
-        shutil.copyfile(HERE / "patches.txt", output / "patches/patches.txt")
+        shutil.copyfile(DATA / "patches.txt", output / "patches/patches.txt")
         count = sum(path.is_file() for path in (output / "patches").rglob("*"))
         print(f"== source patches included: {count} file(s)")
     print(f"== release assets collected: {output}")

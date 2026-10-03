@@ -8,6 +8,7 @@ import tarfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+DATA = HERE / "data"
 
 
 def env_path(name, default):
@@ -51,7 +52,7 @@ def read_pins(path=ROOT / "deps.txt"):
     return {row[0]: Pin(*((row + [""] * 6)[:6])) for row in rows(path)}
 
 
-def read_recipes(path=HERE / "build-deps.txt"):
+def read_recipes(path=DATA / "build-deps.txt"):
     return [Recipe(*((row + [""] * 5)[:5])) for row in rows(path)]
 
 

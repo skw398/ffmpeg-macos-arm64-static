@@ -32,7 +32,7 @@ export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 PINS="$ROOT/deps.txt"
 . "$HERE/lib.sh"
 # a trial run leaves out the listed workarounds; an unknown id is an error
-# rather than a silent no-op (see scripts/trial-workarounds.txt)
+# rather than a silent no-op (see scripts/data/trial-workarounds.txt)
 validate_trials
 if [ ! -d "$SRC/ffmpeg" ]; then
   fetch ffmpeg
