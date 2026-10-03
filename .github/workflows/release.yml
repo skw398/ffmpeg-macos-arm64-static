@@ -61,15 +61,17 @@ jobs:
         run: |
           set -eu
           # upload-artifact stores files relative to the least common ancestor of
-          # the upload paths (here `build/`), so locate them instead of assuming.
-          find dist -maxdepth 3
+          # the upload paths (here `build/`) and does not preserve the executable
+          # bit, so locate the files and restore the mode.
           bindir=$(dirname "$(find dist -type f -name ffmpeg | head -1)")
           assets=$(find dist -type d -path '*/artifacts/release' | head -1)
-          [ -x "$bindir/ffmpeg" ] || { echo "ERROR: ffmpeg not found under dist" >&2; exit 1; }
+          ls -l "$bindir" 2>/dev/null || true
+          [ -f "$bindir/ffmpeg" ] || { echo "ERROR: ffmpeg not found under dist" >&2; exit 1; }
           [ -d "$assets" ] || { echo "ERROR: release assets not found under dist" >&2; exit 1; }
           name="ffmpeg-macos-arm64-static-$VERSION"
           mkdir -p "$name/bin" "$name/share"
           cp "$bindir/ffmpeg" "$bindir/ffprobe" "$bindir/ffplay" "$name/bin/"
+          chmod +x "$name/bin/ffmpeg" "$name/bin/ffprobe" "$name/bin/ffplay"
           # licenses, dependency versions, buildconf and source patches
           cp -R "$assets/." "$name/share/"
           tar -cJf "$name.tar.xz" "$name"
