@@ -13,7 +13,10 @@ from build_data import ROOT, env_path
 
 def requirements(text):
     modules = set()
-    for value in re.findall(r"^\s*Requires(?:\.private)?\s*:\s*(.*)$", text, re.MULTILINE):
+    for line in text.splitlines():
+        field, separator, value = line.partition(":")
+        if not separator or field.strip() not in {"Requires", "Requires.private"}:
+            continue
         modules.update(re.findall(
             r"([A-Za-z_][A-Za-z0-9_.+-]*)(?:\s*(?:[<>]=?|=)\s*[^\s,]+)?", value))
     return modules
