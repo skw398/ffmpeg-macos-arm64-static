@@ -90,6 +90,9 @@ jobs:
       CMAKE_VERSION: "4.4.3"
       NINJA_VERSION: "1.13.2"
       MESON_VERSION: "1.12.1"
+      UV_VERSION: "0.12.22"
+      UV_SHA256: "5d714de09501a59393ceca78f4bc232a50478729640d251907160299b2a93ddd"
+      PYTHON_VERSION: "3.14.7"
       # A trial (no_workarounds or drop_flags) must build without the
       # build-output caches and must not save any: a trial-built prefix would
       # otherwise mask the trial or poison the next normal build. The git-source
@@ -149,7 +152,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/tools
-          key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}
+          key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}-${{ env.UV_VERSION }}-${{ env.PYTHON_VERSION }}
 
       - name: Restore pinned Rust cache
         id: cache-rust
@@ -169,7 +172,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/tools
-          key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}
+          key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}-${{ env.UV_VERSION }}-${{ env.PYTHON_VERSION }}
 
       - name: Save pinned Rust cache
         if: steps.cache-rust.outputs.cache-hit != 'true'

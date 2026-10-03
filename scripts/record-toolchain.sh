@@ -38,7 +38,7 @@ done
 
 line "== build tools =="
 for t in cmake ninja meson nasm pkg-config pkgconf autoconf automake m4 \
-         libtool glibtool glibtoolize gettext perl python3 rustc cargo cargo-c \
+         libtool glibtool glibtoolize gettext perl python3 uv rustc cargo cargo-c \
          git curl tar; do
   if command -v "$t" >/dev/null 2>&1; then
     line "$t: $(ver "$t") [$(command -v "$t")]"

@@ -1,0 +1,11 @@
+# The build scripts use only the Python standard library. uv pins the
+# interpreter (see .python-version) so it does not drift with the runner image,
+# and runs the checks. Dependencies are deliberately empty.
+[project]
+name = "ffmpeg-macos-arm64-static-tools"
+version = "0"
+requires-python = ">=3.14"
+
+[tool.uv]
+# scripts only, not an installable package
+package = false
