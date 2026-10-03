@@ -230,7 +230,7 @@ dispatch_build() {
 # changing any of them forces a rebuild of just that library
 marker_for() { # name kind flags subdir
   name="$1"; kind="$2"; flags="$3"; subdir="$4"
-  ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
+  ver=$(pin_version "$name")
   printf '%s/.built-%s-%s' "$PREFIX" "$name" \
     "$(printf '%s|%s|%s|%s|%s' "$RECIPE_REV" "$kind" "$flags" "$subdir" "$ver" | shasum -a 256 | cut -c1-12)"
 }
@@ -380,10 +380,10 @@ BUILT=""
 if [ -n "$TRIAL_EXPECT" ]; then BUILT=$(mktemp); fi
 
 grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name kind flags note subdir; do
-  name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  subdir=$(printf '%s' "$subdir" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  name=$(trim "$name")
+  kind=$(trim "$kind")
+  flags=$(trim "$flags")
+  subdir=$(trim "$subdir")
   [ -n "$name" ] || continue
   is_selected "$name" || continue
   # a dropped flag changes the effective flags (and so the marker), which makes

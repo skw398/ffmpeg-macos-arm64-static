@@ -20,6 +20,7 @@ PINS="$ROOT/deps.txt"
 SRC="${SRC:-$ROOT/build/src}"
 DL="${DL:-$ROOT/build/downloads}"
 LOGS="${LOGS:-$ROOT/build/logs}"
+. "$HERE/lib.sh"
 
 GLOBAL_CMAKE="CMAKE_INSTALL_PREFIX CMAKE_BUILD_TYPE CMAKE_PREFIX_PATH CMAKE_POLICY_VERSION_MINIMUM CMAKE_OSX_DEPLOYMENT_TARGET BUILD_SHARED_LIBS BUILD_TESTING"
 
@@ -125,12 +126,12 @@ echo
 echo "== meson -D flags equal to the declared default (redundant) =="
 hits=$(mktemp)
 grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name kind flags note; do
-  name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  name=$(trim "$name")
+  kind=$(trim "$kind")
+  flags=$(trim "$flags")
   [ "$kind" = meson ] || [ "$kind" = custom ] || continue
-  ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
-  hash=$(awk -F'|' -v n="$name" '$1 == n { print $4; exit }' "$PINS")
+  ver=$(pin_version "$name")
+  hash=$(pin_hash "$name")
   ofile=$(meson_options_file "$name" "$ver" "$hash") || continue
   defaults=$(meson_option_defaults "$ofile")
   for fl in $flags; do

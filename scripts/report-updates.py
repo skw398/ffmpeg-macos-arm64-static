@@ -211,7 +211,7 @@ def latest_git(url):
     return None, None
 
 
-def resolve(name, version, url):
+def resolve(url):
     """best effort: the latest upstream name for this dep, or (None, where)."""
     latest, where = None, None
     try:
@@ -279,7 +279,7 @@ def main():
     ok = unknown = 0
     for name, version, url in rows:
         try:
-            latest, where = resolve(name, version, url)
+            latest, where = resolve(url)
         except Exception as e:                        # never abort the report
             latest, where = None, "error: %s" % e
         if latest:

@@ -26,7 +26,7 @@ def read_deps(path):
         for line in f:
             if not re.match(r"^[A-Za-z0-9]", line):
                 continue
-            parts = (line.rstrip("\n").split("|") + [""] * 6)[:5]
+            parts = (line.rstrip("\n").split("|") + [""] * 5)[:5]
             rows.append({"name": parts[0], "version": parts[1], "url": parts[2],
                          "checksum": parts[3], "license": parts[4]})
     return rows
@@ -52,7 +52,7 @@ def main():
     main_pkg = rows[0]
     packages = []
     relationships = []
-    for r in rows:
+    for index, r in enumerate(rows):
         pkg = {
             "SPDXID": spdx_id(r["name"]),
             "name": r["name"],
@@ -68,7 +68,7 @@ def main():
         elif re.fullmatch(r"[0-9a-fA-F]{64}", r["checksum"]):
             pkg["checksums"] = [{"algorithm": "SHA256", "checksumValue": r["checksum"].lower()}]
         packages.append(pkg)
-        if r is not main_pkg:
+        if index:
             relationships.append({
                 "spdxElementId": spdx_id(main_pkg["name"]),
                 "relatedSpdxElement": spdx_id(r["name"]),

@@ -102,6 +102,57 @@ jobs:
       # nothing.
       TRIAL_RUN: ${{ inputs.no_workarounds != '' || inputs.drop_flags != '' }}
       TRIAL_FAST: ${{ inputs.trial_fast }}
+      # Git-pinned sources, cached whole (their build dirs ride along). Restore
+      # and save reference this one list so the two copies cannot drift.
+      GIT_SRC_PATHS: |
+        build/src/libunibreak
+        build/src/fribidi
+        build/src/harfbuzz
+        build/src/brotli
+        build/src/highway
+        build/src/lcms2
+        build/src/libudfread
+        build/src/dav1d
+        build/src/libaom
+        build/src/SVT-AV1
+        build/src/librav1e
+        build/src/libvpx
+        build/src/x264
+        build/src/openh264
+        build/src/libvvenc
+        build/src/liboapv
+        build/src/libxeve
+        build/src/libxevd
+        build/src/libvidstab
+        build/src/libsnappy
+        build/src/libcodec2
+        build/src/liblc3
+        build/src/libgme
+        build/src/rubberband
+        build/src/libsoxr
+        build/src/libmysofa
+        build/src/libwebp
+        build/src/libopenjpeg
+        build/src/libzimg
+        build/src/libjxl
+        build/src/libvmaf
+        build/src/libass
+        build/src/libaribb24
+        build/src/libaribcaption
+        build/src/libbluray
+        build/src/libdvdread
+        build/src/libdvdnav
+        build/src/zvbi
+        build/src/libssh
+        build/src/libsrt
+        build/src/librist
+        build/src/libzmq
+        build/src/librabbitmq
+        build/src/libqrencode
+        build/src/quirc
+        build/src/libtesseract
+        build/src/libflite
+        build/src/SDL2
     steps:
       - uses: actions/checkout@v4
 
@@ -218,55 +269,7 @@ jobs:
         if: ${{ !inputs.clean_build && !inputs.cold_build }}
         uses: actions/cache/restore@v4
         with:
-          path: |
-            build/src/libunibreak
-            build/src/fribidi
-            build/src/harfbuzz
-            build/src/brotli
-            build/src/highway
-            build/src/lcms2
-            build/src/libudfread
-            build/src/dav1d
-            build/src/libaom
-            build/src/SVT-AV1
-            build/src/librav1e
-            build/src/libvpx
-            build/src/x264
-            build/src/openh264
-            build/src/libvvenc
-            build/src/liboapv
-            build/src/libxeve
-            build/src/libxevd
-            build/src/libvidstab
-            build/src/libsnappy
-            build/src/libcodec2
-            build/src/liblc3
-            build/src/libgme
-            build/src/rubberband
-            build/src/libsoxr
-            build/src/libmysofa
-            build/src/libwebp
-            build/src/libopenjpeg
-            build/src/libzimg
-            build/src/libjxl
-            build/src/libvmaf
-            build/src/libass
-            build/src/libaribb24
-            build/src/libaribcaption
-            build/src/libbluray
-            build/src/libdvdread
-            build/src/libdvdnav
-            build/src/zvbi
-            build/src/libssh
-            build/src/libsrt
-            build/src/librist
-            build/src/libzmq
-            build/src/librabbitmq
-            build/src/libqrencode
-            build/src/quirc
-            build/src/libtesseract
-            build/src/libflite
-            build/src/SDL2
+          path: ${{ env.GIT_SRC_PATHS }}
           key: gitsrc-${{ hashFiles('deps.txt') }}
           restore-keys: gitsrc-
 
@@ -327,55 +330,7 @@ jobs:
         if: always() && env.TRIAL_RUN != 'true' && steps.cache-gitsrc.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: |
-            build/src/libunibreak
-            build/src/fribidi
-            build/src/harfbuzz
-            build/src/brotli
-            build/src/highway
-            build/src/lcms2
-            build/src/libudfread
-            build/src/dav1d
-            build/src/libaom
-            build/src/SVT-AV1
-            build/src/librav1e
-            build/src/libvpx
-            build/src/x264
-            build/src/openh264
-            build/src/libvvenc
-            build/src/liboapv
-            build/src/libxeve
-            build/src/libxevd
-            build/src/libvidstab
-            build/src/libsnappy
-            build/src/libcodec2
-            build/src/liblc3
-            build/src/libgme
-            build/src/rubberband
-            build/src/libsoxr
-            build/src/libmysofa
-            build/src/libwebp
-            build/src/libopenjpeg
-            build/src/libzimg
-            build/src/libjxl
-            build/src/libvmaf
-            build/src/libass
-            build/src/libaribb24
-            build/src/libaribcaption
-            build/src/libbluray
-            build/src/libdvdread
-            build/src/libdvdnav
-            build/src/zvbi
-            build/src/libssh
-            build/src/libsrt
-            build/src/librist
-            build/src/libzmq
-            build/src/librabbitmq
-            build/src/libqrencode
-            build/src/quirc
-            build/src/libtesseract
-            build/src/libflite
-            build/src/SDL2
+          path: ${{ env.GIT_SRC_PATHS }}
           key: gitsrc-${{ hashFiles('deps.txt') }}
 
       - name: FFmpeg pass 1 (for chromaprint)

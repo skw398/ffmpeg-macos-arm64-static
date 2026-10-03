@@ -1,11 +1,25 @@
 #!/bin/sh
-# lib.sh — shared helpers for pin lookup and dependency fetch.
-# Sourced by build-deps.sh, build-ffmpeg.sh and build-chromaprint.sh; the caller
-# must set HERE, PINS, DL and SRC before sourcing.
+# lib.sh — shared helpers for pin lookup, build recipes and workaround trials.
+# The caller must set HERE and PINS before sourcing; the fetch helpers also
+# require DL and SRC.
 
 # pin <name> -> "version|url|hash" from the pin list
 pin() {
   awk -F'|' -v n="$1" '$1 == n { print $2 "|" $3 "|" $4; exit }' "$PINS"
+}
+
+# pin_field <name> <field> -> that column of the pin (empty when unknown)
+pin_field() {
+  awk -F'|' -v n="$1" -v f="$2" '$1 == n { print $f; exit }' "$PINS"
+}
+
+# pin_version <name> / pin_hash <name> -> the version / hash column of the pin
+pin_version() { pin_field "$1" 2; }
+pin_hash() { pin_field "$1" 4; }
+
+# trim <string> -> the string without leading or trailing whitespace
+trim() {
+  printf '%s' "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
 }
 
 # download <name> -> ensure the pinned tarball is present in $DL and verified,

@@ -14,6 +14,8 @@ set -eu
 
 TOOLS="${TOOLS:-$HOME/tools}"
 CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
 
 add_path() { [ -n "${GITHUB_PATH:-}" ] && printf '%s\n' "$1" >> "$GITHUB_PATH"; }
 add_env()  { [ -n "${GITHUB_ENV:-}" ]  && printf '%s=%s\n' "$1" "$2" >> "$GITHUB_ENV"; }
@@ -22,18 +24,18 @@ add_env()  { [ -n "${GITHUB_ENV:-}" ]  && printf '%s=%s\n' "$1" "$2" >> "$GITHUB
 cmake_bin="$TOOLS/cmake-$CMAKE_VERSION-macos-universal/CMake.app/Contents/bin"
 if [ ! -x "$cmake_bin/cmake" ]; then
   mkdir -p "$TOOLS"
-  curl -sSL --fail -o /tmp/cmake.tar.gz \
+  curl -sSL --fail -o "$tmp/cmake.tar.gz" \
     "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION-macos-universal.tar.gz"
-  tar -xzf /tmp/cmake.tar.gz -C "$TOOLS"
+  tar -xzf "$tmp/cmake.tar.gz" -C "$TOOLS"
 fi
 add_path "$cmake_bin"
 
 # --- Ninja (official macOS binary) ---
 if [ ! -x "$TOOLS/ninja/ninja" ]; then
   mkdir -p "$TOOLS/ninja"
-  curl -sSL --fail -o /tmp/ninja.zip \
+  curl -sSL --fail -o "$tmp/ninja.zip" \
     "https://github.com/ninja-build/ninja/releases/download/v$NINJA_VERSION/ninja-mac.zip"
-  unzip -o /tmp/ninja.zip -d "$TOOLS/ninja"
+  unzip -o "$tmp/ninja.zip" -d "$TOOLS/ninja"
 fi
 add_path "$TOOLS/ninja"
 
@@ -43,10 +45,10 @@ add_path "$TOOLS/ninja"
 uv_dir="$TOOLS/uv-$UV_VERSION"
 if [ ! -x "$uv_dir/uv" ]; then
   mkdir -p "$uv_dir"
-  curl -sSL --fail -o /tmp/uv.tar.gz \
+  curl -sSL --fail -o "$tmp/uv.tar.gz" \
     "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-aarch64-apple-darwin.tar.gz"
-  echo "$UV_SHA256  /tmp/uv.tar.gz" | shasum -a 256 -c -
-  tar -xzf /tmp/uv.tar.gz -C "$uv_dir" --strip-components=1
+  echo "$UV_SHA256  $tmp/uv.tar.gz" | shasum -a 256 -c -
+  tar -xzf "$tmp/uv.tar.gz" -C "$uv_dir" --strip-components=1
 fi
 add_path "$uv_dir"
 # keep uv's managed Python inside the cached ~/tools
@@ -75,7 +77,7 @@ add_path "$CARGO_HOME/bin"
 
 # --- verify the pinned versions are the ones we just installed ---
 fail=0
-check() { # tool expected-version-args...
+check() { # <name> <command...>; EXPECT holds the version substring to look for
   name="$1"; shift
   got=$("$@" 2>&1 | head -n1)
   case "$got" in

@@ -14,6 +14,7 @@ ROOT="$HERE/.."
 DL="${DL:-$ROOT/build/downloads}"
 RECIPES="$HERE/build-deps.txt"
 PINS="$ROOT/deps.txt"
+. "$HERE/lib.sh"
 
 # declared option names for a tarball (empty => caller falls back to substring)
 options_for() { # <tarball> <kind>
@@ -43,14 +44,14 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" > "$recipes_tmp"
 
 fail=0
 while IFS='|' read -r name kind flags note; do
-  name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  name=$(trim "$name")
+  kind=$(trim "$kind")
+  flags=$(trim "$flags")
   [ -n "$name" ] || continue
   case "$kind" in cmake|meson|autotools) ;; *) continue ;; esac
 
-  ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
-  hash=$(awk -F'|' -v n="$name" '$1 == n { print $4; exit }' "$PINS")
+  ver=$(pin_version "$name")
+  hash=$(pin_hash "$name")
   case "$hash" in COMMIT=*|"") continue ;; esac
   f="$DL/$name-$ver.tarball"
   [ -f "$f" ] || { echo "skip $name (missing tarball)"; continue; }

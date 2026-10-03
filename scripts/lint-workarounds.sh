@@ -24,6 +24,7 @@ DL="${DL:-$ROOT/build/downloads}"
 PREFIX="${PREFIX:-$ROOT/build/prefix}"
 PINS="$ROOT/deps.txt"
 BIN="$PREFIX/bin/ffmpeg"
+. "$HERE/lib.sh"
 
 fired=0
 
@@ -54,8 +55,8 @@ hits=""
 scanned=0
 for name in $(all_projects); do
   src="$SRC/$name"
-  ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
-  hash=$(awk -F'|' -v n="$name" '$1 == n { print $4; exit }' "$PINS")
+  ver=$(pin_version "$name")
+  hash=$(pin_hash "$name")
   case "$hash" in
     COMMIT=*)
       [ -d "$src/.git" ] || continue
@@ -108,7 +109,7 @@ fi
 # --- [C] FFmpeg -lstdc++ (libstdc++.tbd alias) --------------------------------
 echo
 echo "== [C] FFmpeg -lstdc++ requirement (libstdc++.tbd alias) =="
-ver=$(awk -F'|' '$1=="ffmpeg"{print $2; exit}' "$ROOT/deps.txt")
+ver=$(pin_version ffmpeg)
 tb="$DL/ffmpeg-$ver.tarball"
 if [ -f "$tb" ]; then
   if tar -xOf "$tb" "ffmpeg-$ver/configure" 2>/dev/null | grep -q -- '-lstdc++'; then
@@ -359,8 +360,8 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$HERE/build-deps.txt" > "$recipes_tmp"
 missing=""
 nflags=0
 while IFS='|' read -r name kind flags note subdir; do
-  name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  name=$(trim "$name")
+  flags=$(trim "$flags")
   [ -n "$name" ] || continue
   for f in $flags; do
     case " $policy_flags " in *" $f "*) continue ;; esac

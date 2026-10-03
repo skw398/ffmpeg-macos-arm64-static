@@ -2,12 +2,12 @@
 #
 # Format (no spaces around "|"): name|kind|flags|note|subdir
 #   subdir: source subdirectory for the build system (default: the tree root)
-#   kind : autotools | cmake | meson | perl | make | custom
+#   kind : autotools | cmake | meson | perl | make-copy | custom
 #   flags: passed verbatim after the common args; use @PREFIX@ for the install prefix
 #   order: build order (transitive dependencies first)
 #
 # - name must match deps.txt (used for fetch/extract).
-# - Only special cases use `custom`/`make` (see build-deps.sh functions).
+# - Only special cases use `custom`/`make-copy` (see build-deps.sh functions).
 # - chromaprint is NOT here: it needs FFmpeg libs, so it is built between two
 #   FFmpeg passes (see build-ffmpeg.sh and the CI workflow).
 # - Flags are best-effort from docs/COMPONENT-AUDIT.md; the first CI run is
