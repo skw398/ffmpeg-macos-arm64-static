@@ -293,10 +293,10 @@ jobs:
 
       - name: Verify pins
         if: ${{ !inputs.skip_verify && vars.SKIP_VERIFY != 'true' }}
-        run: sh scripts/verify-pins.sh
+        run: uv run python scripts/verify-pins.py
 
       - name: Verify build flags
-        run: sh scripts/verify-build-flags.sh
+        run: uv run python scripts/verify-build-flags.py
 
       - name: Build dependencies
         env:
@@ -307,10 +307,10 @@ jobs:
         run: sh scripts/build-deps.sh
 
       - name: Check ambient dependencies
-        run: sh scripts/report-ambient-deps.sh
+        run: uv run python scripts/report-ambient-deps.py
 
       - name: Report build flag triage
-        run: sh scripts/report-build-flags.sh
+        run: uv run python scripts/report-build-flags.py
 
       - name: Save downloads cache
         if: always() && steps.cache-downloads.outputs.cache-hit != 'true'
@@ -365,15 +365,15 @@ jobs:
       - name: Check library consumers (configure)
         run: |
           libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
-          sh scripts/lib-consumers.sh --check --config-header build/src/ffmpeg $libs
+          uv run python scripts/lib-consumers.py --check --config-header build/src/ffmpeg $libs
 
       - name: Check library consumers (artifact)
         run: |
           libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/adopted-libs.txt | tr '\n' ' ')
-          sh scripts/lib-consumers.sh --check --binary build/prefix/bin/ffmpeg $libs
+          uv run python scripts/lib-consumers.py --check --binary build/prefix/bin/ffmpeg $libs
 
       - name: Lint workarounds
-        run: sh scripts/lint-workarounds.sh
+        run: uv run python scripts/lint-workarounds.py
 
       - name: Check buildconf
         run: sh scripts/verify-buildconf.sh
@@ -382,7 +382,7 @@ jobs:
         run: sh scripts/verify-build.sh
 
       - name: Collect release assets
-        run: sh scripts/collect-release-assets.sh
+        run: uv run python scripts/collect-release-assets.py
 
       - name: Upload artifacts
         if: always()

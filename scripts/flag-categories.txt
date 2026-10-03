@@ -2,7 +2,7 @@
 # build-deps.txt)
 #
 # docs/BUILD-FLAG-CLASSIFICATION.md is the authority on the rules. This file is
-# the machine-readable list; [E] of lint-workarounds.sh cross-checks it against
+# the machine-readable list; [E] of lint-workarounds.py cross-checks it against
 # build-deps.txt (and for dep verifies reachability).
 #
 # Format: lib|flag|purpose|target|note

@@ -56,50 +56,6 @@ jobs:
           tar -xzf "$RUNNER_TEMP/uv.tar.gz" -C "$uv_dir" --strip-components=1
           echo "$uv_dir" >> "$GITHUB_PATH"
           "$uv_dir/uv" python install
-      # Temporary: retain the shell baseline until the migration is verified.
-      - name: Compare shell and Python plan outputs
-        run: |
-          uv run python - <<'PY'
-          import os
-          from pathlib import Path
-          import subprocess
-          import sys
-          import tempfile
-
-          cases = [
-              ("default", {}),
-              ("manual", {"EVENT": "workflow_dispatch", "INPUT_TRIALS": "quirc-sdl-cflags, size-t-preinclude,quirc-sdl-cflags unknown"}),
-              ("manual whitespace", {"INPUT_TRIALS": "\tffmpeg-extra-libs\nquirc-sdl-cflags,,"}),
-              ("install", {"INPUT_INSTALL": "true"}),
-              ("install case", {"INPUT_INSTALL": "TRUE"}),
-              ("schedule", {"EVENT": "schedule"}),
-              ("push without before", {"EVENT": "push"}),
-              ("push zero before", {"EVENT": "push", "BEFORE": "0000000000000000000000000000000000000000"}),
-              ("push invalid before", {"EVENT": "push", "BEFORE": "invalid-ref"}),
-              ("push previous commit", {"EVENT": "push", "BEFORE": "HEAD~1"}),
-              ("unknown event", {"EVENT": "unknown"}),
-          ]
-          baseline = {key: value for key, value in os.environ.items()
-                      if key not in {"EVENT", "BEFORE", "INPUT_TRIALS", "INPUT_INSTALL", "GITHUB_OUTPUT"}}
-          with tempfile.TemporaryDirectory() as directory:
-              output = Path(directory) / "output"
-              for name, inputs in cases:
-                  for to_file in (False, True):
-                      results = []
-                      for command in (["sh", "scripts/plan-workaround-runs.sh"],
-                                      [sys.executable, "scripts/plan-workaround-runs.py"]):
-                          output.write_text("existing=value\n")
-                          env = baseline | inputs
-                          if to_file:
-                              env["GITHUB_OUTPUT"] = str(output)
-                          run = subprocess.run(command, env=env, capture_output=True)
-                          results.append((run.returncode, run.stdout, run.stderr, output.read_bytes()))
-                      assert results[0] == results[1], (name, to_file, results)
-                      assert results[0][0] == 0, (name, results[0])
-                      print(f"ok: {name}, GITHUB_OUTPUT={to_file} (stdout, stderr, exit code, output file)")
-                      if not to_file:
-                          print(results[0][1].decode(), end="")
-          PY
       - name: Plan the run
         id: plan
         env:
