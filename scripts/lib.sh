@@ -111,11 +111,11 @@ fetch() {
 }
 
 # --- workaround trials -------------------------------------------------------
-# NO_WORKAROUNDS (space/comma separated ids, see scripts/trial-workarounds.txt)
+# NO_WORKAROUNDS (space/comma separated ids, see scripts/data/trial-workarounds.txt)
 # names workarounds to leave out, so a CI trial run can show whether they are
 # still needed. Trial runs are uncached and never saved, so a trial-built prefix
 # cannot mask or poison a normal build (see docs/BUILD-WORKAROUNDS.md).
-TRIALS="${TRIALS:-$HERE/trial-workarounds.txt}"
+TRIALS="${TRIALS:-$HERE/data/trial-workarounds.txt}"
 
 # trial_disabled <id> -> true when this run leaves the workaround <id> out
 trial_disabled() {
@@ -126,7 +126,7 @@ trial_disabled() {
 }
 
 # trial_libs <id> -> the libraries a fast trial must force-rebuild, from the
-# mapping in scripts/trial-workarounds.txt ("*" = every library, "ffmpeg" = the
+# mapping in scripts/data/trial-workarounds.txt ("*" = every library, "ffmpeg" = the
 # FFmpeg build itself). Empty for an unknown id.
 trial_libs() {
   awk -F'|' -v n="$1" '$1 == n { print $4; exit }' "$TRIALS"

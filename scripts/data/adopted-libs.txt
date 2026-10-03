@@ -1,5 +1,5 @@
 # adopted-libs.txt — configure tokens of the adopted external libraries.
-# Used by: scripts/lib-consumers.sh --check (2nd adoption step) in CI.
+# Used by: scripts/lib-consumers.py --check (2nd adoption step) in CI.
 # One token per line; blank lines and # comments ignored.
 libdav1d
 libaom

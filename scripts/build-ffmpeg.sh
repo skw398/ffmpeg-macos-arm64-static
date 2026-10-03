@@ -27,12 +27,12 @@ export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 
 # --- extract pinned FFmpeg source ---
-# download and verify the tarball on demand (verify-pins.sh pre-fetches it when
+# download and verify the tarball on demand (verify-pins.py pre-fetches it when
 # pin verification is enabled, but it must not be a prerequisite)
 PINS="$ROOT/deps.txt"
 . "$HERE/lib.sh"
 # a trial run leaves out the listed workarounds; an unknown id is an error
-# rather than a silent no-op (see scripts/trial-workarounds.txt)
+# rather than a silent no-op (see scripts/data/trial-workarounds.txt)
 validate_trials
 if [ ! -d "$SRC/ffmpeg" ]; then
   fetch ffmpeg

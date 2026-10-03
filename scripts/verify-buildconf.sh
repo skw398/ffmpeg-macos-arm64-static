@@ -13,7 +13,7 @@ ROOT="$HERE/.."
 SRC="${SRC:-$ROOT/build/src}"
 PREFIX="${PREFIX:-$ROOT/build/prefix}"
 BIN="$PREFIX/bin/ffmpeg"
-TOKENS="$HERE/adopted-libs.txt"
+TOKENS="$HERE/data/adopted-libs.txt"
 CFG="$SRC/ffmpeg"
 
 [ -x "$BIN" ] || { echo "ERROR: missing $BIN" >&2; exit 1; }

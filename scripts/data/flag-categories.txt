@@ -1,7 +1,7 @@
 # flag-categories.txt — per-library フラグの分類（build-deps.txt の 3 列目）
 #
 # 規則は docs/BUILD-FLAG-CLASSIFICATION.md が正。ここは機械可読な一覧で、
-# lint-workarounds.sh の [E] が build-deps.txt と突合し、dep は到達性まで見る。
+# lint-workarounds.py の [E] が build-deps.txt と突合し、dep は到達性まで見る。
 #
 # 形式: lib|flag|purpose|target|note
 #
