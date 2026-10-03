@@ -1,6 +1,6 @@
 name: release
 
-# Cut a release: clean build -> tag -> GitHub Release -> build provenance.
+# Cut a release: clean build -> tag -> GitHub Release -> attestations.
 #
 # Manual only. The version is chosen by a human, not computed (see
 # docs/VERSION-UPDATES.md): v<ffmpeg>-<build number>, e.g. v9.0.2-1 (first),
@@ -44,9 +44,11 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write       # create the tag and the Release
-      id-token: write       # sign the attestation (Sigstore)
-      attestations: write   # store the attestation
+      id-token: write       # sign the attestations (Sigstore)
+      attestations: write   # store the attestations
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download the build artifact
         uses: actions/download-artifact@v4
         with:
@@ -68,14 +70,27 @@ jobs:
           tar -cJf "$name.tar.xz" "$name"
           rm -rf "$name"
 
+      - name: Generate the SBOM
+        run: |
+          python3 scripts/make-sbom.py \
+            --name "ffmpeg-macos-arm64-static-${{ inputs.version }}" \
+            --out "ffmpeg-macos-arm64-static-${{ inputs.version }}.spdx.json"
+
       - name: Checksums
-        run: sha256sum ./*.tar.xz > SHA256SUMS
+        run: sha256sum ./*.tar.xz ./*.spdx.json > SHA256SUMS
 
       - name: Attest build provenance
         if: ${{ !inputs.dry_run }}
         uses: actions/attest@v4
         with:
           subject-checksums: SHA256SUMS
+
+      - name: Attest the SBOM
+        if: ${{ !inputs.dry_run }}
+        uses: actions/attest@v4
+        with:
+          subject-path: ffmpeg-macos-arm64-static-${{ inputs.version }}.tar.xz
+          sbom-path: ffmpeg-macos-arm64-static-${{ inputs.version }}.spdx.json
 
       - name: Create the release
         if: ${{ !inputs.dry_run }}
@@ -85,10 +100,12 @@ jobs:
           NOTES: ${{ inputs.notes }}
         run: |
           set -eu
+          assets="ffmpeg-macos-arm64-static-$VERSION.tar.xz \
+                  ffmpeg-macos-arm64-static-$VERSION.spdx.json SHA256SUMS"
           if [ -n "${NOTES:-}" ]; then
             gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" \
-              --notes "$NOTES" ./*.tar.xz SHA256SUMS
+              --notes "$NOTES" $assets
           else
             gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" \
-              --generate-notes ./*.tar.xz SHA256SUMS
+              --generate-notes $assets
           fi
