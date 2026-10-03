@@ -1,7 +1,7 @@
 #!/bin/sh
 # lib.sh — shared helpers for pin lookup and dependency fetch.
-# Sourced by build-deps.sh and build-chromaprint.sh; the caller must set
-# PINS, DL and SRC before sourcing.
+# Sourced by build-deps.sh, build-ffmpeg.sh and build-chromaprint.sh; the caller
+# must set HERE, PINS, DL and SRC before sourcing.
 
 # pin <name> -> "version|url|hash" from the pin list
 pin() {
@@ -42,6 +42,13 @@ download() {
 fetch_commit() {
   name="$1"; ref="$2"; url="$3"; sha="$4"
   dest="$SRC/$name"
+  # a cached tree at another commit (e.g. a pin bump, where restore-keys can
+  # bring back a cache keyed by the previous deps.txt) must be re-cloned, or the
+  # checkout below would keep the old HEAD and fail with a commit mismatch
+  if [ -d "$dest/.git" ] \
+     && [ "$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)" != "$sha" ]; then
+    rm -rf "$dest"
+  fi
   if [ ! -d "$dest/.git" ]; then
     if printf '%s' "$ref" | grep -qE '^[0-9a-f]{40}$'; then
       mkdir -p "$dest"
@@ -85,14 +92,73 @@ fetch() {
   esac
 
   # generic: drop the bare -Werror promotion from CMake build files (clang trips
-  # on the GCC-targeted warnings these projects enable with -Wall). Keep
-  # -Werror=<warning> / -Werror-<warning>: those are specific diagnostics that
-  # are often passed as data (e.g. check_c_compiler_flag arguments), where
-  # removing them would corrupt the CMake code. Report the count so an inert
-  # strip is visible.
-  n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
-        -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
-  find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
-    -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
+  # on the GCC-targeted warnings these projects enable with -Wall; libxeve adds
+  # one in the branch it takes for AppleClang, which does not match its "Clang"
+  # branch). Keep -Werror=<warning> / -Werror-<warning>: those are specific
+  # diagnostics that are often passed as data (e.g. check_c_compiler_flag
+  # arguments), where removing them would corrupt the CMake code. Report the
+  # count so an inert strip is visible: a partial build cannot tell (see
+  # docs/BUILD-WORKAROUNDS.md).
+  if trial_disabled cmake-werror-strip; then
+    echo "== trial: skipping the cmake -Werror strip"
+  else
+    n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+          -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
+    find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+      -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
+  fi
+}
+
+# --- workaround trials -------------------------------------------------------
+# NO_WORKAROUNDS (space/comma separated ids, see scripts/trial-workarounds.txt)
+# names workarounds to leave out, so a CI trial run can show whether they are
+# still needed. Trial runs are uncached and never saved, so a trial-built prefix
+# cannot mask or poison a normal build (see docs/BUILD-WORKAROUNDS.md).
+TRIALS="${TRIALS:-$HERE/trial-workarounds.txt}"
+
+# trial_disabled <id> -> true when this run leaves the workaround <id> out
+trial_disabled() {
+  case " $(printf '%s' "${NO_WORKAROUNDS:-}" | tr ',' ' ') " in
+    *" $1 "*) return 0 ;;
+  esac
+  return 1
+}
+
+# trial_libs <id> -> the libraries a fast trial must force-rebuild, from the
+# mapping in scripts/trial-workarounds.txt ("*" = every library, "ffmpeg" = the
+# FFmpeg build itself). Empty for an unknown id.
+trial_libs() {
+  awk -F'|' -v n="$1" '$1 == n { print $4; exit }' "$TRIALS"
+}
+
+# trial_flag <id> <value...> -> the value, unless <id> is disabled (then nothing,
+# with a note on stderr). Keeps a workaround switchable at its use site.
+trial_flag() {
+  if trial_disabled "$1"; then
+    echo "== trial: dropping workaround '$1'" >&2
+    return 0
+  fi
+  shift
+  printf '%s' "$*"
+}
+
+# validate_trials -> announce the run's trial and reject an unknown id: a typo
+# would leave every workaround in place and make the result meaningless.
+# `reset` is reserved: it leaves every workaround in place but still makes the
+# run reset the cached build state, which a manual per-library flag trial needs
+# (see docs/BUILD-WORKAROUNDS.md).
+validate_trials() {
+  ids=$(printf '%s' "${NO_WORKAROUNDS:-}" | tr ',' ' ' | tr -s ' ' | sed 's/^ *//;s/ *$//')
+  [ -n "$ids" ] || return 0
+  for id in $ids; do
+    [ "$id" = reset ] && continue
+    grep -qE "^$id\|" "$TRIALS" || {
+      echo "ERROR: unknown trial workaround id '$id' (see $TRIALS)" >&2
+      echo "       known ids:" >&2
+      grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$TRIALS" | cut -d'|' -f1 | sed 's/^/         /' >&2
+      exit 1
+    }
+  done
+  echo "== trial run: leaving out workarounds: $ids"
 }

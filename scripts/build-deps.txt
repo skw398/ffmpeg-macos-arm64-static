@@ -1,6 +1,7 @@
 # build-deps.txt — build order and per-library build recipe (data for build-deps.sh)
 #
-# Format (no spaces around "|"): name|kind|flags|note
+# Format (no spaces around "|"): name|kind|flags|note|subdir
+#   subdir: source subdirectory for the build system (default: the tree root)
 #   kind : autotools | cmake | meson | perl | make | custom
 #   flags: passed verbatim after the common args; use @PREFIX@ for the install prefix
 #   order: build order (transitive dependencies first)
@@ -17,30 +18,30 @@ libogg|autotools||
 libvorbis|autotools||
 libtheora|autotools|--disable-examples|
 libunibreak|autotools||
-freetype|autotools|--without-png --without-bzip2|
+freetype|autotools|--without-png|
 fribidi|meson|-Ddocs=false -Dtests=false|
 libpng|cmake|-DPNG_SHARED=OFF -DPNG_TESTS=OFF|static only; required by libaribb24 and harfbuzz-raster
-harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dintrospection=disabled -Dutilities=disabled -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dicu=disabled|library only: the util tools pull an incomplete static brotli
+harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dutilities=disabled -Dfreetype=enabled|library only: the util tools pull an incomplete static brotli
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
 lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
 leptonica|cmake|-DSW_BUILD=OFF -DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_GIF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF|no image codecs: OCR only needs raw frames, and they pull Homebrew dylibs / break lept.pc Requires
-libudfread|meson|-Denable_examples=false|
+libudfread|meson||
 
 # ---- video codecs ----
-dav1d|meson|-Denable_tools=false -Denable_tests=false -Denable_examples=false|
-libaom|custom||git pin (clone); cmake in build_deps_libaom
+dav1d|meson|-Denable_tools=false -Denable_tests=false|
+libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1|git pin (clone)
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
-librav1e|custom||Rust + cargo-c
-libvpx|custom|--target=arm64-darwin20-gcc --enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone); configure in build_libvpx; darwinNN is macOS (plain darwin is iOS)
+librav1e|custom|--release --library-type staticlib --locked|Rust + cargo-c
+libvpx|autotools|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone); generic autotools path (build_libvpx dropped 2026-09-29: trial green)
 x264|autotools|--enable-pic|
-x265|custom||cmake in build_x265 (source/ subdir)
-openh264|make||make-based (build_deps_openh264)
+x265|cmake|-DENABLE_CLI=OFF -DENABLE_SHARED=OFF|cmake in the source/ subdir|source/
+openh264|meson||standard meson path (build_openh264 dropped 2026-09-29: trial green)
 libvvenc|cmake|-DVVENC_LIBRARY_ONLY=ON|
 liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DENABLE_TESTS=OFF -DOAPV_BUILD_SHARED_LIB=OFF|
 libxeve|cmake||
 libxevd|cmake||
-libvidstab|cmake|-DUSE_OMP=OFF|
+libvidstab|cmake||
 libsnappy|cmake|-DSNAPPY_BUILD_TESTS=OFF -DSNAPPY_BUILD_BENCHMARKS=OFF|
 
 # ---- audio codecs ----
@@ -53,44 +54,44 @@ opencore-amr|autotools||
 vo-amrwbenc|autotools||
 libcodec2|cmake|-DUNITTEST=OFF|
 libilbc|cmake||
-liblc3|meson|-Dtools=false -Dpython=false|
+liblc3|meson||
 libgme|cmake|-DGME_ENABLE_UBSAN=OFF|
-libopenmpt|autotools|--without-mpg123 --without-portaudio --without-portaudiocpp --without-flac --without-sndfile --without-vorbis --without-vorbisfile --without-ogg --without-zlib --disable-openmpt123 --disable-examples --disable-tests|
+libopenmpt|autotools|--without-mpg123 --without-sndfile --without-vorbis --without-vorbisfile --without-ogg --without-zlib --disable-openmpt123 --disable-examples --disable-tests|
 rubberband|meson|-Dtests=disabled -Dcmdline=disabled -Dvamp=disabled -Dladspa=disabled -Dlv2=disabled|
 libsndfile|autotools|--disable-external-libs|
 libbs2b|autotools||
-libsoxr|cmake|-DWITH_OPENMP=OFF -DWITH_CR32S=OFF -DWITH_CR64S=OFF|
+libsoxr|cmake|-DWITH_CR32S=OFF -DWITH_CR64S=OFF|
 libmysofa|cmake|-DBUILD_TESTS=OFF|
 
 # ---- image / quality ----
 libwebp|cmake|-DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF|
 libopenjpeg|cmake|-DBUILD_CODEC=OFF -DBUILD_JPIP=OFF|
 libzimg|autotools||
-libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
-libvmaf|custom||meson under libvmaf/ (build_libvmaf)
+libjxl|cmake|-DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_ENABLE_TOOLS=OFF -DJPEGXL_ENABLE_EXAMPLES=OFF -DJPEGXL_ENABLE_BENCHMARK=OFF -DJPEGXL_ENABLE_MANPAGES=OFF -DJPEGXL_ENABLE_SJPEG=OFF -DJPEGXL_ENABLE_VIEWERS=OFF|
+libvmaf|meson|-Denable_tests=false -Denable_docs=false -Denable_tools=false|meson under libvmaf/|libvmaf/
 
 # ---- subtitles / text / disc / teletext ----
-libass|meson|-Dfontconfig=disabled -Dtest=disabled -Dcompare=disabled|
+libass|meson|-Dtest=disabled -Dcompare=disabled|
 libaribb24|autotools||
 libaribcaption|cmake|-DARIBCC_BUILD_TESTS=OFF|
-libbluray|meson|-Denable_docs=false -Denable_tools=false -Dbdj_jar=disabled -Dfontconfig=disabled -Dfreetype=disabled -Dlibxml2=disabled|
-libdvdread|meson|-Denable_docs=false|
-libdvdnav|meson|-Denable_docs=false -Denable_examples=false|
-zvbi|autotools|--disable-nls|libpng: no configure option; AC_CHECK_LIB finds the prefix libpng
+libbluray|meson|-Denable_tools=false -Dfreetype=disabled -Dlibxml2=disabled|
+libdvdread|meson||
+libdvdnav|meson||
+zvbi|autotools||libpng: no configure option; AC_CHECK_LIB finds the prefix libpng
 
 # ---- network / messaging ----
 openssl|perl|no-shared no-tests|
-libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF -DOPENSSL_ROOT_DIR=@PREFIX@|
+libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp|static only: a dylib would be linked instead of the static lib
-librist|meson|-Dbuiltin_mbedtls=true -Dbuiltin_cjson=true -Dbuiltin_lz4=true -Dtest=false|builtin lz4: Homebrew's dylib would otherwise be linked
-libzmq|autotools|--without-libsodium|
-librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON -DOPENSSL_ROOT_DIR=@PREFIX@|
+librist|meson|-Dtest=false|
+libzmq|autotools||
+librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON|
 
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|
 quirc|make-copy||make + copy artifacts (build_quirc)
-libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON -DLeptonica_DIR=@PREFIX@|
-libcaca|autotools|--disable-slang --disable-ncurses --disable-imlib2 --disable-cocoa --disable-ruby --disable-python --disable-java --disable-csharp --disable-cxx|C lib only: cocoa driver is broken on modern AppKit, and the language bindings are unneeded
-libflite|make||configure-based (build_deps_libflite)
-xz|autotools|--disable-doc --disable-nls|
+libtesseract|cmake|-DBUILD_TRAINING_TOOLS=OFF -DDISABLE_ARCHIVE=ON -DDISABLE_CURL=ON -DDISABLE_TIFF=ON|
+libcaca|autotools|--disable-ncurses --disable-cocoa --disable-ruby --disable-python --disable-java --disable-csharp --disable-cxx|C lib only: cocoa driver is broken on modern AppKit, and the language bindings are unneeded
+libflite|autotools||install rule's GNU-only cp -pd is fixed by the patch
+xz|autotools|--disable-doc|
 SDL2|cmake|-DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST=OFF|

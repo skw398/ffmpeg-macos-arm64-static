@@ -15,12 +15,65 @@ on:
         description: Ignore every cache, including pinned tools and downloads
         type: boolean
         default: false
+      no_workarounds:
+        description: "Trial: space/comma separated workaround ids to leave out (scripts/trial-workarounds.txt)"
+        type: string
+        default: ""
+      trial_fast:
+        description: "Trial: keep the cached prefix/FFmpeg trees and rebuild only the affected libraries (per-library ids only)"
+        type: boolean
+        default: false
+      drop_flags:
+        description: "Trial: space/comma separated lib:flag entries to leave out of that recipe (build-deps.txt data)"
+        type: string
+        default: ""
+      install_rules:
+        description: "Also run the libgsm / quirc install-rule check (bridge until workarounds.yml can be dispatched)"
+        type: boolean
+        default: false
+      report_updates:
+        description: "Also report the latest upstream version of every pinned dependency"
+        type: boolean
+        default: false
+  # Reusable: the workarounds workflow runs one trial per id through this one.
+  workflow_call:
+    inputs:
+      skip_verify:
+        type: boolean
+        default: false
+      clean_build:
+        type: boolean
+        default: false
+      cold_build:
+        type: boolean
+        default: false
+      no_workarounds:
+        type: string
+        default: ""
+      trial_fast:
+        type: boolean
+        default: false
+      drop_flags:
+        type: string
+        default: ""
+      install_rules:
+        type: boolean
+        default: false
+      report_updates:
+        type: boolean
+        default: false
+      artifact_suffix:
+        description: Appended to the artifact name, to keep matrix runs apart
+        type: string
+        default: ""
   push:
     branches: [ main ]
   pull_request:
 
 jobs:
   macos-arm64:
+    # a metadata-only dispatch (report_updates) must not run the build
+    if: ${{ !inputs.report_updates }}
     # Policy: newest GA arm64 image, explicit label (never macos-latest);
     # beta/preview images are not used. The runtime floor is set independently
     # via MACOSX_DEPLOYMENT_TARGET, not by the runner OS.
@@ -37,6 +90,15 @@ jobs:
       CMAKE_VERSION: "4.4.3"
       NINJA_VERSION: "1.13.2"
       MESON_VERSION: "1.12.1"
+      # A trial (no_workarounds or drop_flags) must build without the
+      # build-output caches and must not save any: a trial-built prefix would
+      # otherwise mask the trial or poison the next normal build. The git-source
+      # cache is still restored (trials reset build output in those trees).
+      # trial_fast keeps the prefix/FFmpeg caches and rebuilds only the affected
+      # libraries (build-deps.sh forces and then checks them); it still saves
+      # nothing.
+      TRIAL_RUN: ${{ inputs.no_workarounds != '' || inputs.drop_flags != '' }}
+      TRIAL_FAST: ${{ inputs.trial_fast }}
     steps:
       - uses: actions/checkout@v4
 
@@ -141,7 +203,7 @@ jobs:
 
       - name: Restore prefix cache
         id: cache-prefix
-        if: ${{ !inputs.clean_build && !inputs.cold_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.TRIAL_RUN != 'true' || env.TRIAL_FAST == 'true') }}
         uses: actions/cache/restore@v4
         with:
           path: build/prefix
@@ -207,7 +269,7 @@ jobs:
 
       - name: Restore FFmpeg pass-1 cache
         id: cache-ffmpeg-pass1
-        if: ${{ !inputs.clean_build && !inputs.cold_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.TRIAL_RUN != 'true' || env.TRIAL_FAST == 'true') }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -216,7 +278,7 @@ jobs:
 
       - name: Restore FFmpeg full cache
         id: cache-ffmpeg-full
-        if: ${{ !inputs.clean_build && !inputs.cold_build }}
+        if: ${{ !inputs.clean_build && !inputs.cold_build && (env.TRIAL_RUN != 'true' || env.TRIAL_FAST == 'true') }}
         uses: actions/cache/restore@v4
         with:
           path: build/src/ffmpeg
@@ -233,6 +295,9 @@ jobs:
       - name: Build dependencies
         env:
           FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
+          NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
+          DROP_FLAGS: ${{ inputs.drop_flags }}
+          TRIAL_FAST: ${{ inputs.trial_fast }}
         run: sh scripts/build-deps.sh
 
       - name: Check ambient dependencies
@@ -249,14 +314,14 @@ jobs:
           key: downloads-${{ hashFiles('deps.txt') }}
 
       - name: Save prefix cache
-        if: always() && steps.cache-prefix.outputs.cache-hit != 'true'
+        if: always() && env.TRIAL_RUN != 'true' && steps.cache-prefix.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/prefix
           key: prefix-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
 
       - name: Save git sources cache
-        if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
+        if: always() && env.TRIAL_RUN != 'true' && steps.cache-gitsrc.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
@@ -311,10 +376,13 @@ jobs:
           key: gitsrc-${{ hashFiles('deps.txt') }}
 
       - name: FFmpeg pass 1 (for chromaprint)
+        env:
+          NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
+          DROP_FLAGS: ${{ inputs.drop_flags }}
         run: sh scripts/build-ffmpeg.sh --no-chromaprint
 
       - name: Save FFmpeg pass-1 cache
-        if: ${{ always() && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
+        if: ${{ always() && env.TRIAL_RUN != 'true' && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
           path: build/src/ffmpeg-pass1
@@ -324,10 +392,13 @@ jobs:
         run: sh scripts/build-chromaprint.sh
 
       - name: FFmpeg (full)
+        env:
+          NO_WORKAROUNDS: ${{ inputs.no_workarounds }}
+          DROP_FLAGS: ${{ inputs.drop_flags }}
         run: sh scripts/build-ffmpeg.sh
 
       - name: Save FFmpeg full cache
-        if: ${{ always() && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+        if: ${{ always() && env.TRIAL_RUN != 'true' && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
         uses: actions/cache/save@v4
         with:
           path: build/src/ffmpeg
@@ -359,7 +430,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-macos-arm64
+          # a trial artifact must not be mistaken for a release candidate
+          name: ffmpeg-macos-arm64${{ env.TRIAL_RUN == 'true' && (env.TRIAL_FAST == 'true' && '-trial-fast' || '-trial') || '' }}${{ inputs.artifact_suffix }}
           path: |
             build/prefix/bin/ffmpeg
             build/prefix/bin/ffprobe
@@ -369,3 +441,34 @@ jobs:
             build/toolchain-versions.txt
             build/src/ffmpeg/ffbuild/config.log
             build/src/ffmpeg-pass1/ffbuild/config.log
+
+  # libgsm / quirc: can their own install rules replace the copy build-deps.sh
+  # makes? Report only (never fails). This mirrors the job in workarounds.yml,
+  # which cannot be dispatched until that workflow is on the default branch;
+  # drop this copy once workarounds.yml is dispatchable.
+  install-rules:
+    if: inputs.install_rules
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and build libgsm / quirc only
+        env:
+          ONLY: libgsm quirc
+        run: sh scripts/build-deps.sh
+      - name: Check the install rules
+        run: sh scripts/check-install-rules.sh
+
+  # Report the latest upstream release/tag of every pinned dependency, so a
+  # human can see what moved. Report only. ubuntu is enough: this is a metadata
+  # check, not a build.
+  report-updates:
+    if: inputs.report_updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report upstream versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/report-updates.py

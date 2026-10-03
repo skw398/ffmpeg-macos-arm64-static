@@ -8,6 +8,8 @@
 # - FFmpeg build consumes these as STATIC libraries; runtime dynamic deps must be
 #   Apple-provided only (see docs/FEATURE-SCOPE.md).
 # - Bumping any line requires updating docs/COMPONENT-AUDIT.md in the same commit.
+# - A security fix in a dep is marked in the notes column as `security: CVE-...`.
+#   Security updates get an out-of-band patch release (docs/VERSION-UPDATES.md).
 
 # ---- FFmpeg itself ----
 ffmpeg|9.0.2|https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz|8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e|LGPL-2.1+/GPL-2.0+ (build GPLv3)|PGP sig: ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz.asc

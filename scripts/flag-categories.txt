@@ -1,0 +1,145 @@
+# flag-categories.txt — per-library フラグの分類（build-deps.txt の 3 列目）
+#
+# 規則は docs/BUILD-FLAG-CLASSIFICATION.md が正。ここは機械可読な一覧で、
+# lint-workarounds.sh の [E] が build-deps.txt と突合し、dep は到達性まで見る。
+#
+# 形式: lib|flag|purpose|target|note
+#
+#   purpose  何のためのフラグか（これで「外せる」の確定方法が決まる）
+#     build   ビルドが壊れるのを避ける      -> trial（外してビルドが通れば外せる）
+#     dep     依存を避ける                 -> trial（ambient チェックが引き込んだ依存を捕まえる）
+#     extras  余計なもの(tests/tools/docs)を作らない -> triage（no-op なら外せる）
+#     find    prefix を見つけさせる         -> triage（未使用なら外せる）
+#     feature 製品に入れる機能の選択         -> 人が要件と照らす（CI では決まらない）
+#   target   dep のときだけ: 避けている依存（記録用。判定には使わない）
+#   note     主に feature の「なぜ積むか」
+#
+# 方針系（static/共有）と標準ビルド設定、グローバルに隠れる -DBUILD_TESTING=OFF は
+# 分類の対象外なのでここに載せない（lint [E] も除外する）。
+libtheora|--disable-examples|build||
+freetype|--without-png|dep|libpng|
+fribidi|-Ddocs=false|build||
+fribidi|-Dtests=false|extras||
+libpng|-DPNG_TESTS=OFF|extras||
+harfbuzz|-Ddocs=disabled|extras||
+harfbuzz|-Dfreetype=enabled|feature||freetype のラスタライズを使う
+harfbuzz|-Dtests=disabled|extras||
+harfbuzz|-Dutilities=disabled|extras||
+brotli|-DBROTLI_DISABLE_TESTS=ON|extras||
+highway|-DHWY_ENABLE_CONTRIB=OFF|extras||
+highway|-DHWY_ENABLE_EXAMPLES=OFF|extras||
+highway|-DHWY_ENABLE_TESTS=OFF|build||
+lcms2|-DLCMS2_BUILD_JPGICC=OFF|extras||
+lcms2|-DLCMS2_BUILD_TESTS=OFF|extras||
+lcms2|-DLCMS2_BUILD_TIFDIFF=OFF|extras||
+lcms2|-DLCMS2_BUILD_TIFICC=OFF|extras||
+lcms2|-DLCMS2_BUILD_TOOLS=OFF|extras||
+leptonica|-DENABLE_GIF=OFF|dep|giflib|
+leptonica|-DENABLE_JPEG=OFF|dep|libjpeg|
+leptonica|-DENABLE_OPENJPEG=OFF|dep|libopenjpeg|
+leptonica|-DENABLE_PNG=OFF|dep|libpng|
+leptonica|-DENABLE_TIFF=OFF|dep|libtiff|
+leptonica|-DENABLE_WEBP=OFF|dep|libwebp|
+leptonica|-DENABLE_ZLIB=OFF|dep|zlib|
+leptonica|-DSW_BUILD=OFF|extras||
+dav1d|-Denable_tests=false|extras||
+dav1d|-Denable_tools=false|extras||
+libaom|-DCONFIG_AV1_DECODER=1|feature||AV1 デコードを提供する
+libaom|-DCONFIG_AV1_ENCODER=1|feature||AV1 エンコードを提供する
+libaom|-DENABLE_EXAMPLES=0|extras||
+libaom|-DENABLE_TESTS=0|extras||
+libaom|-DENABLE_TOOLS=0|extras||
+SVT-AV1|-DBUILD_APPS=OFF|extras||
+libvpx|--disable-docs|extras||
+libvpx|--disable-examples|extras||
+libvpx|--disable-tools|extras||
+libvpx|--disable-unit-tests|extras||
+libvpx|--enable-multi-res-encoding|feature||VP9 の multi-res encoding を提供する
+libvpx|--enable-postproc|feature||VP9 の postproc を提供する
+libvpx|--enable-vp8|feature||VP8 を提供する
+libvpx|--enable-vp9|feature||VP9 を提供する
+libvpx|--enable-vp9-highbitdepth|feature||VP9 の high bit depth を提供する
+x265|-DENABLE_CLI=OFF|extras||
+libvvenc|-DVVENC_LIBRARY_ONLY=ON|extras||
+liboapv|-DENABLE_TESTS=OFF|extras||
+liboapv|-DOAPV_BUILD_APPS=OFF|extras||
+libsnappy|-DSNAPPY_BUILD_BENCHMARKS=OFF|build||
+libsnappy|-DSNAPPY_BUILD_TESTS=OFF|build||
+libopus|--disable-doc|extras||
+libopus|--disable-extra-programs|extras||
+libspeex|--disable-binaries|extras||
+lame|--disable-decoder|build||MP3 エンコーダ専用（デコーダは FFmpeg 本体）
+lame|--disable-frontend|build||
+libtwolame|--disable-sndfile|dep|libsndfile|
+libcodec2|-DUNITTEST=OFF|extras||
+libgme|-DGME_ENABLE_UBSAN=OFF|feature||
+libopenmpt|--disable-examples|build||
+libopenmpt|--disable-openmpt123|build||
+libopenmpt|--disable-tests|extras||
+libopenmpt|--without-mpg123|dep|mpg123|
+libopenmpt|--without-ogg|dep|libogg|
+libopenmpt|--without-sndfile|dep|libsndfile|
+libopenmpt|--without-vorbis|dep|libvorbis|
+libopenmpt|--without-vorbisfile|dep|libvorbis|
+libopenmpt|--without-zlib|dep|zlib|
+rubberband|-Dcmdline=disabled|extras||
+rubberband|-Dladspa=disabled|extras||
+rubberband|-Dlv2=disabled|extras||
+rubberband|-Dtests=disabled|extras||
+rubberband|-Dvamp=disabled|extras||
+libsndfile|--disable-external-libs|dep|libvorbis|
+libsoxr|-DWITH_CR32S=OFF|feature||使わないレート変換バリアントを外す
+libsoxr|-DWITH_CR64S=OFF|feature||使わないレート変換バリアントを外す
+libmysofa|-DBUILD_TESTS=OFF|build||
+libwebp|-DWEBP_BUILD_ANIM_UTILS=OFF|extras||
+libwebp|-DWEBP_BUILD_CWEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_DWEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_EXTRAS=OFF|extras||
+libwebp|-DWEBP_BUILD_GIF2WEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_IMG2WEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_VWEBP=OFF|extras||
+libwebp|-DWEBP_BUILD_WEBPMUX=OFF|extras||
+libopenjpeg|-DBUILD_CODEC=OFF|build||
+libopenjpeg|-DBUILD_JPIP=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_BENCHMARK=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_EXAMPLES=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_MANPAGES=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_SJPEG=OFF|build||
+libjxl|-DJPEGXL_ENABLE_SKCMS=OFF|build||
+libjxl|-DJPEGXL_ENABLE_TOOLS=OFF|extras||
+libjxl|-DJPEGXL_ENABLE_VIEWERS=OFF|extras||
+libjxl|-DJPEGXL_FORCE_SYSTEM_LCMS2=ON|build||
+libvmaf|-Denable_docs=false|extras||
+libvmaf|-Denable_tests=false|extras||
+libvmaf|-Denable_tools=false|extras||
+libass|-Dcompare=disabled|extras||
+libass|-Dtest=disabled|extras||
+libaribcaption|-DARIBCC_BUILD_TESTS=OFF|extras||
+libbluray|-Denable_tools=false|extras||
+libbluray|-Dfreetype=disabled|dep|freetype|
+libbluray|-Dlibxml2=disabled|dep|libxml2|
+openssl|no-tests|extras||
+libssh|-DUNIT_TESTING=OFF|extras||
+libssh|-DWITH_EXAMPLES=OFF|extras||
+libssh|-DWITH_GSSAPI=OFF|dep|gssapi|
+libssh|-DWITH_SERVER=OFF|feature||クライアント専用
+libssh|-DWITH_ZLIB=ON|feature||zlib 対応
+libsrt|-DENABLE_APPS=OFF|extras||
+libsrt|-DENABLE_TESTING=OFF|extras||
+libsrt|-DUSE_ENCLIB=openssl-evp|feature||暗号バックエンドを OpenSSL に固定
+librist|-Dtest=false|extras||
+librabbitmq|-DENABLE_SSL_SUPPORT=ON|feature||SSL 対応
+libqrencode|--without-tools|extras||
+libtesseract|-DBUILD_TRAINING_TOOLS=OFF|extras||
+libtesseract|-DDISABLE_ARCHIVE=ON|dep|libarchive|
+libtesseract|-DDISABLE_CURL=ON|dep|curl|
+libtesseract|-DDISABLE_TIFF=ON|dep|libtiff|
+libcaca|--disable-cocoa|build||
+libcaca|--disable-csharp|extras||
+libcaca|--disable-cxx|extras||
+libcaca|--disable-java|extras||
+libcaca|--disable-ncurses|dep|ncurses|
+libcaca|--disable-python|extras||
+libcaca|--disable-ruby|build||
+xz|--disable-doc|extras||
+SDL2|-DSDL_TEST=OFF|extras||

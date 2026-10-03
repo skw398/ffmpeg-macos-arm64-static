@@ -29,6 +29,23 @@ trap cleanup EXIT
 
 [ -d "$LOGS" ] || { echo "ERROR: no build logs at $LOGS (run build-deps.sh first)" >&2; exit 1; }
 
+# --- how much of the build this run actually did ------------------------------
+# Every signal below reads per-library build logs, so it only covers the
+# libraries that were rebuilt here. A cached (partial) run cannot tell whether a
+# workaround is still needed: say so up front instead of letting the counts be
+# misread (this is how the CMake -Werror strip was once dropped by mistake).
+total=0; built=0
+for name in $(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | cut -d'|' -f1); do
+  total=$((total + 1))
+  [ -f "$LOGS/$name.log" ] && built=$((built + 1))
+done
+echo "== build coverage: $built of $total libraries were rebuilt in this run =="
+if [ "$built" -lt "$total" ]; then
+  echo "  NOTE: the counts below only cover those libraries; read them on a full"
+  echo "        build (clean_build) before concluding anything."
+fi
+echo
+
 # normalise a boolean-ish flag value: meson accepts enabled/disabled for booleans
 norm_bool() {
   case "$1" in
@@ -50,11 +67,12 @@ meson_option_defaults() { # <file>
       done
 }
 
-# locate the meson options file for a recipe (git checkout first, else tarball)
+# locate the meson options file for a recipe (git checkout first, else tarball).
+# Search subdirectories too: libvmaf keeps its meson build in libvmaf/.
 meson_options_file() { # <name> <version> <hash>
   name="$1"; ver="$2"; hash="$3"
-  for f in "$SRC/$name/meson_options.txt" "$SRC/$name/meson.options"; do
-    [ -f "$f" ] && { printf '%s\n' "$f"; return 0; }
+  for f in $(find "$SRC/$name" -maxdepth 2 \( -name meson_options.txt -o -name meson.options \) 2>/dev/null); do
+    printf '%s\n' "$f"; return 0
   done
   case "$hash" in COMMIT=*|"") return 1 ;; esac
   tb="$DL/$name-$ver.tarball"
@@ -110,7 +128,7 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   name=$(printf '%s' "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   kind=$(printf '%s' "$kind" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   flags=$(printf '%s' "$flags" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-  [ "$kind" = meson ] || continue
+  [ "$kind" = meson ] || [ "$kind" = custom ] || continue
   ver=$(awk -F'|' -v n="$name" '$1 == n { print $2; exit }' "$PINS")
   hash=$(awk -F'|' -v n="$name" '$1 == n { print $4; exit }' "$PINS")
   ofile=$(meson_options_file "$name" "$ver" "$hash") || continue
