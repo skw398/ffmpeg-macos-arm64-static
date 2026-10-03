@@ -1,0 +1,94 @@
+name: release
+
+# Cut a release: clean build -> tag -> GitHub Release -> build provenance.
+#
+# Manual only. The version is chosen by a human, not computed (see
+# docs/VERSION-UPDATES.md): v<ffmpeg>-<build number>, e.g. v9.0.2-1 (first),
+# v9.0.2-2 (security patch), v9.1.0-1 (FFmpeg bump).
+#
+# The released binaries must come from a *clean* build: the version/feature
+# detection can change with a pin, so a cached tree is not acceptable.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag, e.g. v9.0.2-1 (docs/VERSION-UPDATES.md)"
+        required: true
+        type: string
+      notes:
+        description: "Release notes (e.g. why a security patch is being cut). Empty = generated"
+        type: string
+        default: ""
+      dry_run:
+        description: "Build and package, but do not tag, release or attest"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Reuse the build workflow. clean_build=true ignores the prefix / git / FFmpeg
+  # caches, so the release is built from the pinned sources every time.
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      clean_build: true
+      artifact_suffix: -release
+    permissions:
+      contents: read
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write       # create the tag and the Release
+      id-token: write       # sign the attestation (Sigstore)
+      attestations: write   # store the attestation
+    steps:
+      - name: Download the build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg-macos-arm64-release
+          path: dist
+
+      - name: Assemble the archive
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -eu
+          name="ffmpeg-macos-arm64-static-$VERSION"
+          mkdir -p "$name/bin" "$name/share"
+          cp dist/build/prefix/bin/ffmpeg \
+             dist/build/prefix/bin/ffprobe \
+             dist/build/prefix/bin/ffplay "$name/bin/"
+          # licenses, dependency versions, buildconf and source patches
+          cp -R dist/build/artifacts/release/. "$name/share/"
+          tar -cJf "$name.tar.xz" "$name"
+          rm -rf "$name"
+
+      - name: Checksums
+        run: sha256sum ./*.tar.xz > SHA256SUMS
+
+      - name: Attest build provenance
+        if: ${{ !inputs.dry_run }}
+        uses: actions/attest@v4
+        with:
+          subject-checksums: SHA256SUMS
+
+      - name: Create the release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -eu
+          if [ -n "${NOTES:-}" ]; then
+            gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" \
+              --notes "$NOTES" ./*.tar.xz SHA256SUMS
+          else
+            gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" \
+              --generate-notes ./*.tar.xz SHA256SUMS
+          fi
