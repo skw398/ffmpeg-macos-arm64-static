@@ -49,6 +49,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
+      - name: Install pinned uv and Python
+        env:
+          UV_VERSION: "0.12.22"
+          UV_SHA256: "b9980552309f09c15172b8be828555e375097f16deb459795ce7bfd200380f0b"
+        run: |
+          uv_dir="$RUNNER_TEMP/uv-$UV_VERSION"
+          mkdir -p "$uv_dir"
+          curl -sSL --fail -o "$RUNNER_TEMP/uv.tar.gz" \
+            "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-x86_64-unknown-linux-gnu.tar.gz"
+          echo "$UV_SHA256  $RUNNER_TEMP/uv.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/uv.tar.gz" -C "$uv_dir" --strip-components=1
+          echo "$uv_dir" >> "$GITHUB_PATH"
+          "$uv_dir/uv" python install
+
       - name: Download the build artifact
         uses: actions/download-artifact@v8.0.1
         with:
@@ -79,12 +93,20 @@ jobs:
 
       - name: Generate the SBOM
         run: |
-          python3 scripts/make-sbom.py \
+          uv run python scripts/make-sbom.py \
             --name "ffmpeg-macos-arm64-static-${{ inputs.version }}" \
             --out "ffmpeg-macos-arm64-static-${{ inputs.version }}.spdx.json"
 
       - name: Checksums
         run: sha256sum ./*.tar.xz ./*.spdx.json > SHA256SUMS
+
+      - name: Verify the release package
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          uv run python scripts/verify-release-package.py \
+            --archive "ffmpeg-macos-arm64-static-$VERSION.tar.xz" \
+            --sbom "ffmpeg-macos-arm64-static-$VERSION.spdx.json"
 
       - name: Upload release package
         uses: actions/upload-artifact@v7.0.1
