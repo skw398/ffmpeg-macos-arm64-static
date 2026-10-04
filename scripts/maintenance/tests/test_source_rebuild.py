@@ -54,6 +54,26 @@ class SourceRebuildTest(unittest.TestCase):
         self.assertEqual(versions, self.versions)
         self.assertEqual((package / "project/deps.txt").read_bytes(), self.files["project/deps.txt"])
 
+    def test_tarball_sources_are_available_to_bundled_validation_scripts(self):
+        source = self.files.pop("upstream/fixture.tar")
+        checksum = hashlib.sha256(source).hexdigest()
+        self.files["upstream/fixture.tarball"] = source
+        self.files["project/deps.txt"] = f"fixture|1.0|https://example.invalid/source|{checksum}|MIT\n".encode()
+        self.manifest["packages"]["fixture"].update(
+            version="1.0", sourcePin=checksum, path="upstream/fixture.tarball")
+        self.manifest["files"] = {name: hashlib.sha256(value).hexdigest()
+                                  for name, value in self.files.items()}
+        self.save()
+        with contextlib.redirect_stdout(io.StringIO()):
+            package, _ = prepare.prepare(self.artifacts, self.output)
+        original = package / "upstream/fixture.tarball"
+        cached = package / "project/build/downloads/fixture-1.0.tarball"
+        self.assertEqual(cached.read_bytes(), source)
+        self.assertEqual(prepare.digest(cached), checksum)
+        self.assertEqual(original.read_bytes(), source)
+        cached.write_bytes(b"modified working copy")
+        self.assertEqual(original.read_bytes(), source)
+
     def test_outer_checksum_mismatch_and_duplicate_entry_are_rejected_before_extracting(self):
         sums = self.artifacts / "SHA256SUMS"
         original = sums.read_text()

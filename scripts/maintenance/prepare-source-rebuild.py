@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import tarfile
 
@@ -65,6 +66,12 @@ def prepare(artifacts, output):
         versions[name] = values[0]
     if versions["PYTHON_VERSION"] != (project / ".python-version").read_text().strip():
         raise ValueError("bundled Python version mismatch")
+    # Bundled validation and license collection read the original download paths.
+    downloads = project / "build/downloads"
+    downloads.mkdir(parents=True)
+    for pin in pins.values():
+        if not pin.commit:
+            shutil.copyfile(package / f"upstream/{pin.name}.tarball", pin.archive(downloads))
     print(f"== source rebuild prepared: {manifest['projectCommit']} ({len(pins)} pinned sources)")
     return package.resolve(), versions
 
