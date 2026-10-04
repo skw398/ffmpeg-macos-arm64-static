@@ -31,9 +31,6 @@ export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # pin verification is enabled, but it must not be a prerequisite)
 PINS="$ROOT/deps.txt"
 . "$HERE/lib.sh"
-# a trial run leaves out the listed workarounds; an unknown id is an error
-# rather than a silent no-op (see scripts/data/trial-workarounds.txt)
-validate_trials
 if [ ! -d "$SRC/ffmpeg" ]; then
   fetch ffmpeg
 fi
@@ -53,13 +50,8 @@ fi
 # NOTE: the extra libs below are private dependencies that some of the static
 # libraries' pkg-config files omit (e.g. libjxl_threads.pc lacks -lc++, and
 # libssh.pc lacks -lssl -lcrypto -lz; chromaprint.pc lacks the Accelerate
-# framework it uses for vDSP), so they are supplied explicitly. An empty
-# --extra-libs= is the same as passing none, which is what a trial run wants.
+# framework it uses for vDSP), so they are supplied explicitly.
 extra_libs="-lpthread -lm -lc++ -lssl -lcrypto -lz -framework Accelerate"
-if trial_disabled ffmpeg-extra-libs; then
-  extra_libs=""
-  echo "== trial: dropping FFmpeg --extra-libs"
-fi
 set -- \
   --prefix="$PREFIX" \
   --pkg-config-flags=--static \
@@ -99,13 +91,6 @@ if [ "$CHROMAPRINT" -eq 1 ]; then PASS=full; else PASS=pass1; fi
 # Reuse an existing configuration when the tree (possibly restored from the CI
 # cache) was configured with identical arguments, so make runs incrementally.
 stamp="$builddir/ffbuild/.configure-stamp"
-# A trial (no_workarounds / drop_flags) must always re-run configure: a dropped
-# flag can change a dependency's .pc file or its link, and only the configure
-# tests catch that. A cached stamp once hid a tesseract/libcurl link failure, so
-# a flag was dropped on a false green.
-if [ -n "${NO_WORKAROUNDS:-}${DROP_FLAGS:-}" ]; then
-  rm -f "$stamp"
-fi
 if [ -f "$stamp" ] && [ -f "$builddir/ffbuild/config.mak" ] \
    && [ "$(cat "$stamp")" = "$(printf '%s\n' "$@")" ]; then
   echo "== reuse existing FFmpeg configuration ($PASS)"

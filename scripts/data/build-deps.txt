@@ -2,16 +2,15 @@
 #
 # Format (no spaces around "|"): name|kind|flags|note|subdir
 #   subdir: source subdirectory for the build system (default: the tree root)
-#   kind : autotools | cmake | meson | perl | make | custom
+#   kind : autotools | cmake | meson | perl | make-copy | custom
 #   flags: passed verbatim after the common args; use @PREFIX@ for the install prefix
 #   order: build order (transitive dependencies first)
 #
 # - name must match deps.txt (used for fetch/extract).
-# - Only special cases use `custom`/`make` (see build-deps.sh functions).
+# - Only special cases use `custom`/`make-copy` (see build-deps.sh functions).
 # - chromaprint is NOT here: it needs FFmpeg libs, so it is built between two
 #   FFmpeg passes (see build-ffmpeg.sh and the CI workflow).
-# - Flags are best-effort from docs/COMPONENT-AUDIT.md; the first CI run is
-#   expected to reveal any that need adjusting.
+# - Flags describe the adopted static build configuration.
 
 # ---- transitive deps (build first) ----
 libogg|autotools||
@@ -33,10 +32,10 @@ dav1d|meson|-Denable_tools=false -Denable_tests=false|
 libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1|git pin (clone)
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
 librav1e|custom|--release --library-type staticlib --locked|Rust + cargo-c
-libvpx|autotools|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone); generic autotools path (build_libvpx dropped 2026-09-29: trial green)
+libvpx|autotools|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone)
 x264|autotools|--enable-pic|
 x265|cmake|-DENABLE_CLI=OFF -DENABLE_SHARED=OFF|cmake in the source/ subdir|source/
-openh264|meson||standard meson path (build_openh264 dropped 2026-09-29: trial green)
+openh264|meson||
 libvvenc|cmake|-DVVENC_LIBRARY_ONLY=ON|
 liboapv|cmake|-DOAPV_BUILD_APPS=OFF -DENABLE_TESTS=OFF -DOAPV_BUILD_SHARED_LIB=OFF|
 libxeve|cmake||

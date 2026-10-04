@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       clean_build: true
-      artifact_suffix: -release
+      artifact_name: ffmpeg-macos-arm64-release
     permissions:
       contents: read
 
@@ -47,10 +47,10 @@ jobs:
       id-token: write       # sign the attestations (Sigstore)
       attestations: write   # store the attestations
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
       - name: Download the build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: ffmpeg-macos-arm64-release
           path: dist
@@ -85,6 +85,16 @@ jobs:
 
       - name: Checksums
         run: sha256sum ./*.tar.xz ./*.spdx.json > SHA256SUMS
+
+      - name: Upload release package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ffmpeg-macos-arm64-release-package
+          if-no-files-found: error
+          path: |
+            *.tar.xz
+            *.spdx.json
+            SHA256SUMS
 
       - name: Attest build provenance
         if: ${{ !inputs.dry_run }}
