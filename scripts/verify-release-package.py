@@ -11,7 +11,7 @@ import sys
 import tarfile
 import uuid
 
-from build_data import DATA, ROOT, read_pins
+from build_data import DATA, ROOT, read_pins, read_licenses
 
 
 def require(condition, message):
@@ -35,7 +35,7 @@ def check_checksums(path, archive, sbom):
     require(seen == set(expected), "missing release checksum")
 
 
-def check_sbom(path, name, pins):
+def check_sbom(path, name, pins, licenses):
     document = json.loads(path.read_text())
     require(document["spdxVersion"] == "SPDX-2.3" and document["dataLicense"] == "CC0-1.0",
             "unexpected SPDX document version or data license")
@@ -58,8 +58,14 @@ def check_sbom(path, name, pins):
         else:
             require(package["checksums"] == [{"algorithm": "SHA256", "checksumValue": pin.checksum.lower()}],
                     f"SBOM source checksum mismatch: {pin.name}")
-        require(package["licenseDeclared"] == package["licenseConcluded"] == "NOASSERTION"
-                and pin.license in package["licenseComments"], f"SBOM license note mismatch: {pin.name}")
+        review = licenses["packages"][pin.name]
+        require(package["licenseDeclared"] == review["expression"]
+                and package["licenseConcluded"] == "NOASSERTION"
+                and package["licenseComments"] == review["comment"], f"SBOM license declaration mismatch: {pin.name}")
+    require(document["creationInfo"]["licenseListVersion"] == licenses["licenseListVersion"],
+            "SPDX license list version mismatch")
+    require(document.get("hasExtractedLicensingInfos") == licenses["extractedLicensingInfo"],
+            "SBOM extracted license text mismatch")
     for relationship in document["relationships"]:
         require(relationship["spdxElementId"] in identifiers
                 and relationship["relatedSpdxElement"] in identifiers, "unknown SPDX relationship endpoint")
@@ -72,7 +78,11 @@ def check_sbom(path, name, pins):
     require(actual_relationships == expected_relationships, "SBOM dependency relationships mismatch")
 
 
-def check_archive(path, name, pins):
+def check_archive(path, name, pins, catalog):
+    expected_licenses = {f"share/licenses/{package}/{filename}": review["evidence"][filename]
+                         for package, review in catalog["packages"].items()
+                         for filename in review["licenseFiles"]}
+    found_licenses = set()
     binaries = set()
     licenses = set()
     metadata = {}
@@ -106,6 +116,11 @@ def check_archive(path, name, pins):
                 require(len(parts) >= 5 and parts[3] in pins and member.size > 0,
                         f"invalid license file: {relative}")
                 licenses.add(parts[3])
+                if relative in expected_licenses:
+                    with archive.extractfile(member) as source:
+                        require(hashlib.file_digest(source, "sha256").hexdigest() == expected_licenses[relative],
+                                f"reviewed license text mismatch: {relative}")
+                    found_licenses.add(relative)
             elif relative in expected_patches:
                 with archive.extractfile(member) as source:
                     require(source.read() == expected_patches[relative], f"source patch mismatch: {relative}")
@@ -115,6 +130,8 @@ def check_archive(path, name, pins):
                     metadata[relative] = source.read().decode()
     require(binaries == {"bin/ffmpeg", "bin/ffprobe", "bin/ffplay"}, "missing release binary")
     require(licenses == set(pins), "missing license files: " + ", ".join(sorted(set(pins) - licenses)))
+    require(found_licenses == set(expected_licenses), "missing reviewed license texts: "
+            + ", ".join(sorted(set(expected_licenses) - found_licenses)))
     require(found_patches == set(expected_patches), "missing source patches")
     for relative, content in expected_text.items():
         require(metadata.get(relative) == content, f"release metadata mismatch: {relative}")
@@ -130,16 +147,18 @@ def main():
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--sbom", type=Path, required=True)
     parser.add_argument("--checksums", type=Path, default=Path("SHA256SUMS"))
+    parser.add_argument("--licenses", type=Path, default=DATA / "licenses.json")
     parser.add_argument("--deps", type=Path, default=ROOT / "deps.txt")
     args = parser.parse_args()
     try:
         pins = read_pins(args.deps)
         require(all(pin.commit or re.fullmatch(r"[0-9a-fA-F]{64}", pin.checksum) for pin in pins.values()),
                 "unresolved source pin in release")
+        licenses = read_licenses(pins, args.licenses)
         name = args.archive.name.removesuffix(".tar.xz")
         check_checksums(args.checksums, args.archive, args.sbom)
-        check_sbom(args.sbom, name, pins)
-        check_archive(args.archive, name, pins)
+        check_sbom(args.sbom, name, pins, licenses)
+        check_archive(args.archive, name, pins, licenses)
     except (OSError, ValueError, KeyError, TypeError, tarfile.TarError) as error:
         print(f"ERROR: release package verification failed: {error}", file=sys.stderr)
         return 1

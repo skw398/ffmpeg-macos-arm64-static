@@ -1,0 +1,1007 @@
+{
+  "licenseListVersion": "3.29.0",
+  "licenseListSource": "https://github.com/spdx/license-list-data/blob/main/json/licenses.json",
+  "licenseIds": [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSD-3-Clause-Clear",
+    "BSL-1.0",
+    "CC0-1.0",
+    "FTL",
+    "GPL-2.0-only",
+    "GPL-2.0-or-later",
+    "GPL-3.0-or-later",
+    "ISC",
+    "LGPL-2.0-or-later",
+    "LGPL-2.1-only",
+    "LGPL-2.1-or-later",
+    "MIT",
+    "MIT-Modern-Variant",
+    "MPL-2.0",
+    "TU-Berlin-1.0",
+    "TU-Berlin-2.0",
+    "WTFPL",
+    "Zlib",
+    "libpng-2.0"
+  ],
+  "packages": {
+    "ffmpeg": {
+      "version": "9.0.2",
+      "checksum": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e",
+      "expression": "GPL-3.0-or-later",
+      "comment": "LICENSE.md declares GPLv2-or-later with --enable-gpl; --enable-version3 selects GPLv3-or-later for this build. This is the configured FFmpeg component declaration, not a license conclusion for every linked file.",
+      "evidence": {
+        "LICENSE.md": "2e1d16c72fd74e12063776371da757322f8b77589386532f4fd8634bde7de1af"
+      },
+      "licenseFiles": [
+        "LICENSE.md"
+      ]
+    },
+    "libogg": {
+      "version": "1.3.6",
+      "checksum": "5c8253428e181840cd20d41f3ca16557a9cc04bad4a3d04cce84808677fa1061",
+      "expression": "BSD-3-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "d2ab5758336489da61c12cc5bb757da5339c4ae9001f9bb0562b4370249af814"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libvorbis": {
+      "version": "1.3.7",
+      "checksum": "0e982409a9c3fc82ee06e08205b1355e5c6aa4c36bca58146ef399621b0ce5ab",
+      "expression": "BSD-3-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "ec1815db59fcd302846df949d7424876cb2e2dc5ed1606c5fb0b36787b1cf43a"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libtheora": {
+      "version": "1.2.0",
+      "checksum": "279327339903b544c28a92aeada7d0dcfd0397b59c2f368cc698ac56f515906e",
+      "expression": "BSD-3-Clause AND LicenseRef-Theora-On2-Patent",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "8417fad7da775735564e209484a2e011e0fa201e94f01fdbee6e4977e478e6fc",
+        "LICENSE": "2c902950c73a63cd285dc0c36573de9c5fefe66d49312949c51d941f33e92932"
+      },
+      "licenseFiles": [
+        "COPYING",
+        "LICENSE"
+      ]
+    },
+    "libunibreak": {
+      "version": "libunibreak_8_0",
+      "checksum": "COMMIT=28a2756b864c343f438cd22537d49d394d4666a5",
+      "expression": "Zlib",
+      "comment": "LICENCE is the Zlib text. The previous LGPL-2.1+ note was incorrect.",
+      "evidence": {
+        "LICENCE": "0c57e2ec42ece17791a75d2f9b2f8e0663181be008667a507f765b3ef22522db"
+      },
+      "licenseFiles": [
+        "LICENCE"
+      ]
+    },
+    "freetype": {
+      "version": "2.14.3",
+      "checksum": "36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f",
+      "expression": "FTL OR GPL-2.0-or-later",
+      "comment": "LICENSE.TXT offers a choice of FTL or GPL version 2 or later. Both complete license texts are included.",
+      "evidence": {
+        "LICENSE.TXT": "bd36c8b474855fa294c2ec5c184544478ef3720aad37d65a6296a4f264fd2d3b",
+        "docs/FTL.TXT": "5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f",
+        "docs/GPLv2.TXT": "c4120c6752c910c299e3bd9cb3a46ff262c268303ca2069b61f92f10a5656c18"
+      },
+      "licenseFiles": [
+        "LICENSE.TXT",
+        "docs/FTL.TXT",
+        "docs/GPLv2.TXT"
+      ]
+    },
+    "fribidi": {
+      "version": "v1.0.17",
+      "checksum": "COMMIT=b93119f5fdc7ea47672cc304c1455ffa6dfe7536",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+        "lib/fribidi.c": "52284f7e4b49f275dd50af23e3dc1632aea886ff2d12acd40ae0a77105546957"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libpng": {
+      "version": "1.6.44",
+      "checksum": "8c25a7792099a0089fa1cc76c94260d0bb3f1ec52b93671b572f8bb61577b732",
+      "expression": "libpng-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "harfbuzz": {
+      "version": "14.5.0",
+      "checksum": "COMMIT=863d3f7787c6df18d20e4535c5906bf3eb803bd5",
+      "expression": "MIT-Modern-Variant",
+      "comment": "The Old MIT text in COPYING matches SPDX MIT-Modern-Variant, rather than the Expat-style MIT text.",
+      "evidence": {
+        "COPYING": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "brotli": {
+      "version": "v1.2.0",
+      "checksum": "COMMIT=028fb5a23661f123017c060daa546b55cf4bde29",
+      "expression": "MIT",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "3d180008e36922a4e8daec11c34c7af264fed5962d07924aea928c38e8663c94"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "highway": {
+      "version": "1.4.0",
+      "checksum": "COMMIT=2607d3b5b0113992fe84d3848859eae13b3b52c1",
+      "expression": "(Apache-2.0 OR BSD-3-Clause) AND CC0-1.0",
+      "comment": "Top-level LICENSE offers Apache-2.0 or BSD-3-Clause and separately declares CC0-1.0 for contrib/random/random-inl.h. The metadata records those source-package declarations; contrib is disabled in this build.",
+      "evidence": {
+        "LICENSE": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "lcms2": {
+      "version": "lcms2.19.1",
+      "checksum": "COMMIT=21c582a594fe5279f90c0b93437c398f93bf62b0",
+      "expression": "MIT",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "6dbd60437f8ef91d8de1f08ad75882547fd4931bfcc3566a0735f28db1484d31"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "leptonica": {
+      "version": "1.86.0",
+      "checksum": "1fa08e40bb37fd45802d5e6e7b43927449a5c47d4608ef99d3bd3f0fa76baedc",
+      "expression": "BSD-2-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "leptonica-license.txt": "87829abb5bbb00b55a107365da89e9a33f86c4250169e5a1e5588505be7d5806"
+      },
+      "licenseFiles": [
+        "leptonica-license.txt"
+      ]
+    },
+    "libudfread": {
+      "version": "1.2.0",
+      "checksum": "COMMIT=c3cd5cbb097924557ea4d9da1ff76a74620c51a8",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+        "src/udfread.c": "60e97e062217545eeef94838306fac7c077295a4261a8ccf21e5859cd788308f"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libsndfile": {
+      "version": "1.2.2",
+      "checksum": "3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e",
+      "expression": "LGPL-2.1-or-later AND TU-Berlin-1.0",
+      "comment": "The LGPL-2.1-or-later core includes GSM610 under the TU-Berlin-1.0 notice.",
+      "evidence": {
+        "COPYING": "ad01ea5cd2755f6048383c8d54c88459cd6fcb17757c5c8892f8c5ea060f6140",
+        "src/sndfile.c": "b49cf1518231195f50a9bd30c154818971dbce51173cf65434edd1b53bf6e672",
+        "src/GSM610/COPYRIGHT": "1bbe7119b1bcd1489e0f36cb95b8902f7f0ceec9a2f3a67394bc9f4709a4e0a7"
+      },
+      "licenseFiles": [
+        "COPYING",
+        "src/GSM610/COPYRIGHT"
+      ]
+    },
+    "dav1d": {
+      "version": "1.5.4",
+      "checksum": "COMMIT=54706fc6bc0cdecab7e9593974a4039cc038fca7",
+      "expression": "BSD-2-Clause AND LicenseRef-dav1d-AOM-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "COPYING": "dd92c3c2247c5651606fc23a5e2d6a1ebc5ace9a3e49cbde0e12f05ad1cb1ee5",
+        "doc/PATENTS": "335eca574598bf4ca181b12f708d6669e5a5e78c8e1513e5b35fa1f03901484b"
+      },
+      "licenseFiles": [
+        "COPYING",
+        "doc/PATENTS"
+      ]
+    },
+    "libaom": {
+      "version": "v3.15.1",
+      "checksum": "COMMIT=44d0a57786f432d933ff64b653347c66f4d0fa1d",
+      "expression": "BSD-2-Clause AND LicenseRef-libaom-AOM-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "LICENSE": "4764a286d8b2faeaf42f4418e7d7a28d58fc8fd4d00a3d0a7f44b0a4099de7f2",
+        "PATENTS": "661fb8e504744e95587b556b94a58343448300606a41bea8c7a9b97125696e61"
+      },
+      "licenseFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    "SVT-AV1": {
+      "version": "v4.2.0",
+      "checksum": "COMMIT=9292ec8e32bce26f781f277ec8739b53426c4300",
+      "expression": "BSD-3-Clause-Clear AND BSD-2-Clause AND LicenseRef-SVT-AV1-AOM-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "LICENSE.md": "0acc2fcb27472bdc9aaf8b71f37055bbdac4f54671b7d922f241bd7fcd0dd3e6",
+        "LICENSE-BSD2.md": "c582fcbeb9cf972a60d298bfaf41dc5adff2dd14208946edcb9bb56a281e8438",
+        "PATENTS.md": "20678ab10402659106dc4c147c97b2a6e94b5c0695415e15a8f195ebc3547922"
+      },
+      "licenseFiles": [
+        "LICENSE.md",
+        "LICENSE-BSD2.md",
+        "PATENTS.md"
+      ]
+    },
+    "librav1e": {
+      "version": "v0.8.1",
+      "checksum": "COMMIT=1fe82de02510767539e89b2ee6fa846920ae2686",
+      "expression": "BSD-2-Clause AND LicenseRef-librav1e-AOM-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "LICENSE": "2dd0a109751e939dec3f80ddcfbc1ba91553f18c574399e85c159632182a2c0a",
+        "PATENTS": "7b14a70c194b19dbd0625e7eac839a63200f67484521ce5e8d8244b127e8907a"
+      },
+      "licenseFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    "libvpx": {
+      "version": "v1.17.0",
+      "checksum": "COMMIT=6df3ec34557879fff673706f4a1d9fbd0f3a6f0e",
+      "expression": "BSD-3-Clause AND LicenseRef-WebM-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "LICENSE": "8267348d5af1262c11d1a08de2f5afc77457755f1ac658627dd9acf71011d615",
+        "PATENTS": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c"
+      },
+      "licenseFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    "x264": {
+      "version": "b35605ace3ddf7c1a5d67a2eb553f034aef41d55",
+      "checksum": "COMMIT=b35605ace3ddf7c1a5d67a2eb553f034aef41d55",
+      "expression": "GPL-2.0-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "32b1062f7da84967e7019d01ab805935caa7ab7321a7ced0e30ebe75e5df1670",
+        "common/common.h": "b335fa4b534737b2816c22d267e95ab6b58803c38e1b4fb613059a103e69f68c"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "x265": {
+      "version": "4.2",
+      "checksum": "40b1ea0453e0309f0eba934e0ddf533f8f6295966679e8894e8f1c1c8d5e1210",
+      "expression": "GPL-2.0-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "d8afb1bcc7a2cfc603683b168d6987ef0a48e59e0da3693bf55c5d33b67e2b49",
+        "source/common/common.h": "6c8285d6c63269431df9e7f4412c490ce1cf81f3d449a6a4f686e8513de08ef2"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "openh264": {
+      "version": "v2.6.0",
+      "checksum": "COMMIT=652bdb7719f30b52b08e506645a7322ff1b2cc6f",
+      "expression": "BSD-2-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "dd5c1c9668512530fa5a96e4c29ac4033d70a7eeb0eed7a42fddb6dd794ebdbb"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libvvenc": {
+      "version": "v1.14.0",
+      "checksum": "COMMIT=9428ea8636ae7f443ecde89999d16b2dfc421524",
+      "expression": "BSD-3-Clause-Clear",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE.txt": "88330a2cc59b9dd90674f8759900bc9c06e9efc8799dadda067609addefb49d1"
+      },
+      "licenseFiles": [
+        "LICENSE.txt"
+      ]
+    },
+    "liboapv": {
+      "version": "v0.3.0.0",
+      "checksum": "COMMIT=9f6fd2a7369db90acec67d99fc57724f1136fb84",
+      "expression": "BSD-3-Clause",
+      "comment": "The Samsung notice has the standard BSD-3-Clause grant; no additional patent grant is inferred.",
+      "evidence": {
+        "LICENSE": "7ad8e53c0c3e24e7ba64dbcad5e7706108f3dc67cf6515ef761adac0a39dab25"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libxeve": {
+      "version": "v0.7.0",
+      "checksum": "COMMIT=4325639f8dff8274c023df3d7c1ca6d3cdcfc11b",
+      "expression": "LicenseRef-XEVE-Distribution",
+      "comment": "The COPYING declaration includes BSD-style terms and explicit third-party patent-right limitations. Its complete text is preserved as a LicenseRef.",
+      "evidence": {
+        "COPYING": "9e363659102ec64de3bf8e118da843b5d08e1a4767e719a207a2afead6284347"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libxevd": {
+      "version": "v0.7.0",
+      "checksum": "COMMIT=0f066b3ea33834fe4e25b41c32c66f912f0b5d30",
+      "expression": "LicenseRef-XEVD-Distribution",
+      "comment": "The COPYING declaration includes BSD-style terms and explicit third-party patent-right limitations. Its complete text is preserved as a LicenseRef.",
+      "evidence": {
+        "COPYING": "9e363659102ec64de3bf8e118da843b5d08e1a4767e719a207a2afead6284347"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libvidstab": {
+      "version": "v1.1.2",
+      "checksum": "COMMIT=92bc0b0f369f2a88aaacf25eac3a10f8415308fc",
+      "expression": "GPL-2.0-or-later",
+      "comment": "LICENSE explicitly grants GPL version 2 or later. The previous LGPL-2.1-or-later note was incorrect.",
+      "evidence": {
+        "LICENSE": "03f095c5c70ea18ffb2b89dd58e4ee57e4f613d04632993f90c890f4cc125b99"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libsnappy": {
+      "version": "1.3.1",
+      "checksum": "COMMIT=9c28114a38866f6deeaa826db918293bc28ae410",
+      "expression": "BSD-3-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "55172044f7e241207117448a4d9d6ba1d0925c8ad66b5d4c08c70adfa9cc3de6"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libopus": {
+      "version": "1.6.1",
+      "checksum": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1",
+      "expression": "BSD-3-Clause",
+      "comment": "COPYING declares BSD-3-Clause and cites external Xiph/Microsoft/Broadcom patent grants. Those external grants are not collapsed into a guessed SPDX identifier; the upstream notice is included.",
+      "evidence": {
+        "COPYING": "01e1167d54a096d123cf6dfbbeb19587278845c6481d2d66d545669846079551"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libspeex": {
+      "version": "1.2.1",
+      "checksum": "4b44d4f2b38a370a2d98a78329fefc56a0cf93d1c1be70029217baae6628feea",
+      "expression": "BSD-3-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "2654a4264b2bfe298dedc508748d140111840c315cc8eb646a3a68c13fa75b01"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "lame": {
+      "version": "4.0",
+      "checksum": "3df5124d5ad3a98312ffd7ba6a9b36230e4f8a3e66d3ce0f425e336c32d216eb",
+      "expression": "LGPL-2.0-or-later",
+      "comment": "COPYING is GNU Library GPL version 2; libmp3lame/lame.c explicitly permits later versions. The previous LGPL-2.1+ note was incorrect.",
+      "evidence": {
+        "COPYING": "e64f9c5a18f56828c10a575df13ade641aa3af4512a7afe6c411256943b57aaf",
+        "libmp3lame/lame.c": "cea1305685d8b669ddee2c7bc7e34ddb7ae0d3fe80b79072033cf9b9ee693e89"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libtwolame": {
+      "version": "0.4.0",
+      "checksum": "cc35424f6019a88c6f52570b63e1baf50f62963a3eac52a03a800bb070d7c87d",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "257a842724705950b07da76ce0e22ffa80ec77b3e9dfc6702522ac342409da0f",
+        "libtwolame/twolame.c": "e297f6d256551fa5db022e45d934dfd952d84431eec9617926bb286669488a9d"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libgsm": {
+      "version": "1.0.24",
+      "checksum": "a3c40c6471928383f4abfcb2e8f24012a1f562be2f17b8d672145d5986681a92",
+      "expression": "TU-Berlin-2.0",
+      "comment": "COPYRIGHT includes the 2009 additional permission, matching TU-Berlin-2.0 rather than ISC.",
+      "evidence": {
+        "COPYRIGHT": "81c68a3374937ed9b5e4929c709e81a2c4b35b5d1f450ecf8c473e2daea46ff6"
+      },
+      "licenseFiles": [
+        "COPYRIGHT"
+      ]
+    },
+    "opencore-amr": {
+      "version": "0.1.6",
+      "checksum": "483eb4061088e2b34b358e47540b5d495a96cd468e361050fae615b1809dc4a1",
+      "expression": "Apache-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "8b3f1762349248d444ab9acbafe73941254e36e1064954da56bb9ddbd5873ddb"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "vo-amrwbenc": {
+      "version": "0.1.3",
+      "checksum": "5652b391e0f0e296417b841b02987d3fd33e6c0af342c69542cbb016a71d9d4e",
+      "expression": "Apache-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "8b3f1762349248d444ab9acbafe73941254e36e1064954da56bb9ddbd5873ddb"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libcodec2": {
+      "version": "1.2.0",
+      "checksum": "COMMIT=06d4c11e699b0351765f10398abb4f663a984f36",
+      "expression": "LGPL-2.1-only",
+      "comment": "src/codec2.c explicitly specifies LGPL version 2.1 without an or-later grant.",
+      "evidence": {
+        "COPYING": "9ebb6f82b7380a62ac74c5f0322c88e6744dedf2ebe1f54d6f088282b39844bf",
+        "src/codec2.c": "de5b4f46a2081b3fc8d20edf119df6154c69bb7f8117bab61b841167be8972f3"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libilbc": {
+      "version": "3.0.4",
+      "checksum": "6820081a5fc58f86c119890f62cac53f957adb40d580761947a0871cea5e728f",
+      "expression": "BSD-3-Clause AND Apache-2.0 AND LicenseRef-WebRTC-Patent",
+      "comment": "WebRTC BSD-3-Clause and patent grant, plus bundled abseil-cpp Apache-2.0 headers.",
+      "evidence": {
+        "COPYING": "3082da3b4b80a1359a3a281da7849fdb8845b3e6cf308a5d47d0b743725b2481",
+        "abseil-cpp/LICENSE": "c79a7fea0e3cac04cd43f20e7b648e5a0ff8fa5344e644b0ee09ca1162b62747",
+        "PATENTS": "01462e2068d1a04c2274f3389773014c14ed9bc3446b28303543bd3e3c064145"
+      },
+      "licenseFiles": [
+        "COPYING",
+        "abseil-cpp/LICENSE",
+        "PATENTS"
+      ]
+    },
+    "liblc3": {
+      "version": "v1.1.3",
+      "checksum": "COMMIT=96a3af0beb5487aca3b98a4b992a539a1f6d80d1",
+      "expression": "Apache-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libgme": {
+      "version": "0.6.5",
+      "checksum": "COMMIT=9e23d10f9fd2a6a2f33b10912dd8dc7153258995",
+      "expression": "LGPL-2.1-or-later AND GPL-2.0-or-later",
+      "comment": "The core declares LGPL-2.1-or-later. CMakeLists.txt identifies the optional MAME YM2612 emulator as GPLv2+ and selects Nuked (LGPLv2.1+) by default. Both source-package declarations are recorded.",
+      "evidence": {
+        "license.txt": "d2efc89fbb7533572a472d34e07964951810a3a4f8d3159ecc2dcaa1452c5c26",
+        "gme/Music_Emu.cpp": "aa8ab92f2860914022ad01ace2416da616bb15c30f0e8d5085c3e8dc3fa1396a",
+        "license.gpl2.txt": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+        "CMakeLists.txt": "d2fec31c03a470e1e0590da227306cb3d914240e5c50ff49255081250627d17c"
+      },
+      "licenseFiles": [
+        "license.txt",
+        "license.gpl2.txt"
+      ]
+    },
+    "libopenmpt": {
+      "version": "0.8.9",
+      "checksum": "d7ce84fd05d686c4bcf66af40eae857afa371442db60eeda3f874bd6cf6fc318",
+      "expression": "BSD-3-Clause AND BSL-1.0",
+      "comment": "Top-level BSD-3-Clause plus the bundled mpt layer BSL-1.0 notice.",
+      "evidence": {
+        "LICENSE": "2c999e99533c10a347916a72e075bacf10fcedeff793bd90d41d812b46161da2",
+        "src/mpt/LICENSE.BSL-1.0.txt": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+      },
+      "licenseFiles": [
+        "LICENSE",
+        "src/mpt/LICENSE.BSL-1.0.txt"
+      ]
+    },
+    "rubberband": {
+      "version": "v4.0.0",
+      "checksum": "COMMIT=1d95888bec3ae0a17c0c4af791810d5a63f6bc35",
+      "expression": "GPL-2.0-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "cedd4c1885d75991bf1077cc6e33359103cf04fbc996f20d30ab043d5fc5fcc5",
+        "src/RubberBandStretcher.cpp": "1579a21a2e7287b332c6551c6dc80bc1ec6fcd67c5bb8bc1799fe3453adea4e0"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libbs2b": {
+      "version": "3.1.0",
+      "checksum": "6aaafd81aae3898ee40148dd1349aab348db9bfae9767d0e66e0b07ddd4b2528",
+      "expression": "MIT",
+      "comment": "COPYING and src/bs2b.c contain the MIT grant. The previous LGPL-2.1+ note was incorrect.",
+      "evidence": {
+        "COPYING": "dfd5a8d7dc501447bf0d58b0fc9ef85ab9e713963d7dcf459897adefa4c710ca",
+        "src/bs2b.c": "9f47747f49781e730b0230976f62113b64f8786631ac9dbf8ec29521a521b16c"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libsoxr": {
+      "version": "0.1.3",
+      "checksum": "COMMIT=945b592b70470e29f917f4de89b4281fbbd540c0",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING.LGPL": "f2f118b9029ec1871b953639ecc46651b2fc7b62e295e6cf3ef2ac4c9a058b33",
+        "src/soxr.c": "d54e1b84bcaf73c38024c66bd594bb55fb02247afec8d726e27e30acd4d44421",
+        "LICENCE": "dc98676341fdcd29d9f279c9679d6a75288785b174ded8d1b2e316c366166135"
+      },
+      "licenseFiles": [
+        "COPYING.LGPL",
+        "LICENCE"
+      ]
+    },
+    "libmysofa": {
+      "version": "v1.3.5",
+      "checksum": "COMMIT=6cc5b15a73e9bd97810d03767082edda7f315881",
+      "expression": "BSD-3-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "9c8713ccc5d6d93d20c7a1cfcb876e64baf551bfbe67faa4e60d39cda9ffd023"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "chromaprint": {
+      "version": "1.6.1",
+      "checksum": "3368805af0ee47b9df74df10b5001a44569e01df2844dab520031720dde9ad23",
+      "expression": "MIT AND LGPL-2.1-or-later AND BSD-3-Clause",
+      "comment": "LICENSE.md declares MIT code combined with LGPL 2.1 FFmpeg-derived code. src/avresample/resample2.c grants LGPL-2.1-or-later. Bundled KissFFT has a BSD-3-Clause notice.",
+      "evidence": {
+        "LICENSE.md": "562cfe59627e0c4e8e3b066f3ff2e9736f83811ffe4c6c2c7796595aa7595ebd",
+        "src/fft_lib_avfft.h": "3fa183ac7bcd5193fbc2ce196962fadbb8473e1eb221aeacb732b8cdd6c16e66",
+        "src/fft_lib_avfft.cpp": "2196357382b19cd0b9f9a34bfbec8c21a18b38c8d1fa86271ec34dd7e1cb2c82",
+        "src/avresample/resample2.c": "7a4fdc9b104fad896d662bd1846b474f97b11ba35656e098c4382a8651d69a33",
+        "src/3rdparty/kissfft/COPYING": "a2840585f8411be8e6826a31ef15ae65c950bd74a2437a73b013398a934ad0c6"
+      },
+      "licenseFiles": [
+        "LICENSE.md",
+        "src/3rdparty/kissfft/COPYING"
+      ]
+    },
+    "libwebp": {
+      "version": "v1.6.0",
+      "checksum": "COMMIT=4fa21912338357f89e4fd51cf2368325b59e9bd9",
+      "expression": "BSD-3-Clause AND LicenseRef-WebM-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "COPYING": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf",
+        "PATENTS": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c"
+      },
+      "licenseFiles": [
+        "COPYING",
+        "PATENTS"
+      ]
+    },
+    "libopenjpeg": {
+      "version": "v2.5.4",
+      "checksum": "COMMIT=6c4a29b00211eb0430fa0e5e890f1ce5c80f409f",
+      "expression": "BSD-2-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "a6af136f3e15038a666b61f376612a07d9a4e48cb7c01adbf3e33b3f14ab49b6"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libzimg": {
+      "version": "release-3.0.6",
+      "checksum": "COMMIT=f819b14e8f39d1282400b0d9543e8ef73c1b2bbd",
+      "expression": "WTFPL",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "7637386b5f81e8a719ca336233149005e5fa28b5e6054ea7b67de49355b0ad40"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libjxl": {
+      "version": "v0.12.0",
+      "checksum": "COMMIT=a7a9c787341cf703dede03c2009fa460cae5e5df",
+      "expression": "BSD-3-Clause AND LicenseRef-JPEG-XL-Patent",
+      "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
+      "evidence": {
+        "LICENSE": "8405932022a556380c2d8c272eff154a923feb197233f348ce5f7334fb0a5ede",
+        "PATENTS": "91915f8ae056a68a3c5bdf05d9f6f78bb6903e27a8ca3a8434c9e4ac87300575"
+      },
+      "licenseFiles": [
+        "LICENSE",
+        "PATENTS"
+      ]
+    },
+    "libvmaf": {
+      "version": "v3.2.1",
+      "checksum": "COMMIT=f85a853692a8c730d0270cd733c8bb30b5b93b7c",
+      "expression": "Apache-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "a6fdb51d02b9dfe198e55534bb8047fe6d756eda117f4ff83de98f92c1952710"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libass": {
+      "version": "0.17.5",
+      "checksum": "COMMIT=4a05d8127f525943ebf45fdc6497c9e665947f0d",
+      "expression": "ISC",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "f7e30699d02798351e7f839e3d3bfeb29ce65e44efa7735c225464c4fd7dfe9c"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libaribb24": {
+      "version": "v1.0.4",
+      "checksum": "COMMIT=a41b904d66ed991ace32a9827f629db3d438b47b",
+      "expression": "NOASSERTION",
+      "comment": "NOASSERTION: COPYING contains LGPLv3, while the fixed aribb24.c, parser.c, decoder.c and drcs.c headers grant LGPL-2.1-or-later. The package-wide version declaration needs clarification; no version is guessed.",
+      "evidence": {
+        "COPYING": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+        "src/aribb24.c": "c86328d3b911524c059cdff3419c37a3427000b66ffd873d14d763ae613003ba",
+        "src/drcs.c": "43dbd53fa96a575dd51d55c6bd9029cc31224a3da0785ed2cf89682379e1a705",
+        "src/decoder.c": "02ddd71e2d51814d272e3adc6e9ac978dd0211ee1ee20550dc3b6e9d25537019",
+        "src/parser.c": "ff67fa62cfd6f08b2aa7ea1a273178abf32bf3fef4b1855ab550f23da9b06aa1"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libaribcaption": {
+      "version": "v1.1.2",
+      "checksum": "COMMIT=c64c23b8905ba514b87c9789269e9f66f949ffe0",
+      "expression": "MIT",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "5149f1ce4fe89190d86bfb440456701a3a7406fc2b19ef0d8b57661f62b32c04"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libbluray": {
+      "version": "1.5.1",
+      "checksum": "COMMIT=a24f4fad4d62893de647abc8671397747b2359dd",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "b3aa400aca6d2ba1f0bd03bd98d03d1fe7489a3bbb26969d72016360af8a5c9d",
+        "src/libbluray/bluray.c": "c1b097b437f80ec7cfb62e77e9dcfe6510a1e19fdbe9cad36dfab1be15f09fa1"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libdvdread": {
+      "version": "7.1.1",
+      "checksum": "COMMIT=8e43bfea6cc731f48902ce55e41c540b497b6a84",
+      "expression": "GPL-2.0-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "d6cb0e9e560f51085556949a84af12b79a00f10ab8b66c752537faf7cd665572",
+        "src/dvd_reader.c": "f0ec3984be06b96a92f744aa1efaa440922f390fc32d59c0217d3d67ef8166cf"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libdvdnav": {
+      "version": "7.0.0",
+      "checksum": "COMMIT=38238caf599dc9405eddf1531c858c725015f776",
+      "expression": "GPL-2.0-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "32b1062f7da84967e7019d01ab805935caa7ab7321a7ced0e30ebe75e5df1670",
+        "src/dvdnav.c": "f8b9bd21e53724904e7278ee3d480a03f68fcce39ea796bb9924e32c1ac0f4a4"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "zvbi": {
+      "version": "v0.2.44",
+      "checksum": "COMMIT=5169a428d51c3ae8ff7b0897e8a687d8e05e37b5",
+      "expression": "GPL-2.0-or-later AND GPL-2.0-only AND LGPL-2.0-or-later AND LGPL-2.1-or-later AND MIT AND BSD-2-Clause AND (GPL-2.0-or-later OR BSD-3-Clause)",
+      "comment": "COPYING.md lists mixed package licenses. src/packet-830.c explicitly grants GPL version 2 without or-later. This GPL-2.0-only component requires review against the configured GPLv3 release before publication; this metadata does not claim compatibility.",
+      "evidence": {
+        "COPYING.md": "01b41f9b6e262bb62063151f15988a236296bbb5eeb9752692fc7dc2fb27ec45",
+        "src/Makefile.am": "85227768bcefde22062795c6d63cc28626d7f926fefd7382025f6aa3f8b0afd1",
+        "src/libzvbi.h": "7026ffcc1f7d09138f741c731de41510e3e2fe5eee18924671e3f0d0f2f7c582",
+        "src/pdc.c": "6dfc006c78e625f68a0924526d73cc39e2d38de88f4076bf668f7ed21f65d778",
+        "src/decoder.c": "b7860bcb4df1516d8b8fe202d7b9e7901db309ce20c2697af4ffd1ef0f86a945",
+        "src/packet-830.c": "8ad0a75af222067e7d3257ebf56aa28e3f56021d9266e1a952fcfbc7bde50ad4"
+      },
+      "licenseFiles": [
+        "COPYING.md"
+      ]
+    },
+    "libssh": {
+      "version": "libssh-0.11.5",
+      "checksum": "COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "1656186e951db1c010a8485481fa94587f7e53a26d24976bef97945ad0c4df5a",
+        "src/session.c": "fccbb5a5c3a5dd412c5d4b2fe836f62cf957764de6b84b6e44a697f9be088a66"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libsrt": {
+      "version": "v1.5.7",
+      "checksum": "COMMIT=899348d8318eb9a3c5a5b6ec43c4a1114288773a",
+      "expression": "MPL-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "librist": {
+      "version": "v0.2.20",
+      "checksum": "COMMIT=4f45ef8f78983892d52ccd52d9f675435b23738f",
+      "expression": "BSD-2-Clause",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "b9841591a3452ee30033d8e3586c7b1244a0b2fc1dc6cb04576957c313cb2792"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libzmq": {
+      "version": "v4.3.5",
+      "checksum": "COMMIT=622fc6dde99ee172ebaa9c8628d85a7a1995a21d",
+      "expression": "MPL-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "librabbitmq": {
+      "version": "v0.18.0",
+      "checksum": "COMMIT=b0b5f3774a216bcae9f31645c4ab581f718bd211",
+      "expression": "MIT",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "3111fdaa26e86dd844d7c6cbb2723d0ed31702a840978ef116c86963c2429b0f"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "openssl": {
+      "version": "3.5.8",
+      "checksum": "a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2",
+      "expression": "Apache-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE.txt": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+      },
+      "licenseFiles": [
+        "LICENSE.txt"
+      ]
+    },
+    "libqrencode": {
+      "version": "v4.1.1",
+      "checksum": "COMMIT=715e29fd4cd71b6e452ae0f4e36d917b43122ce8",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "a9bdde5616ecdd1e980b44f360600ee8783b1f99b8cc83a2beb163a0a390e861",
+        "qrencode.c": "a262b967868b1b87eb42f16def0884d12463f60398c82941c8aa43110cbeba79"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "quirc": {
+      "version": "v1.2",
+      "checksum": "COMMIT=542848dd6b9b0eaa9587bbf25b9bc67bd8a71fca",
+      "expression": "ISC",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "a70ef3ea032998eead2e2c7573a170a809eae08e3ca134611f707eda5932c8a9"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libtesseract": {
+      "version": "5.5.3",
+      "checksum": "COMMIT=db0ec62f81b0737fbbe184d8fea40af5738f8eef",
+      "expression": "Apache-2.0",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "libcaca": {
+      "version": "0.99.beta20",
+      "checksum": "8ad74babc63bf665b0b2378d95b4da65b7493c11bd9f3ac600517085b0c4acf2",
+      "expression": "WTFPL",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "COPYING": "d20ad7990610153b563c52681da860b8302afcf0778f75237f8815c07d05141f"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "libflite": {
+      "version": "v2.2",
+      "checksum": "COMMIT=e9e2e37c329dbe98bfeb27a1828ef9a71fa84f88",
+      "expression": "LicenseRef-Flite-Distribution",
+      "comment": "COPYING contains the four-condition CMU grant and a separate three-condition speech-module grant. The complete distribution declaration is preserved as a LicenseRef.",
+      "evidence": {
+        "COPYING": "d31bceaf2823d56a8c9400f7bde3b17140e739e991eb4f203bdcf9827754ab59"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "xz": {
+      "version": "5.8.4",
+      "checksum": "4ce24038fd4221e0d13bc1a2de7a4db56e90b92b3bf75321f6c14be73f65de4b",
+      "expression": "0BSD",
+      "comment": "COPYING explicitly declares the liblzma component as 0BSD. This dependency record covers liblzma, not the separately licensed CLI scripts, build machinery or extra directory.",
+      "evidence": {
+        "COPYING": "616a3ad264ce29b8f1cb97e53037b139d406899ca8d1f799651e17bfa09830b8"
+      },
+      "licenseFiles": [
+        "COPYING"
+      ]
+    },
+    "SDL2": {
+      "version": "release-2.32.10",
+      "checksum": "COMMIT=5d249570393f7a37e037abf22cd6012a4cc56a71",
+      "expression": "Zlib",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "evidence": {
+        "LICENSE.txt": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127"
+      },
+      "licenseFiles": [
+        "LICENSE.txt"
+      ]
+    }
+  },
+  "extractedLicensingInfo": [
+    {
+      "licenseId": "LicenseRef-dav1d-AOM-Patent",
+      "name": "Alliance for Open Media Patent License 1.0 (dav1d text)",
+      "extractedText": "Alliance for Open Media Patent License 1.0\n\n1. License Terms.\n\n1.1. Patent License. Subject to the terms and conditions of this License, each\n     Licensor, on behalf of itself and successors in interest and assigns,\n     grants Licensee a non-sublicensable, perpetual, worldwide, non-exclusive,\n     no-charge, royalty-free, irrevocable (except as expressly stated in this\n     License) patent license to its Necessary Claims to make, use, sell, offer\n     for sale, import or distribute any Implementation.\n\n1.2. Conditions.\n\n1.2.1. Availability. As a condition to the grant of rights to Licensee to make,\n       sell, offer for sale, import or distribute an Implementation under\n       Section 1.1, Licensee must make its Necessary Claims available under\n       this License, and must reproduce this License with any Implementation\n       as follows:\n\n       a. For distribution in source code, by including this License in the\n          root directory of the source code with its Implementation.\n\n       b. For distribution in any other form (including binary, object form,\n          and/or hardware description code (e.g., HDL, RTL, Gate Level Netlist,\n          GDSII, etc.)), by including this License in the documentation, legal\n          notices, and/or other written materials provided with the\n          Implementation.\n\n1.2.2. Additional Conditions. This license is directly from Licensor to\n       Licensee.  Licensee acknowledges as a condition of benefiting from it\n       that no rights from Licensor are received from suppliers, distributors,\n       or otherwise in connection with this License.\n\n1.3. Defensive Termination. If any Licensee, its Affiliates, or its agents\n     initiates patent litigation or files, maintains, or voluntarily\n     participates in a lawsuit against another entity or any person asserting\n     that any Implementation infringes Necessary Claims, any patent licenses\n     granted under this License directly to the Licensee are immediately\n     terminated as of the date of the initiation of action unless 1) that suit\n     was in response to a corresponding suit regarding an Implementation first\n     brought against an initiating entity, or 2) that suit was brought to\n     enforce the terms of this License (including intervention in a third-party\n     action by a Licensee).\n\n1.4. Disclaimers. The Reference Implementation and Specification are provided\n     \"AS IS\" and without warranty. The entire risk as to implementing or\n     otherwise using the Reference Implementation or Specification is assumed\n     by the implementer and user. Licensor expressly disclaims any warranties\n     (express, implied, or otherwise), including implied warranties of\n     merchantability, non-infringement, fitness for a particular purpose, or\n     title, related to the material. IN NO EVENT WILL LICENSOR BE LIABLE TO\n     ANY OTHER PARTY FOR LOST PROFITS OR ANY FORM OF INDIRECT, SPECIAL,\n     INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER FROM ANY CAUSES OF\n     ACTION OF ANY KIND WITH RESPECT TO THIS LICENSE, WHETHER BASED ON BREACH\n     OF CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, AND WHETHER OR\n     NOT THE OTHER PARTRY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n2. Definitions.\n\n2.1. Affiliate.  “Affiliate” means an entity that directly or indirectly\n     Controls, is Controlled by, or is under common Control of that party.\n\n2.2. Control. “Control” means direct or indirect control of more than 50% of\n     the voting power to elect directors of that corporation, or for any other\n     entity, the power to direct management of such entity.\n\n2.3. Decoder.  \"Decoder\" means any decoder that conforms fully with all\n     non-optional portions of the Specification.\n\n2.4. Encoder.  \"Encoder\" means any encoder that produces a bitstream that can\n     be decoded by a Decoder only to the extent it produces such a bitstream.\n\n2.5. Final Deliverable.  “Final Deliverable” means the final version of a\n     deliverable approved by the Alliance for Open Media as a Final\n     Deliverable.\n\n2.6. Implementation.  \"Implementation\" means any implementation, including the\n     Reference Implementation, that is an Encoder and/or a Decoder. An\n     Implementation also includes components of an Implementation only to the\n     extent they are used as part of an Implementation.\n\n2.7. License. “License” means this license.\n\n2.8. Licensee. “Licensee” means any person or entity who exercises patent\n     rights granted under this License.\n\n2.9. Licensor.  \"Licensor\" means (i) any Licensee that makes, sells, offers\n     for sale, imports or distributes any Implementation, or (ii) a person\n     or entity that has a licensing obligation to the Implementation as a\n     result of its membership and/or participation in the Alliance for Open\n     Media working group that developed the Specification.\n\n2.10. Necessary Claims.  \"Necessary Claims\" means all claims of patents or\n      patent applications, (a) that currently or at any time in the future,\n      are owned or controlled by the Licensor, and (b) (i) would be an\n      Essential Claim as defined by the W3C Policy as of February 5, 2004\n      (https://www.w3.org/Consortium/Patent-Policy-20040205/#def-essential)\n      as if the Specification was a W3C Recommendation; or (ii) are infringed\n      by the Reference Implementation.\n\n2.11. Reference Implementation. “Reference Implementation” means an Encoder\n      and/or Decoder released by the Alliance for Open Media as a Final\n      Deliverable.\n\n2.12. Specification. “Specification” means the specification designated by\n      the Alliance for Open Media as a Final Deliverable for which this\n      License was issued.\n\n"
+    },
+    {
+      "licenseId": "LicenseRef-libaom-AOM-Patent",
+      "name": "Alliance for Open Media Patent License 1.0 (libaom text)",
+      "extractedText": "Alliance for Open Media Patent License 1.0\n\n1. License Terms.\n\n1.1. Patent License. Subject to the terms and conditions of this License, each\n     Licensor, on behalf of itself and successors in interest and assigns,\n     grants Licensee a non-sublicensable, perpetual, worldwide, non-exclusive,\n     no-charge, royalty-free, irrevocable (except as expressly stated in this\n     License) patent license to its Necessary Claims to make, use, sell, offer\n     for sale, import or distribute any Implementation.\n\n1.2. Conditions.\n\n1.2.1. Availability. As a condition to the grant of rights to Licensee to make,\n       sell, offer for sale, import or distribute an Implementation under\n       Section 1.1, Licensee must make its Necessary Claims available under\n       this License, and must reproduce this License with any Implementation\n       as follows:\n\n       a. For distribution in source code, by including this License in the\n          root directory of the source code with its Implementation.\n\n       b. For distribution in any other form (including binary, object form,\n          and/or hardware description code (e.g., HDL, RTL, Gate Level Netlist,\n          GDSII, etc.)), by including this License in the documentation, legal\n          notices, and/or other written materials provided with the\n          Implementation.\n\n1.2.2. Additional Conditions. This license is directly from Licensor to\n       Licensee.  Licensee acknowledges as a condition of benefiting from it\n       that no rights from Licensor are received from suppliers, distributors,\n       or otherwise in connection with this License.\n\n1.3. Defensive Termination. If any Licensee, its Affiliates, or its agents\n     initiates patent litigation or files, maintains, or voluntarily\n     participates in a lawsuit against another entity or any person asserting\n     that any Implementation infringes Necessary Claims, any patent licenses\n     granted under this License directly to the Licensee are immediately\n     terminated as of the date of the initiation of action unless 1) that suit\n     was in response to a corresponding suit regarding an Implementation first\n     brought against an initiating entity, or 2) that suit was brought to\n     enforce the terms of this License (including intervention in a third-party\n     action by a Licensee).\n\n1.4. Disclaimers. The Reference Implementation and Specification are provided\n     \"AS IS\" and without warranty. The entire risk as to implementing or\n     otherwise using the Reference Implementation or Specification is assumed\n     by the implementer and user. Licensor expressly disclaims any warranties\n     (express, implied, or otherwise), including implied warranties of\n     merchantability, non-infringement, fitness for a particular purpose, or\n     title, related to the material. IN NO EVENT WILL LICENSOR BE LIABLE TO\n     ANY OTHER PARTY FOR LOST PROFITS OR ANY FORM OF INDIRECT, SPECIAL,\n     INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER FROM ANY CAUSES OF\n     ACTION OF ANY KIND WITH RESPECT TO THIS LICENSE, WHETHER BASED ON BREACH\n     OF CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, AND WHETHER OR\n     NOT THE OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n2. Definitions.\n\n2.1. Affiliate.  \"Affiliate\" means an entity that directly or indirectly\n     Controls, is Controlled by, or is under common Control of that party.\n\n2.2. Control. \"Control\" means direct or indirect control of more than 50% of\n     the voting power to elect directors of that corporation, or for any other\n     entity, the power to direct management of such entity.\n\n2.3. Decoder.  \"Decoder\" means any decoder that conforms fully with all\n     non-optional portions of the Specification.\n\n2.4. Encoder.  \"Encoder\" means any encoder that produces a bitstream that can\n     be decoded by a Decoder only to the extent it produces such a bitstream.\n\n2.5. Final Deliverable.  \"Final Deliverable\" means the final version of a\n     deliverable approved by the Alliance for Open Media as a Final\n     Deliverable.\n\n2.6. Implementation.  \"Implementation\" means any implementation, including the\n     Reference Implementation, that is an Encoder and/or a Decoder. An\n     Implementation also includes components of an Implementation only to the\n     extent they are used as part of an Implementation.\n\n2.7. License. \"License\" means this license.\n\n2.8. Licensee. \"Licensee\" means any person or entity who exercises patent\n     rights granted under this License.\n\n2.9. Licensor.  \"Licensor\" means (i) any Licensee that makes, sells, offers\n     for sale, imports or distributes any Implementation, or (ii) a person\n     or entity that has a licensing obligation to the Implementation as a\n     result of its membership and/or participation in the Alliance for Open\n     Media working group that developed the Specification.\n\n2.10. Necessary Claims.  \"Necessary Claims\" means all claims of patents or\n      patent applications, (a) that currently or at any time in the future,\n      are owned or controlled by the Licensor, and (b) (i) would be an\n      Essential Claim as defined by the W3C Policy as of February 5, 2004\n      (https://www.w3.org/Consortium/Patent-Policy-20040205/#def-essential)\n      as if the Specification was a W3C Recommendation; or (ii) are infringed\n      by the Reference Implementation.\n\n2.11. Reference Implementation. \"Reference Implementation\" means an Encoder\n      and/or Decoder released by the Alliance for Open Media as a Final\n      Deliverable.\n\n2.12. Specification. \"Specification\" means the specification designated by\n      the Alliance for Open Media as a Final Deliverable for which this\n      License was issued.\n\n"
+    },
+    {
+      "licenseId": "LicenseRef-SVT-AV1-AOM-Patent",
+      "name": "Alliance for Open Media Patent License 1.0 (SVT-AV1 text)",
+      "extractedText": "**Alliance for Open Media Patent License 1.0**\n\n 1. **License Terms.**\n\n    **Patent License.** Subject to the terms and conditions of this License, each\n     Licensor, on behalf of itself and successors in interest and assigns,\n     grants Licensee a non-sublicensable, perpetual, worldwide, non-exclusive,\n     no-charge, royalty-free, irrevocable (except as expressly stated in this\n     License) patent license to its Necessary Claims to make, use, sell, offer\n     for sale, import or distribute any Implementation.\n\n     **Conditions.**\n\n    *Availability.* As a condition to the grant of rights to Licensee to make,\n       sell, offer for sale, import or distribute an Implementation under\n       Section 1.1, Licensee must make its Necessary Claims available under\n       this License, and must reproduce this License with any Implementation\n       as follows:\n\n          a. For distribution in source code, by including this License in the\n          root directory of the source code with its Implementation.\n\n          b. For distribution in any other form (including binary, object form,\n          and/or hardware description code (e.g., HDL, RTL, Gate Level Netlist,\n          GDSII, etc.)), by including this License in the documentation, legal\n          notices, and/or other written materials provided with the\n          Implementation.\n\n    *Additional Conditions.* This license is directly from Licensor to\n       Licensee.  Licensee acknowledges as a condition of benefiting from it\n       that no rights from Licensor are received from suppliers, distributors,\n       or otherwise in connection with this License.\n\n    **Defensive Termination**. If any Licensee, its Affiliates, or its agents\n     initiates patent litigation or files, maintains, or voluntarily\n     participates in a lawsuit against another entity or any person asserting\n     that any Implementation infringes Necessary Claims, any patent licenses\n     granted under this License directly to the Licensee are immediately\n     terminated as of the date of the initiation of action unless 1) that suit\n     was in response to a corresponding suit regarding an Implementation first\n     brought against an initiating entity, or 2) that suit was brought to\n     enforce the terms of this License (including intervention in a third-party\n     action by a Licensee).\n\n    **Disclaimers.** The Reference Implementation and Specification are provided\n     \"AS IS\" and without warranty. The entire risk as to implementing or\n     otherwise using the Reference Implementation or Specification is assumed\n     by the implementer and user. Licensor expressly disclaims any warranties\n     (express, implied, or otherwise), including implied warranties of\n     merchantability, non-infringement, fitness for a particular purpose, or\n     title, related to the material. IN NO EVENT WILL LICENSOR BE LIABLE TO\n     ANY OTHER PARTY FOR LOST PROFITS OR ANY FORM OF INDIRECT, SPECIAL,\n     INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER FROM ANY CAUSES OF\n     ACTION OF ANY KIND WITH RESPECT TO THIS LICENSE, WHETHER BASED ON BREACH\n     OF CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, AND WHETHER OR\n     NOT THE OTHER PARTRY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n2. **Definitions.**\n\n     **Affiliate.**  \"Affiliate\" means an entity that directly or indirectly\n     Controls, is Controlled by, or is under common Control of that party.\n\n    **Control.** \"Control\" means direct or indirect control of more than 50% of\n     the voting power to elect directors of that corporation, or for any other\n     entity, the power to direct management of such entity.\n\n    **Decoder.**  \"Decoder\" means any decoder that conforms fully with all\n     non-optional portions of the Specification.\n\n    **Encoder.**  \"Encoder\" means any encoder that produces a bitstream that can\n     be decoded by a Decoder only to the extent it produces such a bitstream.\n\n    **Final Deliverable.**  \"Final Deliverable\" means the final version of a\n     deliverable approved by the Alliance for Open Media as a Final\n     Deliverable.\n\n    **Implementation.**  \"Implementation\" means any implementation, including the\n     Reference Implementation, that is an Encoder and/or a Decoder. An\n     Implementation also includes components of an Implementation only to the\n     extent they are used as part of an Implementation.\n\n    **License.** \"License\" means this license.\n\n    **Licensee.** \"Licensee\" means any person or entity who exercises patent\n     rights granted under this License.\n\n    **Licensor.**  \"Licensor\" means (i) any Licensee that makes, sells, offers\n     for sale, imports or distributes any Implementation, or (ii) a person\n     or entity that has a licensing obligation to the Implementation as a\n     result of its membership and/or participation in the Alliance for Open\n     Media working group that developed the Specification.\n\n    **Necessary Claims.**  \"Necessary Claims\" means all claims of patents or\n      patent applications, (a) that currently or at any time in the future,\n      are owned or controlled by the Licensor, and (b) (i) would be an\n      Essential Claim as defined by the W3C Policy as of February 5, 2004\n      (https://www.w3.org/Consortium/Patent-Policy-20040205/#def-essential)\n      as if the Specification was a W3C Recommendation; or (ii) are infringed\n      by the Reference Implementation.\n\n     **Reference Implementation.** \"Reference Implementation\" means an Encoder\n      and/or Decoder released by the Alliance for Open Media as a Final\n      Deliverable.\n\n     **Specification.** \"Specification\" means the specification designated by\n      the Alliance for Open Media as a Final Deliverable for which this\n      License was issued.\n"
+    },
+    {
+      "licenseId": "LicenseRef-librav1e-AOM-Patent",
+      "name": "Alliance for Open Media Patent License 1.0 (librav1e text)",
+      "extractedText": "Alliance for Open Media Patent License 1.0\n\n1. License Terms.\n\n1.1. Patent License. Subject to the terms and conditions of this License, each\n     Licensor, on behalf of itself and successors in interest and assigns,\n     grants Licensee a non-sublicensable, perpetual, worldwide, non-exclusive,\n     no-charge, royalty-free, irrevocable (except as expressly stated in this\n     License) patent license to its Necessary Claims to make, use, sell, offer\n     for sale, import or distribute any Implementation.\n\n1.2. Conditions.\n\n1.2.1. Availability. As a condition to the grant of rights to Licensee to make,\n       sell, offer for sale, import or distribute an Implementation under\n       Section 1.1, Licensee must make its Necessary Claims available under\n       this License, and must reproduce this License with any Implementation\n       as follows:\n\n       a. For distribution in source code, by including this License in the\n          root directory of the source code with its Implementation.\n\n       b. For distribution in any other form (including binary, object form,\n          and/or hardware description code (e.g., HDL, RTL, Gate Level Netlist,\n          GDSII, etc.)), by including this License in the documentation, legal\n          notices, and/or other written materials provided with the\n          Implementation.\n\n1.2.2. Additional Conditions. This license is directly from Licensor to\n       Licensee.  Licensee acknowledges as a condition of benefiting from it\n       that no rights from Licensor are received from suppliers, distributors,\n       or otherwise in connection with this License.\n\n1.3. Defensive Termination. If any Licensee, its Affiliates, or its agents\n     initiates patent litigation or files, maintains, or voluntarily\n     participates in a lawsuit against another entity or any person asserting\n     that any Implementation infringes Necessary Claims, any patent licenses\n     granted under this License directly to the Licensee are immediately\n     terminated as of the date of the initiation of action unless 1) that suit\n     was in response to a corresponding suit regarding an Implementation first\n     brought against an initiating entity, or 2) that suit was brought to\n     enforce the terms of this License (including intervention in a third-party\n     action by a Licensee).\n\n1.4. Disclaimers. The Reference Implementation and Specification are provided\n     \"AS IS\" and without warranty. The entire risk as to implementing or\n     otherwise using the Reference Implementation or Specification is assumed\n     by the implementer and user. Licensor expressly disclaims any warranties\n     (express, implied, or otherwise), including implied warranties of\n     merchantability, non-infringement, fitness for a particular purpose, or\n     title, related to the material. IN NO EVENT WILL LICENSOR BE LIABLE TO\n     ANY OTHER PARTY FOR LOST PROFITS OR ANY FORM OF INDIRECT, SPECIAL,\n     INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER FROM ANY CAUSES OF\n     ACTION OF ANY KIND WITH RESPECT TO THIS LICENSE, WHETHER BASED ON BREACH\n     OF CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, AND WHETHER OR\n     NOT THE OTHER PARTRY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n2. Definitions.\n\n2.1. Affiliate.  �Affiliate� means an entity that directly or indirectly\n     Controls, is Controlled by, or is under common Control of that party.\n\n2.2. Control. �Control� means direct or indirect control of more than 50% of\n     the voting power to elect directors of that corporation, or for any other\n     entity, the power to direct management of such entity.\n\n2.3. Decoder.  \"Decoder\" means any decoder that conforms fully with all\n     non-optional portions of the Specification.\n\n2.4. Encoder.  \"Encoder\" means any encoder that produces a bitstream that can\n     be decoded by a Decoder only to the extent it produces such a bitstream.\n\n2.5. Final Deliverable.  �Final Deliverable� means the final version of a\n     deliverable approved by the Alliance for Open Media as a Final\n     Deliverable.\n\n2.6. Implementation.  \"Implementation\" means any implementation, including the\n     Reference Implementation, that is an Encoder and/or a Decoder. An\n     Implementation also includes components of an Implementation only to the\n     extent they are used as part of an Implementation.\n\n2.7. License. �License� means this license.\n\n2.8. Licensee. �Licensee� means any person or entity who exercises patent\n     rights granted under this License.\n\n2.9. Licensor.  \"Licensor\" means (i) any Licensee that makes, sells, offers\n     for sale, imports or distributes any Implementation, or (ii) a person\n     or entity that has a licensing obligation to the Implementation as a\n     result of its membership and/or participation in the Alliance for Open\n     Media working group that developed the Specification.\n\n2.10. Necessary Claims.  \"Necessary Claims\" means all claims of patents or\n      patent applications, (a) that currently or at any time in the future,\n      are owned or controlled by the Licensor, and (b) (i) would be an\n      Essential Claim as defined by the W3C Policy as of February 5, 2004\n      (https://www.w3.org/Consortium/Patent-Policy-20040205/#def-essential)\n      as if the Specification was a W3C Recommendation; or (ii) are infringed\n      by the Reference Implementation.\n\n2.11. Reference Implementation. �Reference Implementation� means an Encoder\n      and/or Decoder released by the Alliance for Open Media as a Final\n      Deliverable.\n\n2.12. Specification. �Specification� means the specification designated by\n      the Alliance for Open Media as a Final Deliverable for which this\n      License was issued.\n\n"
+    },
+    {
+      "licenseId": "LicenseRef-WebM-Patent",
+      "name": "WebM Additional IP Rights Grant",
+      "extractedText": "Additional IP Rights Grant (Patents)\n------------------------------------\n\n\"These implementations\" means the copyrightable works that implement the WebM\ncodecs distributed by Google as part of the WebM Project.\n\nGoogle hereby grants to you a perpetual, worldwide, non-exclusive, no-charge,\nroyalty-free, irrevocable (except as stated in this section) patent license to\nmake, have made, use, offer to sell, sell, import, transfer, and otherwise\nrun, modify and propagate the contents of these implementations of WebM, where\nsuch license applies only to those patent claims, both currently owned by\nGoogle and acquired in the future, licensable by Google that are necessarily\ninfringed by these implementations of WebM. This grant does not include claims\nthat would be infringed only as a consequence of further modification of these\nimplementations. If you or your agent or exclusive licensee institute or order\nor agree to the institution of patent litigation or any other patent\nenforcement activity against any entity (including a cross-claim or\ncounterclaim in a lawsuit) alleging that any of these implementations of WebM\nor any code incorporated within any of these implementations of WebM\nconstitute direct or contributory patent infringement, or inducement of\npatent infringement, then any patent rights granted to you under this License\nfor these implementations of WebM shall terminate as of the date such\nlitigation is filed.\n"
+    },
+    {
+      "licenseId": "LicenseRef-JPEG-XL-Patent",
+      "name": "JPEG XL Additional IP Rights Grant",
+      "extractedText": "Additional IP Rights Grant (Patents)\n\n\"This implementation\" means the copyrightable works distributed by\nGoogle as part of the JPEG XL project.\n\nGoogle hereby grants to You a perpetual, worldwide, non-exclusive,\nno-charge, royalty-free, irrevocable (except as stated in this section)\npatent license to make, have made, use, offer to sell, sell, import,\ntransfer and otherwise run, modify and propagate the contents of this\nimplementation of JPEG XL, where such license applies only to those patent\nclaims, both currently owned or controlled by Google and acquired in\nthe future, licensable by Google that are necessarily infringed by this\nimplementation of JPEG XL.  This grant does not include claims that would be\ninfringed only as a consequence of further modification of this\nimplementation.  If you or your agent or exclusive licensee institute or\norder or agree to the institution of patent litigation against any\nentity (including a cross-claim or counterclaim in a lawsuit) alleging\nthat this implementation of JPEG XL or any code incorporated within this\nimplementation of JPEG XL constitutes direct or contributory patent\ninfringement, or inducement of patent infringement, then any patent\nrights granted to you under this License for this implementation of JPEG XL\nshall terminate as of the date such litigation is filed.\n"
+    },
+    {
+      "licenseId": "LicenseRef-WebRTC-Patent",
+      "name": "WebRTC Additional IP Rights Grant",
+      "extractedText": "Additional IP Rights Grant (Patents)\n\n\"This implementation\" means the copyrightable works distributed by\nGoogle as part of the WebRTC code package.\n\nGoogle hereby grants to you a perpetual, worldwide, non-exclusive,\nno-charge, irrevocable (except as stated in this section) patent\nlicense to make, have made, use, offer to sell, sell, import,\ntransfer, and otherwise run, modify and propagate the contents of this\nimplementation of the WebRTC code package, where such license applies\nonly to those patent claims, both currently owned by Google and\nacquired in the future, licensable by Google that are necessarily\ninfringed by this implementation of the WebRTC code package. This\ngrant does not include claims that would be infringed only as a\nconsequence of further modification of this implementation. If you or\nyour agent or exclusive licensee institute or order or agree to the\ninstitution of patent litigation against any entity (including a\ncross-claim or counterclaim in a lawsuit) alleging that this\nimplementation of the WebRTC code package or any code incorporated\nwithin this implementation of the WebRTC code package constitutes\ndirect or contributory patent infringement, or inducement of patent\ninfringement, then any patent rights granted to you under this License\nfor this implementation of the WebRTC code package shall terminate as\nof the date such litigation is filed.\n"
+    },
+    {
+      "licenseId": "LicenseRef-Theora-On2-Patent",
+      "name": "On2 VP3 patent non-assertion statement",
+      "extractedText": "Please see the file COPYING for the copyright license for this software.\n\nIn addition to and irrespective of the copyright license associated\nwith this software, On2 Technologies, Inc. makes the following statement\nregarding technology used in this software:\n\n  On2 represents and warrants that it shall not assert any rights\n  relating to infringement of On2's registered patents, nor initiate\n  any litigation asserting such rights, against any person who, or\n  entity which utilizes the On2 VP3 Codec Software, including any\n  use, distribution, and sale of said Software; which make changes,\n  modifications, and improvements in said Software; and to use,\n  distribute, and sell said changes as well as applications for other\n  fields of use.\n\nThis reference implementation is originally derived from the On2 VP3\nCodec Software, and the Theora video format is essentially compatible\nwith the VP3 video format, consisting of a backward-compatible superset.\n"
+    },
+    {
+      "licenseId": "LicenseRef-XEVE-Distribution",
+      "name": "XEVE distribution license declaration",
+      "extractedText": "-------------------------------------------------------------------------------\n< 'inc' and 'src_base' folders for EVC baseline profile >\n-------------------------------------------------------------------------------\nCopyright(c) 2020 Samsung Electronics Co., Ltd.\nAll Rights Reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n- Redistributions of source code must retain the above copyright notice,\nthis list of conditions and the following disclaimer.\n\n- Redistributions in binary form must reproduce the above copyright notice,\nthis list of conditions and the following disclaimer in the documentation\nand/or other materials provided with the distribution.\n\n- Neither the name of the copyright owner, nor the names of its contributors\nmay be used to endorse or promote products derived from this software\nwithout specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\nARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE\nLIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\nCONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGE.\n\n-------------------------------------------------------------------------------\n< 'src_main' folder for EVC main profile >\n-------------------------------------------------------------------------------\nThe copyright in this software is being made available under the BSD\nLicense, included below. This software may be subject to contributor and\nother third party rights, including patent rights, and no such rights are\ngranted under this license.\n\nCopyright(c) 2020 Samsung Electronics Co., Ltd.\nAll Rights Reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n- Redistributions of source code must retain the above copyright notice,\nthis list of conditions and the following disclaimer.\n\n- Redistributions in binary form must reproduce the above copyright notice,\nthis list of conditions and the following disclaimer in the documentation\nand/or other materials provided with the distribution.\n\n- Neither the name of the copyright owner, nor the names of its contributors\nmay be used to endorse or promote products derived from this software\nwithout specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\nARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE\nLIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\nCONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGE.\n\n\n-------------------------------------------------------------------------------\nThis software is based on the official ISO/IEC essential video coding (EVC)\nreference software. The software is licensed as follows:\n-------------------------------------------------------------------------------\n\nThe copyright in this software is being made available under the BSD\nLicense, included below. This software may be subject to other third party\nand contributor rights, including patent rights, and no such rights are\ngranted under this license.\n\nCopyright (c) 2019-2020, ISO/IEC\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n * Redistributions of source code must retain the above copyright notice,\n   this list of conditions and the following disclaimer.\n * Redistributions in binary form must reproduce the above copyright notice,\n   this list of conditions and the following disclaimer in the documentation\n   and/or other materials provided with the distribution.\n * Neither the name of the ISO/IEC nor the names of its contributors may\n   be used to endorse or promote products derived from this software without\n   specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\nARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS\nBE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\nCONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF\nTHE POSSIBILITY OF SUCH DAMAGE.\n"
+    },
+    {
+      "licenseId": "LicenseRef-XEVD-Distribution",
+      "name": "XEVD distribution license declaration",
+      "extractedText": "-------------------------------------------------------------------------------\n< 'inc' and 'src_base' folders for EVC baseline profile >\n-------------------------------------------------------------------------------\nCopyright(c) 2020 Samsung Electronics Co., Ltd.\nAll Rights Reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n- Redistributions of source code must retain the above copyright notice,\nthis list of conditions and the following disclaimer.\n\n- Redistributions in binary form must reproduce the above copyright notice,\nthis list of conditions and the following disclaimer in the documentation\nand/or other materials provided with the distribution.\n\n- Neither the name of the copyright owner, nor the names of its contributors\nmay be used to endorse or promote products derived from this software\nwithout specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\nARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE\nLIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\nCONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGE.\n\n-------------------------------------------------------------------------------\n< 'src_main' folder for EVC main profile >\n-------------------------------------------------------------------------------\nThe copyright in this software is being made available under the BSD\nLicense, included below. This software may be subject to contributor and\nother third party rights, including patent rights, and no such rights are\ngranted under this license.\n\nCopyright(c) 2020 Samsung Electronics Co., Ltd.\nAll Rights Reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n- Redistributions of source code must retain the above copyright notice,\nthis list of conditions and the following disclaimer.\n\n- Redistributions in binary form must reproduce the above copyright notice,\nthis list of conditions and the following disclaimer in the documentation\nand/or other materials provided with the distribution.\n\n- Neither the name of the copyright owner, nor the names of its contributors\nmay be used to endorse or promote products derived from this software\nwithout specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\nARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE\nLIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\nCONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\nPOSSIBILITY OF SUCH DAMAGE.\n\n\n-------------------------------------------------------------------------------\nThis software is based on the official ISO/IEC essential video coding (EVC)\nreference software. The software is licensed as follows:\n-------------------------------------------------------------------------------\n\nThe copyright in this software is being made available under the BSD\nLicense, included below. This software may be subject to other third party\nand contributor rights, including patent rights, and no such rights are\ngranted under this license.\n\nCopyright (c) 2019-2020, ISO/IEC\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n\n * Redistributions of source code must retain the above copyright notice,\n   this list of conditions and the following disclaimer.\n * Redistributions in binary form must reproduce the above copyright notice,\n   this list of conditions and the following disclaimer in the documentation\n   and/or other materials provided with the distribution.\n * Neither the name of the ISO/IEC nor the names of its contributors may\n   be used to endorse or promote products derived from this software without\n   specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\nAND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\nIMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\nARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS\nBE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\nCONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF\nTHE POSSIBILITY OF SUCH DAMAGE.\n"
+    },
+    {
+      "licenseId": "LicenseRef-Flite-Distribution",
+      "name": "Flite distribution license declaration",
+      "extractedText": "\nFlite is free software.\n\nWe have kept the core code to BSD-like copyright, thus the system is\nfree to use in commercial products, with commercial extensions.  GPL\ncode is only included as part of the build process and does not\ntaint any of the run-time code.  \n\nAs a collection it is distributed under the following license.  Note\na few files in this distribution have a different but equally free\nnon-conflicting licence, see below.\n\n                  Language Technologies Institute                      \n                     Carnegie Mellon University                        \n                      Copyright (c) 1999-2017                          \n                        All Rights Reserved.                           \n                                                                       \n  Permission is hereby granted, free of charge, to use and distribute  \n  this software and its documentation without restriction, including   \n  without limitation the rights to use, copy, modify, merge, publish,  \n  distribute, sublicense, and/or sell copies of this work, and to      \n  permit persons to whom this work is furnished to do so, subject to   \n  the following conditions:                                            \n   1. The code must retain the above copyright notice, this list of    \n      conditions and the following disclaimer.                         \n   2. Any modifications must be clearly marked as such.                \n   3. Original authors' names are not deleted.                         \n   4. The authors' names are not used to endorse or promote products   \n      derived from this software without specific prior written        \n      permission.                                                      \n                                                                       \n  CARNEGIE MELLON UNIVERSITY AND THE CONTRIBUTORS TO THIS WORK         \n  DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING      \n  ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT   \n  SHALL CARNEGIE MELLON UNIVERSITY NOR THE CONTRIBUTORS BE LIABLE      \n  FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES    \n  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN   \n  AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,          \n  ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF       \n  THIS SOFTWARE.                                                       \n                                                                       \nAll files within this distribution have the above license except\nthe following\n\nsrc/cg/cst_mlpg.h\nsrc/cg/cst_mlpg.c\nsrc/cg/cst_mlsa.h\nsrc/cg/cst_mlsa.c\nsrc/cg/cst_vc.h\nsrc/cg/cst_vc.c\n/*********************************************************************/\n/*                                                                   */\n/*            Nagoya Institute of Technology, Aichi, Japan,          */\n/*       Nara Institute of Science and Technology, Nara, Japan       */\n/*                                and                                */\n/*             Carnegie Mellon University, Pittsburgh, PA            */\n/*                      Copyright (c) 2003-2004                      */\n/*                        All Rights Reserved.                       */\n/*                                                                   */\n/*  Permission is hereby granted, free of charge, to use and         */\n/*  distribute this software and its documentation without           */\n/*  restriction, including without limitation the rights to use,     */\n/*  copy, modify, merge, publish, distribute, sublicense, and/or     */\n/*  sell copies of this work, and to permit persons to whom this     */\n/*  work is furnished to do so, subject to the following conditions: */\n/*                                                                   */\n/*    1. The code must retain the above copyright notice, this list  */\n/*       of conditions and the following disclaimer.                 */\n/*    2. Any modifications must be clearly marked as such.           */\n/*    3. Original authors' names are not deleted.                    */\n/*                                                                   */    \n/*  NAGOYA INSTITUTE OF TECHNOLOGY, NARA INSTITUTE OF SCIENCE AND    */\n/*  TECHNOLOGY, CARNEGIE MELLON UNIVERSITY, AND THE CONTRIBUTORS TO  */\n/*  THIS WORK DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,  */\n/*  INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, */\n/*  IN NO EVENT SHALL NAGOYA INSTITUTE OF TECHNOLOGY, NARA           */\n/*  INSTITUTE OF SCIENCE AND TECHNOLOGY, CARNEGIE MELLON UNIVERSITY, */\n/*  NOR THE CONTRIBUTORS BE LIABLE FOR ANY SPECIAL, INDIRECT OR      */\n/*  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM   */\n/*  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,  */\n/*  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN        */\n/*  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.         */\n/*                                                                   */\n/*********************************************************************/\n\nThese functions are derived from the versions in festvox/src/vc/ as\nmodified by Tomoki Toda which in turn contain code derived from\nNITECH's HTS system.  Their copyright has the same freedoms as \nas Flite's but under NAIST, NITECH and/or CMU.\n\nsrc/audio/au_wince.c\nsrc/utils/cst_file_stdio.c\nsrc/utils/cst_mmap_posix.c\nsrc/utils/cst_mmap_win32.c\nsrc/utils/cst_mmap_none.c\nsrc/utils/cst_file_wince.c\nsapi/ (non-CG)\n      are copyright Cepstral, LLC rather than CMU but fall under the same\n      free licence as the above, except for the owner.\nsapi/ CG support\n      are copyright Cobalt, LLC rather than CMU but fall under the same\n      free licence as the above, except for the owner.\n\ndoc/alice\n   Is the first two chapters of Alice in Wonderland as distributed by the\n   Gutenburg project and is now in the public domain\n\nsrc/regex/regexp.c\nsrc/regex/regsub.c\n\n *      Copyright (c) 1986 by University of Toronto.\n *      Written by Henry Spencer.  Not derived from licensed software.\n *\n *      Permission is granted to anyone to use this software for any\n *      purpose on any computer system, and to redistribute it freely,\n *      subject to the following restrictions:\n *\n *      1. The author is not responsible for the consequences of use of\n *              this software, no matter how awful, even if they arise\n *              from defects in it.\n *\n *      2. The origin of this software must not be misrepresented, either\n *              by explicit claim or by omission.\n *\n *      3. Altered versions must be plainly marked as such, and must not\n *              be misrepresented as being the original software.\n\nsrc/speech/rateconv.c\n\n *\tCopyright (c) 1992, 1995 by Markus Mummert\n *\n *\tRedistribution and use of this software, modifcation and inclusion\n *\tinto other forms of software are permitted provided that the following\n *\tconditions are met:\n *\n *\t1. Redistributions of this software must retain the above copyright\n *\t   notice, this list of conditions and the following disclaimer.\n *\t2. If this software is redistributed in a modified condition\n *\t   it must reveal clearly that it has been modified.\n\nlang/usenglish/us_durz_cart.c\nlang/usenglish/us_durz_cart.h\nlang/usenglish/us_int_accent_cart.c\nlang/usenglish/us_int_accent_cart.h\nlang/usenglish/us_int_tone_cart.c\nlang/usenglish/us_int_tone_cart.h\nlang/usenglish/us_phoneset.c\nlang/usenglish/us_f0lr.c\n   These are directly (or indirectly) compiled/derived from files that are\n   part of the Festival Speech Synthesis System (1.4.1).  Hence they have\n   a joint copyright CMU/Edinburgh but with the same free licence\n\nconfigure\n   # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.\n   #\n   # This configure script is free software; the Free Software Foundation\n   # gives unlimited permission to copy, distribute and modify it.\n\nconfigure.sub\nconfig.guess\nmissing\ninstall-sh\nmkinstalldirs\n   Copyright FSF, and under the GPL, these files are only used for\n   convenient configuration and are not part of the generated binary,\n   and therefore do not impose any GPL restrctions on the rest of the\n   system.  But as they are standard methods for configuration they \n   are included.\n\nsrc/speech/g72x.h\nsrc/speech/g721.c\nsrc/speech/g72x.c\nsrc/speech/g723_24.c\nsrc/speech/g723_40.c\n\n/*\n * This source code is a product of Sun Microsystems, Inc. and is provided\n * for unrestricted use.  Users may copy or modify this source code without\n * charge.\n *\n * SUN SOURCE CODE IS PROVIDED AS IS WITH NO WARRANTIES OF ANY KIND INCLUDING\n * THE WARRANTIES OF DESIGN, MERCHANTIBILITY AND FITNESS FOR A PARTICULAR\n * PURPOSE, OR ARISING FROM A COURSE OF DEALING, USAGE OR TRADE PRACTICE.\n *\n * Sun source code is provided with no support and without any obligation on\n * the part of Sun Microsystems, Inc. to assist in its use, correction,\n * modification or enhancement.\n *\n * SUN MICROSYSTEMS, INC. SHALL HAVE NO LIABILITY WITH RESPECT TO THE\n * INFRINGEMENT OF COPYRIGHTS, TRADE SECRETS OR ANY PATENTS BY THIS SOFTWARE\n * OR ANY PART THEREOF.\n *\n * In no event will Sun Microsystems, Inc. be liable for any lost revenue\n * or profits or other special, indirect and consequential damages, even if\n * Sun has been advised of the possibility of such damages.\n *\n * Sun Microsystems, Inc.\n * 2550 Garcia Avenue\n * Mountain View, California  94043\n */\n\nlang/cmu_grapheme_lex/grapheme_unitran_tables.c\n/* Copyright 2008-2012, University of Illinois at Urbana-Champaign          */\n/* distributed under the Apache License, Version (2.0)                      */\n/* http://www.apache.org/licenses/LICENSE-2.0                               */\n/* Original table developed by Richard Sproat and Kyoung-young Kim          */\n/* Ported for Festvox by Gopala Anumachipalli gopalakr@cs.cmu.edu Sep 2012  */\n/* Then converted to C for CMU Flite (cmuflite.org)                         */\n"
+    }
+  ],
+  "licenseListSha256": "47d1cc681abe31166b342b6cc4aab13a6ba8ea5c48794697fe3bf8b1dbaf509a"
+}

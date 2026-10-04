@@ -2,6 +2,7 @@
 """Collect dependency versions, licenses, FFmpeg build info and source patches."""
 
 import argparse
+import hashlib
 from pathlib import Path
 import re
 import shutil
@@ -9,7 +10,7 @@ import subprocess
 import sys
 import tarfile
 
-from build_data import DATA, ROOT, archive_files, env_path, read_pins, source_files
+from build_data import DATA, ROOT, archive_files, env_path, read_pins, read_licenses, source_files
 
 
 def is_license(name):
@@ -17,25 +18,43 @@ def is_license(name):
                      Path(name).name.upper()) is not None
 
 
-def collect_licenses(pin, sources, downloads, destination):
+def collect_licenses(pin, sources, downloads, destination, review):
     destination.mkdir(parents=True, exist_ok=True)
+    required = set(review["licenseFiles"])
+    found = set()
     count = 0
+
+    def collect(relative, content, fallback_name):
+        nonlocal count
+        if not content:
+            return
+        if relative in required:
+            if hashlib.sha256(content).hexdigest() != review["evidence"][relative]:
+                raise ValueError(f"reviewed license text changed: {relative}")
+            target = destination / relative
+            found.add(relative)
+        else:
+            target = destination / fallback_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+        count += 1
+
     if pin.commit:
         source = sources / pin.name
-        for path in source_files(source, 2, is_license):
-            if path.stat().st_size == 0:
-                continue
-            name = str(path.relative_to(source)).replace("/", "_")
-            shutil.copyfile(path, destination / name)
-            count += 1
+        paths = set(source_files(source, 2, is_license))
+        paths |= {source / name for name in required if (source / name).is_file()}
+        for path in sorted(paths):
+            relative = path.relative_to(source).as_posix()
+            collect(relative, path.read_bytes(), relative.replace("/", "_"))
     elif pin.archive(downloads).is_file():
-        for name, content in archive_files(pin.archive(downloads), is_license):
-            if not content:
-                continue
-            (destination / name.replace("/", "_")).write_bytes(content)
-            count += 1
+        for name, content in archive_files(pin.archive(downloads),
+                lambda name: is_license(name) or name.partition("/")[2] in required):
+            relative = name.partition("/")[2]
+            collect(relative, content, name.replace("/", "_"))
     if not count:
         raise ValueError("no non-empty license files found in pinned source")
+    if found != required:
+        raise ValueError("missing reviewed license files: " + ", ".join(sorted(required - found)))
     return count
 
 
@@ -46,12 +65,17 @@ def main():
     prefix = env_path("PREFIX", ROOT / "build/prefix")
     output = env_path("OUT", ROOT / "build/artifacts/release")
     (output / "licenses").mkdir(parents=True, exist_ok=True)
-    pins = read_pins()
+    try:
+        pins = read_pins()
+        licenses = read_licenses(pins)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print(f"ERROR: cannot read license inventory: {error}", file=sys.stderr)
+        return 1
     (output / "dependency-versions.txt").write_text(
         "".join(f"{pin.name}|{pin.version}\n" for pin in pins.values()))
     for pin in pins.values():
         try:
-            collect_licenses(pin, sources, downloads, output / "licenses" / pin.name)
+            collect_licenses(pin, sources, downloads, output / "licenses" / pin.name, licenses["packages"][pin.name])
         except (OSError, tarfile.TarError, ValueError) as error:
             print(f"ERROR: cannot collect licenses for {pin.name}: {error}", file=sys.stderr)
             return 1
