@@ -239,8 +239,6 @@ runs:
       run: uv run python scripts/verify-build-flags.py
 
     - name: Build dependencies
-      env:
-        FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
       shell: bash
       run: sh scripts/build-deps.sh
 
