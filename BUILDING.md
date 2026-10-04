@@ -5,7 +5,8 @@ to the matching binary archive, SBOM and SHA256SUMS. Verify SHA256SUMS before
 unpacking it. The archive has a `ffmpeg-macos-arm64-sources/` top-level directory:
 
 - `project/`: the build scripts, recipes, patches, composite Action and license scope
-  used for the release. `manifest.json` records the project commit.
+  used for the release. `SOURCE-CHANGES.md` identifies local modifications and
+  their dates. `manifest.json` records the project commit.
 - `upstream/`: unchanged, fixed source tarballs and Git commit snapshots for
   every pin in `project/deps.txt`. Manifest entries record the original pin and
   the SHA256 of each packaged file. `project/patches/` and `project/scripts/lib.sh`

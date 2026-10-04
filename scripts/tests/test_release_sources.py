@@ -171,6 +171,8 @@ class ReleaseSourcesTest(unittest.TestCase):
             manifest = json.load(archive.extractfile(sources.BUNDLE_NAME + "/manifest.json"))
             self.assertEqual(manifest["packages"]["fixture"]["sourcePin"], self.pin.checksum)
             self.assertEqual(archive.extractfile(sources.BUNDLE_NAME + "/upstream/fixture.tar").read(), self.archive)
+            self.assertEqual(archive.extractfile(sources.BUNDLE_NAME + "/project/SOURCE-CHANGES.md").read(),
+                             (project / "SOURCE-CHANGES.md").read_bytes())
         with patch.object(sources.subprocess, "run", side_effect=git), self.assertRaisesRegex(ValueError, "source commit mismatch"):
             bad = Pin(self.pin.name, self.pin.version, self.pin.url, "COMMIT=" + "c" * 40, "MIT")
             sources.collect(project, {"fixture": bad}, self.root / "src", self.root, output, [info])

@@ -92,7 +92,7 @@ def check_archive(path, name, pins, catalog):
         "share/dependency-versions.txt": "".join(f"{pin.name}|{pin.version}\n" for pin in pins.values()),
         "share/patches/patches.txt": (DATA / "patches.txt").read_text(),
         **{f"share/project/{name}": (ROOT / name).read_text()
-           for name in ("LICENSE", "LICENSING.md", "BUILDING.md")},
+           for name in ("LICENSE", "LICENSING.md", "BUILDING.md", "SOURCE-CHANGES.md")},
     }
     expected_patches = {"share/patches/" + str(file.relative_to(ROOT / "patches")): file.read_bytes()
                         for file in (ROOT / "patches").rglob("*") if file.is_file()}

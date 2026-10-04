@@ -93,7 +93,7 @@ def main():
         count = sum(path.is_file() for path in (output / "patches").rglob("*"))
         print(f"== source patches included: {count} file(s)")
     (output / "project").mkdir(exist_ok=True)
-    for name in ("LICENSE", "LICENSING.md", "BUILDING.md"):
+    for name in ("LICENSE", "LICENSING.md", "BUILDING.md", "SOURCE-CHANGES.md"):
         shutil.copyfile(ROOT / name, output / "project" / name)
     print(f"== release assets collected: {output}")
     return 0
