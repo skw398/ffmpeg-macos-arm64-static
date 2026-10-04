@@ -120,7 +120,7 @@ runs:
     - name: Restore Homebrew downloads
       id: cache-brew
       if: ${{ inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: ~/Library/Caches/Homebrew
         key: brew-${{ runner.os }}-v1
@@ -137,7 +137,7 @@ runs:
     - name: Restore pinned tools cache
       id: cache-tools
       if: ${{ inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: ~/tools
         key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}-${{ env.UV_VERSION }}-${{ env.PYTHON_VERSION }}
@@ -145,7 +145,7 @@ runs:
     - name: Restore pinned Rust cache
       id: cache-rust
       if: ${{ inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: |
           ~/.rustup
@@ -158,14 +158,14 @@ runs:
 
     - name: Save pinned tools cache
       if: steps.cache-tools.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: ~/tools
         key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}-${{ env.UV_VERSION }}-${{ env.PYTHON_VERSION }}
 
     - name: Save pinned Rust cache
       if: steps.cache-rust.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: |
           ~/.rustup
@@ -180,7 +180,7 @@ runs:
 
     - name: Save Homebrew downloads
       if: always() && steps.cache-brew.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: ~/Library/Caches/Homebrew
         key: brew-${{ runner.os }}-v1
@@ -188,7 +188,7 @@ runs:
     - name: Restore downloads cache
       id: cache-downloads
       if: ${{ inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: build/downloads
         key: downloads-${{ hashFiles('deps.txt') }}
@@ -197,7 +197,7 @@ runs:
     - name: Restore prefix cache
       id: cache-prefix
       if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: build/prefix
         key: prefix-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
@@ -206,7 +206,7 @@ runs:
     - name: Restore git sources cache
       id: cache-gitsrc
       if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: ${{ env.GIT_SRC_PATHS }}
         key: gitsrc-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}
@@ -215,7 +215,7 @@ runs:
     - name: Restore FFmpeg pass-1 cache
       id: cache-ffmpeg-pass1
       if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: build/src/ffmpeg-pass1
         key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
@@ -224,7 +224,7 @@ runs:
     - name: Restore FFmpeg full cache
       id: cache-ffmpeg-full
       if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6.1.0
       with:
         path: build/src/ffmpeg
         key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
@@ -248,21 +248,21 @@ runs:
 
     - name: Save downloads cache
       if: always() && steps.cache-downloads.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: build/downloads
         key: downloads-${{ hashFiles('deps.txt') }}
 
     - name: Save prefix cache
       if: always() && steps.cache-prefix.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: build/prefix
         key: prefix-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
 
     - name: Save git sources cache
       if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: ${{ env.GIT_SRC_PATHS }}
         key: gitsrc-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}
@@ -273,7 +273,7 @@ runs:
 
     - name: Save FFmpeg pass-1 cache
       if: ${{ always() && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: build/src/ffmpeg-pass1
         key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
@@ -288,7 +288,7 @@ runs:
 
     - name: Save FFmpeg full cache
       if: ${{ always() && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6.1.0
       with:
         path: build/src/ffmpeg
         key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
@@ -319,7 +319,7 @@ runs:
 
     - name: Upload artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: ${{ inputs.artifact_name }}
         path: |

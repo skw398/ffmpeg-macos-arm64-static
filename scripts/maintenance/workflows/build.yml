@@ -42,7 +42,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 350
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
       - name: Build and verify FFmpeg
         uses: ./.github/actions/build
         env:
