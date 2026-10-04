@@ -1,0 +1,335 @@
+name: Build static FFmpeg
+description: Build the adopted recipe, verify artifact quality and collect release assets.
+inputs:
+  clean_build:
+    description: Ignore build-output caches.
+    default: "false"
+  cold_build:
+    description: Ignore all caches, including tools and downloads.
+    default: "false"
+  artifact_name:
+    description: Name of the uploaded build artifact.
+    default: ffmpeg-macos-arm64
+runs:
+  using: composite
+  steps:
+    - name: Set pinned toolchain versions
+      shell: bash
+      env:
+        # Pinned Xcode (selected explicitly below); the image ships several.
+        XCODE_VERSION: "26.6"
+        # Pinned tool versions, installed from official distributions (not brew)
+        # so the toolchain does not drift with Homebrew. Tools that cannot be
+        # pinned (the runner image, Xcode/SDK, system tools) are recorded instead.
+        RUST_VERSION: "1.98.1"
+        CARGO_C_VERSION: "0.10.25"
+        CMAKE_VERSION: "4.4.3"
+        NINJA_VERSION: "1.13.2"
+        MESON_VERSION: "1.12.1"
+        UV_VERSION: "0.12.22"
+        UV_SHA256: "5d714de09501a59393ceca78f4bc232a50478729640d251907160299b2a93ddd"
+        PYTHON_VERSION: "3.14.7"
+        # Git-pinned sources, cached whole (their build dirs ride along). Restore
+        # and save reference this one list so the two copies cannot drift.
+        GIT_SRC_PATHS: |
+          build/src/libunibreak
+          build/src/fribidi
+          build/src/harfbuzz
+          build/src/brotli
+          build/src/highway
+          build/src/lcms2
+          build/src/libudfread
+          build/src/dav1d
+          build/src/libaom
+          build/src/SVT-AV1
+          build/src/librav1e
+          build/src/libvpx
+          build/src/x264
+          build/src/openh264
+          build/src/libvvenc
+          build/src/liboapv
+          build/src/libxeve
+          build/src/libxevd
+          build/src/libvidstab
+          build/src/libsnappy
+          build/src/libcodec2
+          build/src/liblc3
+          build/src/libgme
+          build/src/rubberband
+          build/src/libsoxr
+          build/src/libmysofa
+          build/src/libwebp
+          build/src/libopenjpeg
+          build/src/libzimg
+          build/src/libjxl
+          build/src/libvmaf
+          build/src/libass
+          build/src/libaribb24
+          build/src/libaribcaption
+          build/src/libbluray
+          build/src/libdvdread
+          build/src/libdvdnav
+          build/src/zvbi
+          build/src/libssh
+          build/src/libsrt
+          build/src/librist
+          build/src/libzmq
+          build/src/librabbitmq
+          build/src/libqrencode
+          build/src/quirc
+          build/src/libtesseract
+          build/src/libflite
+          build/src/SDL2
+      run: |
+        for name in XCODE_VERSION RUST_VERSION CARGO_C_VERSION CMAKE_VERSION NINJA_VERSION MESON_VERSION UV_VERSION UV_SHA256 PYTHON_VERSION; do
+          printf '%s=%s\n' "$name" "${!name}" >> "$GITHUB_ENV"
+        done
+        {
+          echo 'GIT_SRC_PATHS<<PINNED_GIT_SOURCES'
+          printf '%s\n' "$GIT_SRC_PATHS"
+          echo PINNED_GIT_SOURCES
+        } >> "$GITHUB_ENV"
+
+    - name: Assert Apple Silicon runner
+      shell: bash
+      run: |
+        uname -m
+        test "$(uname -m)" = arm64
+
+    - name: Select pinned Xcode
+      shell: bash
+      run: |
+        app="/Applications/Xcode_${XCODE_VERSION}.app"
+        if [ ! -d "$app" ]; then
+          app=$(ls -d /Applications/Xcode_${XCODE_VERSION}*.app 2>/dev/null | head -n1 || true)
+        fi
+        if [ ! -d "$app" ]; then
+          echo "ERROR: Xcode ${XCODE_VERSION} not found; available:" >&2
+          ls -d /Applications/Xcode*.app >&2 || true
+          exit 1
+        fi
+        sudo xcode-select -s "$app"
+        echo "== selected Xcode: $app"
+        xcodebuild -version
+        xcrun --show-sdk-version
+
+    # Caches are split by nature: pinned inputs (brew bottles, tools, Rust,
+    # pinned downloads) survive clean_build; build outputs (prefix, git
+    # sources with their build dirs, FFmpeg trees) do not. cold_build drops
+    # everything, to also validate pin fetching and tool installation.
+    - name: Restore Homebrew downloads
+      id: cache-brew
+      if: ${{ inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/Library/Caches/Homebrew
+        key: brew-${{ runner.os }}-v1
+
+    - name: Install remaining build tools (brew)
+      shell: bash
+      run: |
+        missing=""
+        for t in nasm pkgconf autoconf automake libtool gettext perl; do
+          brew list --formula "$t" >/dev/null 2>&1 || missing="$missing $t"
+        done
+        if [ -n "$missing" ]; then brew install $missing; fi
+
+    - name: Restore pinned tools cache
+      id: cache-tools
+      if: ${{ inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/tools
+        key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}-${{ env.UV_VERSION }}-${{ env.PYTHON_VERSION }}
+
+    - name: Restore pinned Rust cache
+      id: cache-rust
+      if: ${{ inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.rustup
+          ~/.cargo
+        key: rust-${{ env.RUST_VERSION }}-${{ env.CARGO_C_VERSION }}
+
+    - name: Install pinned toolchain
+      shell: bash
+      run: sh scripts/install-toolchain.sh
+
+    - name: Save pinned tools cache
+      if: steps.cache-tools.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/tools
+        key: tools-${{ env.CMAKE_VERSION }}-${{ env.NINJA_VERSION }}-${{ env.MESON_VERSION }}-${{ env.UV_VERSION }}-${{ env.PYTHON_VERSION }}
+
+    - name: Save pinned Rust cache
+      if: steps.cache-rust.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          ~/.rustup
+          ~/.cargo
+        key: rust-${{ env.RUST_VERSION }}-${{ env.CARGO_C_VERSION }}
+
+    - name: Record toolchain versions
+      shell: bash
+      run: |
+        mkdir -p build
+        sh scripts/record-toolchain.sh | tee build/toolchain-versions.txt
+
+    - name: Save Homebrew downloads
+      if: always() && steps.cache-brew.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/Library/Caches/Homebrew
+        key: brew-${{ runner.os }}-v1
+
+    - name: Restore downloads cache
+      id: cache-downloads
+      if: ${{ inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: build/downloads
+        key: downloads-${{ hashFiles('deps.txt') }}
+        restore-keys: downloads-
+
+    - name: Restore prefix cache
+      id: cache-prefix
+      if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: build/prefix
+        key: prefix-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
+        restore-keys: prefix-v2-${{ github.workflow }}-${{ github.ref }}-
+
+    - name: Restore git sources cache
+      id: cache-gitsrc
+      if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ env.GIT_SRC_PATHS }}
+        key: gitsrc-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}
+        restore-keys: gitsrc-v2-${{ github.workflow }}-${{ github.ref }}-
+
+    - name: Restore FFmpeg pass-1 cache
+      id: cache-ffmpeg-pass1
+      if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: build/src/ffmpeg-pass1
+        key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+        restore-keys: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-
+
+    - name: Restore FFmpeg full cache
+      id: cache-ffmpeg-full
+      if: ${{ inputs.clean_build != 'true' && inputs.cold_build != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: build/src/ffmpeg
+        key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+        restore-keys: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-
+
+    - name: Verify pins
+      shell: bash
+      run: uv run python scripts/verify-pins.py
+
+    - name: Verify build flags
+      shell: bash
+      run: uv run python scripts/verify-build-flags.py
+
+    - name: Build dependencies
+      env:
+        FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
+      shell: bash
+      run: sh scripts/build-deps.sh
+
+    - name: Check ambient dependencies
+      shell: bash
+      run: uv run python scripts/report-ambient-deps.py
+
+    - name: Save downloads cache
+      if: always() && steps.cache-downloads.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: build/downloads
+        key: downloads-${{ hashFiles('deps.txt') }}
+
+    - name: Save prefix cache
+      if: always() && steps.cache-prefix.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: build/prefix
+        key: prefix-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
+
+    - name: Save git sources cache
+      if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ env.GIT_SRC_PATHS }}
+        key: gitsrc-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}
+
+    - name: FFmpeg pass 1 (for chromaprint)
+      shell: bash
+      run: sh scripts/build-ffmpeg.sh --no-chromaprint
+
+    - name: Save FFmpeg pass-1 cache
+      if: ${{ always() && hashFiles('build/src/ffmpeg-pass1/ffbuild/config.mak') != '' }}
+      uses: actions/cache/save@v4
+      with:
+        path: build/src/ffmpeg-pass1
+        key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+
+    - name: Build chromaprint
+      shell: bash
+      run: sh scripts/build-chromaprint.sh
+
+    - name: FFmpeg (full)
+      shell: bash
+      run: sh scripts/build-ffmpeg.sh
+
+    - name: Save FFmpeg full cache
+      if: ${{ always() && hashFiles('build/src/ffmpeg/ffbuild/config.mak') != '' }}
+      uses: actions/cache/save@v4
+      with:
+        path: build/src/ffmpeg
+        key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+
+    - name: Check library consumers (configure)
+      shell: bash
+      run: |
+        libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/data/adopted-libs.txt | tr '\n' ' ')
+        uv run python scripts/lib-consumers.py --check --config-header build/src/ffmpeg $libs
+
+    - name: Check library consumers (artifact)
+      shell: bash
+      run: |
+        libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/data/adopted-libs.txt | tr '\n' ' ')
+        uv run python scripts/lib-consumers.py --check --binary build/prefix/bin/ffmpeg $libs
+
+    - name: Check buildconf
+      shell: bash
+      run: sh scripts/verify-buildconf.sh
+
+    - name: Verify build
+      shell: bash
+      run: sh scripts/verify-build.sh
+
+    - name: Collect release assets
+      shell: bash
+      run: uv run python scripts/collect-release-assets.py
+
+    - name: Upload artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: |
+          build/prefix/bin/ffmpeg
+          build/prefix/bin/ffprobe
+          build/prefix/bin/ffplay
+          build/artifacts
+          build/logs
+          build/toolchain-versions.txt
+          build/src/ffmpeg/ffbuild/config.log
+          build/src/ffmpeg-pass1/ffbuild/config.log

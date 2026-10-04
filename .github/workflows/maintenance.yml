@@ -1,0 +1,57 @@
+name: maintenance
+
+# Archive/feature only. main carries build.yml and release.yml.
+# Candidate edits are committed on feature; this workflow has no trial switches.
+on:
+  workflow_call:
+    inputs:
+      task:
+        description: audit or updates
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: inputs.task == 'audit'
+    runs-on: macos-26
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean build and verify the candidate
+        uses: ./.github/actions/build
+        with:
+          clean_build: "true"
+          artifact_name: ffmpeg-macos-arm64-maintenance
+      - name: Report build flags
+        run: uv run python scripts/maintenance/report-build-flags.py
+      - name: Review workarounds
+        run: uv run python scripts/maintenance/lint-workarounds.py
+      - name: Check upstream install rules
+        run: sh scripts/maintenance/check-install-rules.sh
+
+  updates:
+    if: inputs.task == 'updates'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned uv and Python
+        env:
+          UV_VERSION: "0.12.22"
+          UV_SHA256: "b9980552309f09c15172b8be828555e375097f16deb459795ce7bfd200380f0b"
+        run: |
+          uv_dir="$RUNNER_TEMP/uv-$UV_VERSION"
+          mkdir -p "$uv_dir"
+          curl -sSL --fail -o "$RUNNER_TEMP/uv.tar.gz" \
+            "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-x86_64-unknown-linux-gnu.tar.gz"
+          echo "$UV_SHA256  $RUNNER_TEMP/uv.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/uv.tar.gz" -C "$uv_dir" --strip-components=1
+          echo "$uv_dir" >> "$GITHUB_PATH"
+          "$uv_dir/uv" python install
+      - name: Report upstream versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run python scripts/maintenance/report-updates.py

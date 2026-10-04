@@ -4,13 +4,13 @@
 #
 # Run it after the sources are present, e.g.:
 #   ONLY="libgsm quirc" sh scripts/build-deps.sh
-#   sh scripts/check-install-rules.sh
+#   sh scripts/maintenance/check-install-rules.sh
 #
 # Report only: it never fails, so it can run as a dedicated job that tells us
 # when a copy workaround became unnecessary.
 set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
-ROOT="$HERE/.."
+ROOT="$HERE/../.."
 SRC="${SRC:-$ROOT/build/src}"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

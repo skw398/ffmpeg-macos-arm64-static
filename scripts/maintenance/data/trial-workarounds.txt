@@ -1,0 +1,14 @@
+# Workaround review catalog, used only by maintenance tooling.
+# This is a research index, not a set of build switches.
+# To test removal, edit the candidate code/recipe on feature and run a clean build.
+# See docs/BUILD-WORKAROUNDS.md for reasons, conditions and historical results.
+#
+# id|section|what to change|affected libraries
+#   * = all libraries; ffmpeg = FFmpeg itself
+size-t-preinclude|D|CXXFLAGS size_t.h forced include|*
+autotools-touch|B|touch the generated autotools files|*
+force-cpusubtype-strip|B|strip -force_cpusubtype_ALL from autotools configure|*
+autotools-werror-strip|B|strip -Werror from the generated autotools Makefiles|*
+cmake-werror-strip|B|strip a bare -Werror from the CMake sources|*
+quirc-sdl-cflags|H|SDL_CFLAGS= on quirc's make line|quirc
+ffmpeg-extra-libs|G|--extra-libs in FFmpeg's configure|ffmpeg

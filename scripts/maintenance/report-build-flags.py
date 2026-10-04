@@ -3,9 +3,13 @@
 
 import argparse
 from collections import Counter
+from pathlib import Path
 import re
 import sys
 import tarfile
+
+# Maintenance reads the normal build data; normal build scripts are independent.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from build_data import ROOT, archive_files, env_path, is_meson_options, read_pins, read_recipes, source_files
 

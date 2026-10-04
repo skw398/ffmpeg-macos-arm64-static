@@ -1,5 +1,5 @@
 #!/bin/sh
-# lib.sh — shared helpers for pin lookup, build recipes and workaround trials.
+# lib.sh — shared helpers for pin lookup and source preparation.
 # The caller must set HERE and PINS before sourcing; the fetch helpers also
 # require DL and SRC.
 
@@ -111,68 +111,10 @@ fetch() {
   # branch). Keep -Werror=<warning> / -Werror-<warning>: those are specific
   # diagnostics that are often passed as data (e.g. check_c_compiler_flag
   # arguments), where removing them would corrupt the CMake code. Report the
-  # count so an inert strip is visible: a partial build cannot tell (see
-  # docs/BUILD-WORKAROUNDS.md).
-  if trial_disabled cmake-werror-strip; then
-    echo "== trial: skipping the cmake -Werror strip"
-  else
-    n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
-          -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
-    if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
-    find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
-      -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
-  fi
-}
-
-# --- workaround trials -------------------------------------------------------
-# NO_WORKAROUNDS (space/comma separated ids, see scripts/data/trial-workarounds.txt)
-# names workarounds to leave out, so a CI trial run can show whether they are
-# still needed. Trial runs are uncached and never saved, so a trial-built prefix
-# cannot mask or poison a normal build (see docs/BUILD-WORKAROUNDS.md).
-TRIALS="${TRIALS:-$HERE/data/trial-workarounds.txt}"
-
-# trial_disabled <id> -> true when this run leaves the workaround <id> out
-trial_disabled() {
-  case " $(printf '%s' "${NO_WORKAROUNDS:-}" | tr ',' ' ') " in
-    *" $1 "*) return 0 ;;
-  esac
-  return 1
-}
-
-# trial_libs <id> -> the libraries a fast trial must force-rebuild, from the
-# mapping in scripts/data/trial-workarounds.txt ("*" = every library, "ffmpeg" = the
-# FFmpeg build itself). Empty for an unknown id.
-trial_libs() {
-  awk -F'|' -v n="$1" '$1 == n { print $4; exit }' "$TRIALS"
-}
-
-# trial_flag <id> <value...> -> the value, unless <id> is disabled (then nothing,
-# with a note on stderr). Keeps a workaround switchable at its use site.
-trial_flag() {
-  if trial_disabled "$1"; then
-    echo "== trial: dropping workaround '$1'" >&2
-    return 0
-  fi
-  shift
-  printf '%s' "$*"
-}
-
-# validate_trials -> announce the run's trial and reject an unknown id: a typo
-# would leave every workaround in place and make the result meaningless.
-# `reset` is reserved: it leaves every workaround in place but still makes the
-# run reset the cached build state, which a manual per-library flag trial needs
-# (see docs/BUILD-WORKAROUNDS.md).
-validate_trials() {
-  ids=$(printf '%s' "${NO_WORKAROUNDS:-}" | tr ',' ' ' | tr -s ' ' | sed 's/^ *//;s/ *$//')
-  [ -n "$ids" ] || return 0
-  for id in $ids; do
-    [ "$id" = reset ] && continue
-    grep -qE "^$id\|" "$TRIALS" || {
-      echo "ERROR: unknown trial workaround id '$id' (see $TRIALS)" >&2
-      echo "       known ids:" >&2
-      grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$TRIALS" | cut -d'|' -f1 | sed 's/^/         /' >&2
-      exit 1
-    }
-  done
-  echo "== trial run: leaving out workarounds: $ids"
+  # count for build diagnostics.
+  n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+        -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
+  find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+    -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
 }

@@ -7,12 +7,14 @@
 #
 # Format: lib|flag|purpose|target|note
 #
-#   purpose  what the flag is for (this decides how "removable" is settled)
-#     build   avoid a broken build  -> trial (drop it; passing means removable)
-#     dep     avoid a dependency    -> trial (the ambient check catches one it pulls in)
-#     extras  build no unneeded things (tests/tools/docs) -> triage (removable when a no-op)
-#     find    let the prefix be found -> triage (removable when unused)
-#     feature choose a product feature -> a human checks the requirements (CI cannot decide)
+#   purpose  why the adopted flag exists (guides maintenance review)
+#     build   avoid a broken build
+#     dep     avoid a dependency
+#     extras  omit unneeded tests/tools/docs
+#     find    locate the adopted prefix
+#     feature choose a product feature
+#   Candidate removals are edits on feature, validated with a clean build and
+#   reviewed against product requirements; the build does not read this file.
 #   target   dep only: the dependency being avoided (for the record; not used in the decision)
 #   note     mostly for feature: why it is included
 #

@@ -17,12 +17,8 @@ PREFIX="${PREFIX:-$ROOT/build/prefix}"
 JOBS="${JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 # space-separated library names to rebuild even if their marker exists
 FORCE_REBUILD="${FORCE_REBUILD:-}"
-# space-separated library names to build (default: every recipe); the
-# workarounds workflow uses it to fetch and build just libgsm and quirc
+# space-separated library names to build (default: every recipe)
 ONLY="${ONLY:-}"
-# "lib:flag" entries to leave out of that recipe's flags, so a per-library flag
-# (build-deps.txt data) can be trialed without editing the file
-DROP_FLAGS="${DROP_FLAGS:-}"
 RECIPES="$HERE/data/build-deps.txt"
 PINS="$ROOT/deps.txt"
 PATCHES="$HERE/data/patches.txt"
@@ -30,39 +26,12 @@ PATCHES="$HERE/data/patches.txt"
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
 # the data flags, so a flag that lives in code needs this to take effect)
-RECIPE_REV=7
+RECIPE_REV=8
 
 . "$HERE/lib.sh"
-# a trial run leaves out the listed workarounds; an unknown id is an error
-# rather than a silent no-op (see scripts/data/trial-workarounds.txt)
-validate_trials
-if [ -n "$DROP_FLAGS" ]; then
-  echo "== trial run: dropping flags: $DROP_FLAGS"
-fi
-
-# fast trial (workflow input trial_fast): the workflow keeps the cached prefix
-# and FFmpeg trees, so only the libraries the trialed ids affect get rebuilt.
-# Force those, and remember them: after the loop we check that they really were
-# built, so a stale cache cannot make the trial pass for the wrong reason.
-TRIAL_EXPECT=""
-if [ "${TRIAL_FAST:-}" = true ] && [ -n "${NO_WORKAROUNDS:-}" ]; then
-  for id in $(printf '%s' "$NO_WORKAROUNDS" | tr ',' ' '); do
-    libs=$(trial_libs "$id")
-    case "$libs" in
-      '')     echo "ERROR: trial id '$id' has no affected-library mapping" >&2; exit 1 ;;
-      '*')    echo "ERROR: trial id '$id' affects every library: run without trial_fast" >&2; exit 1 ;;
-      ffmpeg) ;; # FFmpeg is rebuilt because its configure stamp changes
-      *)      FORCE_REBUILD="$FORCE_REBUILD $libs"; TRIAL_EXPECT="$TRIAL_EXPECT $libs" ;;
-    esac
-  done
-  echo "== trial: fast mode, forcing a rebuild of:$TRIAL_EXPECT"
-fi
-
 export CC="${CC:-clang}"
 export CXX="${CXX:-clang++}"
 export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.0}"
-# -Wno-unknown-warning-option was removed on 2026-09-28: a trial without it
-# built and passed every check, so no library passes a GCC-only -W flag anymore.
 export CFLAGS="${CFLAGS:-}"
 # Newer libc++ no longer provides size_t transitively, so force it into every
 # translation unit. The preinclude is language-aware because some libraries
@@ -76,7 +45,7 @@ cat > "$preinc/size_t.h" <<'EOF'
 #include <stddef.h>
 #endif
 EOF
-export CXXFLAGS="$(trial_flag size-t-preinclude -include "$preinc/size_t.h") ${CXXFLAGS:-}"
+export CXXFLAGS="-include $preinc/size_t.h ${CXXFLAGS:-}"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # close the pkg-config search to the prefix so Homebrew/system .pc files are
 # never picked up (any missing dependency must be provided in the prefix)
@@ -131,36 +100,21 @@ build_generic() {
         # the runner's newer autotools would regenerate pre-generated files
         # during make (autoheader drops the legacy VERSION define in config.h.in);
         # keep the generated files newer than their autotools inputs.
-        if trial_disabled autotools-touch; then
-          # Leaving the touch out only tells us something if the regeneration
-          # path is actually taken, so provoke it: make the autotools inputs
-          # newer than the generated files.
-          echo "== trial: provoking autotools regeneration (inputs newer than the generated files)"
-          touch configure.ac configure.in m4/*.m4 2>/dev/null || true
-        else
-          touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
-        fi
+        touch aclocal.m4 configure config.h.in Makefile.in 2>/dev/null || true
         # modern macOS ld rejects the obsolete -force_cpusubtype_ALL that some
-        # configure scripts inject for darwin; strip it generically. Report the
-        # count: 0 occurrences over many runs means the strip can be dropped.
-        if [ -f ./configure ] && ! trial_disabled force-cpusubtype-strip; then
+        # configure scripts inject for darwin; strip it generically.
+        if [ -f ./configure ]; then
           n=$(grep -coE ' -force_cpusubtype_ALL' ./configure || true)
           if [ "$n" -gt 0 ]; then echo "== patch: -force_cpusubtype_ALL strip: $n occurrence(s)"; fi
           perl -pi -e 's/ -force_cpusubtype_ALL//g' ./configure
-        elif trial_disabled force-cpusubtype-strip; then
-          echo "== trial: skipping the -force_cpusubtype_ALL strip"
         fi
         ./configure --prefix="$PREFIX" --enable-static --disable-shared $flags
         # some configure scripts promote GCC-targeted warnings to errors
         # (-Werror), which newer clang trips on; strip it from the generated
         # makefiles (after configure, so feature detection is unaffected).
-        if trial_disabled autotools-werror-strip; then
-          echo "== trial: skipping the autotools -Werror strip"
-        else
-          n=$(find . -name Makefile -exec grep -hoE ' ?-Werror(=[A-Za-z0-9_-]+)?' {} + 2>/dev/null | wc -l | tr -d ' ')
-          if [ "$n" -gt 0 ]; then echo "== patch: -Werror strip: $n occurrence(s)"; fi
-          find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
-        fi
+        n=$(find . -name Makefile -exec grep -hoE ' ?-Werror(=[A-Za-z0-9_-]+)?' {} + 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$n" -gt 0 ]; then echo "== patch: -Werror strip: $n occurrence(s)"; fi
+        find . -name Makefile -exec perl -pi -e 's/ ?-Werror(?:=[A-Za-z0-9_-]+)?//g' {} + 2>/dev/null || true
         make -j"$JOBS" && make install ) ;;
     cmake)
       cmake -S "$src/$subdir" -B "$src/.build" \
@@ -201,8 +155,7 @@ build_libgsm() {
 build_quirc() {
   # SDL is only needed by quirc's demos; its makefile captures pkg-config's
   # stderr into SDL_CFLAGS, whose quotes break the compile command, so blank it
-  # (switchable by a trial run: quirc-sdl-cflags)
-  ( cd "$SRC/quirc" && make -j"$JOBS" $(trial_flag quirc-sdl-cflags SDL_CFLAGS=) libquirc.a ) \
+  ( cd "$SRC/quirc" && make -j"$JOBS" SDL_CFLAGS= libquirc.a ) \
     && mkdir -p "$PREFIX/lib" "$PREFIX/include" \
     && cp "$SRC/quirc/libquirc.a" "$PREFIX/lib/" \
     && cp "$SRC/quirc/lib/quirc.h" "$PREFIX/include/"
@@ -215,9 +168,7 @@ dispatch_build() {
   # precondition check; see apply_patches() and docs/PATCH-POLICY.md
   apply_patches "$name"
 
-  # remaining custom builders. libvpx and openh264 moved to the generic
-  # autotools / meson paths on 2026-09-29 (their trial ids were green), so only
-  # these three are left.
+  # Builders for libraries without a supported generic build/install path.
   case "$name" in
     librav1e)    build_librav1e "$flags" ;;
     libgsm)      build_libgsm ;;
@@ -244,28 +195,6 @@ is_forced() {
 is_selected() {
   [ -z "$ONLY" ] && return 0
   case " $ONLY " in *" $1 "*) return 0 ;; *) return 1 ;; esac
-}
-
-# drop_flags_for <name> -> the flags DROP_FLAGS removes from this recipe
-drop_flags_for() {
-  for e in $(printf '%s' "${DROP_FLAGS:-}" | tr ',' ' '); do
-    case "$e" in "$1:"*) printf '%s\n' "${e#*:}" ;; esac
-  done
-}
-
-# apply_drop_flags <name> <flags> -> the flags with those entries removed (an
-# exact token match, so a prefix of another flag is never touched)
-apply_drop_flags() {
-  [ -n "${DROP_FLAGS:-}" ] || { printf '%s' "$2"; return 0; }
-  out=""
-  for w in $2; do
-    keep=1
-    for d in $(drop_flags_for "$1"); do
-      [ "$w" = "$d" ] && keep=0
-    done
-    [ "$keep" = 1 ] && out="$out $w"
-  done
-  printf '%s' "${out# }"
 }
 
 # every file in the prefix (relative), excluding the manifest bookkeeping.
@@ -321,22 +250,6 @@ build_one() {
   touch "$marker"
 }
 
-# In a trial, drop the build output a previous run left in a git-pinned source
-# tree. cmake and meson keep the configured option values inside the build
-# directory, so a workaround that only changes a flag would otherwise be
-# silently ignored (the dropped -D comes back from the cache) and the trial
-# would pass for the wrong reason. Tarball pins are re-extracted on every run
-# and are already fresh.
-trial_reset_sources() { # <name>
-  [ -n "${NO_WORKAROUNDS:-}" ] || [ -n "${DROP_FLAGS:-}" ] || return 0
-  case "$(pin "$1" | cut -d'|' -f3)" in COMMIT=*) ;; *) return 0 ;; esac
-  n=$(git -C "$SRC/$1" clean -xffdn 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$n" -gt 0 ]; then
-    echo "== trial: resetting $n cached build file(s) in $1"
-    git -C "$SRC/$1" clean -xffdq 2>/dev/null || true
-  fi
-}
-
 # --- main --------------------------------------------------------------------
 
 # --- prefix-local shims needed by FFmpeg's configure ---
@@ -374,11 +287,6 @@ EOF
 # FFmpeg's libsnappy check links -lstdc++, which macOS lacks; alias it to libc++.
 rm -f "$PREFIX/lib/libstdc++.tbd"; ln -s "$sdk/usr/lib/libc++.tbd" "$PREFIX/lib/libstdc++.tbd"
 
-# fast trial: record which libraries were actually built. The loop below runs in
-# a subshell, so the record goes through a file.
-BUILT=""
-if [ -n "$TRIAL_EXPECT" ]; then BUILT=$(mktemp); fi
-
 grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name kind flags note subdir; do
   name=$(trim "$name")
   kind=$(trim "$kind")
@@ -386,33 +294,14 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   subdir=$(trim "$subdir")
   [ -n "$name" ] || continue
   is_selected "$name" || continue
-  # a dropped flag changes the effective flags (and so the marker), which makes
-  # this library rebuild without touching the cached state
-  flags=$(apply_drop_flags "$name" "$flags")
   marker=$(marker_for "$name" "$kind" "$flags" "$subdir")
   if [ -f "$marker" ] && ! is_forced "$name"; then
     echo "== skip $name (already built)"
     continue
   fi
   fetch "$name"
-  trial_reset_sources "$name"
-  if [ -n "$BUILT" ]; then echo "$name" >> "$BUILT"; fi
   build_one "$name" "$kind" "$flags" "$marker" "$subdir"
 done
-
-# fast trial: every library the trialed ids affect must have been rebuilt
-if [ -n "$TRIAL_EXPECT" ]; then
-  missing=""
-  for lib in $TRIAL_EXPECT; do
-    grep -qx "$lib" "$BUILT" 2>/dev/null || missing="$missing $lib"
-  done
-  if [ -n "$missing" ]; then
-    echo "ERROR: trial did not rebuild:$missing (a stale cache would make it meaningless)" >&2
-    exit 1
-  fi
-  echo "== trial: fast mode rebuilt:$TRIAL_EXPECT"
-  rm -f "$BUILT"
-fi
 
 # Some libraries install their static archive into a subdirectory while their
 # pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it. Always

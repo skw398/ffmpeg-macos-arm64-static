@@ -11,6 +11,9 @@ import sys
 import tarfile
 import tempfile
 
+# Maintenance reads the normal build data; normal build scripts are independent.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from build_data import (
     DATA, HERE, ROOT, Recipe, archive_files, archive_text, env_path, is_cmake,
     read_pins, read_recipes, rows, source_files,
@@ -248,36 +251,25 @@ def quirc_stderr(sources):
     return not hits
 
 
-def trial_ids(recipes):
-    print("\n== [T] trial workaround ids (trial-workarounds.txt vs the scripts) ==")
-    trials = list(rows(DATA / "trial-workarounds.txt"))
-    listed = {row[0] for row in trials}
-    consulted = {trial for name in ("build-deps.sh", "build-ffmpeg.sh", "lib.sh")
-                 for trial in re.findall(r"trial_(?:disabled|flag) ([a-z0-9-]+)", (HERE / name).read_text())}
-    unused = sorted(listed - consulted)
-    unlisted = sorted(consulted - listed)
-    if unused:
-        print("  listed but never consulted: " + " ".join(unused))
-        print("  -> the trial would silently do nothing; wire it up or drop the id")
-    if unlisted:
-        print("  consulted but not listed: " + " ".join(unlisted) + " -> add it to trial-workarounds.txt")
-    if not unused and not unlisted:
-        print("  every listed id is consulted, and every consulted id is listed")
+def review_targets(recipes):
+    print("\n== [T] workaround review targets (maintenance catalog) ==")
+    targets = list(rows(Path(__file__).with_name("data") / "trial-workarounds.txt"))
     names = {recipe.name for recipe in recipes} | {"*", "ffmpeg"}
-    no_mapping = [row[0] for row in trials if not row[3]]
-    bad_libraries = [f"{row[0]}:{name}" for row in trials for name in row[3].split() if name not in names]
-    if no_mapping:
-        print("  no affected-library mapping: " + " ".join(no_mapping) + " -> a fast trial would fail")
-    if bad_libraries:
-        print("  mapping names that are not recipes in build-deps.txt: " + " ".join(bad_libraries))
-    if not no_mapping and not bad_libraries:
-        print("  every id has an affected-library mapping, and the names are real recipes")
+    missing = [row[0] for row in targets if not row[3]]
+    unknown = [f"{row[0]}:{name}" for row in targets for name in row[3].split() if name not in names]
+    if missing:
+        print("  no affected-library mapping: " + " ".join(missing))
+    if unknown:
+        print("  mapping names that are not recipes: " + " ".join(unknown))
+    if not missing and not unknown:
+        print(f"  {len(targets)} review targets; affected-library names match the recipes")
+    print("  change the candidate code/recipe on feature and run a clean build")
     return False
 
 
 def flag_classification(recipes):
     print("\n== [E] per-library flags: classification (flag-categories.txt) ==")
-    categories = list(rows(DATA / "flag-categories.txt"))
+    categories = list(rows(Path(__file__).with_name("data") / "flag-categories.txt"))
     classified = {(row[0], row[1]) for row in categories}
     flags = {(recipe.name, flag) for recipe in recipes for flag in recipe.flags.split() if flag not in POLICY_FLAGS}
     recipe_flags = {recipe.name: set(recipe.flags.split()) for recipe in recipes}
@@ -305,7 +297,7 @@ def flag_classification(recipes):
     if not any((missing, stale, bad_purpose, bad_target)):
         summary = " ".join(f"{purpose}={counts[purpose]}" for purpose in ("build", "dep", "extras", "find", "feature"))
         print(f"  all {len(flags)} flags classified ({summary})")
-    print(f"  trial targets (build+dep): {counts['build'] + counts['dep']} -> run drop_flags one at a time (see the runbook)")
+    print(f"  build/dep review candidates: {counts['build'] + counts['dep']} -> review candidate recipe edits one at a time (see the runbook)")
     return False
 
 
@@ -331,7 +323,7 @@ def main():
             lambda: private_deps(prefix),
             lambda: custom_buildsystems(recipes, sources),
             lambda: quirc_stderr(sources),
-            lambda: trial_ids(recipes),
+            lambda: review_targets(recipes),
             lambda: flag_classification(recipes),
         ]
         for check in checks:

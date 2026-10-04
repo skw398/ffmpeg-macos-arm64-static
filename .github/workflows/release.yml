@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       clean_build: true
-      artifact_suffix: -release
+      artifact_name: ffmpeg-macos-arm64-release
     permissions:
       contents: read
 

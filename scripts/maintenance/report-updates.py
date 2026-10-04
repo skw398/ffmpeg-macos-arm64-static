@@ -10,7 +10,7 @@ it can find for every line and leaves the judgement to a human.
 Output:  name | pinned | latest | where
 Env:     GITHUB_TOKEN / GH_TOKEN (optional; raises the GitHub API rate limit)
 
-Usage:   python3 scripts/report-updates.py [name ...]
+Usage:   uv run python scripts/maintenance/report-updates.py [name ...]
 """
 import json
 import os
@@ -22,7 +22,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEPS = os.path.join(ROOT, "deps.txt")
 UA = "Mozilla/5.0 (compatible; ffmpeg-macos-arm64-static-update-reporter)"
 TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
