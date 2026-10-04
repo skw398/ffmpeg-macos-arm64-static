@@ -91,8 +91,13 @@ def main():
     sources = env_path("SRC", ROOT / "build/src")
     args.downloads.mkdir(parents=True, exist_ok=True)
     sources.mkdir(parents=True, exist_ok=True)
+    try:
+        pins = read_pins()
+    except ValueError as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 1
     lines = []
-    for pin in read_pins().values():
+    for pin in pins.values():
         try:
             lines.extend(verify_pin(pin, args.downloads, sources))
         except OSError as error:

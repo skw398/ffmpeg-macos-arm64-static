@@ -178,6 +178,10 @@ runs:
         mkdir -p build
         sh scripts/record-toolchain.sh | tee build/toolchain-versions.txt
 
+    - name: Check data and release helpers
+      shell: bash
+      run: uv run python -m unittest discover -s scripts/tests
+
     - name: Save Homebrew downloads
       if: always() && steps.cache-brew.outputs.cache-hit != 'true'
       uses: actions/cache/save@v6.1.0

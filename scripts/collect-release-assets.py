@@ -3,6 +3,7 @@
 
 import argparse
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -12,19 +13,30 @@ from build_data import DATA, ROOT, archive_files, env_path, read_pins, source_fi
 
 
 def is_license(name):
-    return Path(name).name.upper().startswith(("LICENSE", "COPYING", "COPYRIGHT", "NOTICE", "PATENTS"))
+    return re.search(r"(?:^|[-_. ])(?:LICEN[CS]E|COPYING|COPYRIGHT|NOTICE|PATENTS)",
+                     Path(name).name.upper()) is not None
 
 
 def collect_licenses(pin, sources, downloads, destination):
     destination.mkdir(parents=True, exist_ok=True)
+    count = 0
     if pin.commit:
         source = sources / pin.name
         for path in source_files(source, 2, is_license):
+            if path.stat().st_size == 0:
+                continue
             name = str(path.relative_to(source)).replace("/", "_")
             shutil.copyfile(path, destination / name)
+            count += 1
     elif pin.archive(downloads).is_file():
         for name, content in archive_files(pin.archive(downloads), is_license):
+            if not content:
+                continue
             (destination / name.replace("/", "_")).write_bytes(content)
+            count += 1
+    if not count:
+        raise ValueError("no non-empty license files found in pinned source")
+    return count
 
 
 def main():
@@ -40,9 +52,10 @@ def main():
     for pin in pins.values():
         try:
             collect_licenses(pin, sources, downloads, output / "licenses" / pin.name)
-        except (OSError, tarfile.TarError) as error:
+        except (OSError, tarfile.TarError, ValueError) as error:
             print(f"ERROR: cannot collect licenses for {pin.name}: {error}", file=sys.stderr)
             return 1
+    print(f"== dependency licenses included: {len(pins)}/{len(pins)} package(s)")
     for option, name in (("-version", "ffmpeg-version.txt"), ("-buildconf", "buildconf.txt")):
         with (output / name).open("w") as file:
             try:

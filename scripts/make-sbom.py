@@ -14,6 +14,7 @@ import json
 import os
 import re
 import sys
+import uuid
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEPS = os.path.join(ROOT, "deps.txt")
@@ -26,7 +27,7 @@ def read_deps(path):
         for line in f:
             if not re.match(r"^[A-Za-z0-9]", line):
                 continue
-            parts = (line.rstrip("\n").split("|") + [""] * 6)[:5]
+            parts = (line.rstrip("\n").split("|") + [""] * 5)[:5]
             rows.append({"name": parts[0], "version": parts[1], "url": parts[2],
                          "checksum": parts[3], "license": parts[4]})
     return rows
@@ -52,7 +53,7 @@ def main():
     main_pkg = rows[0]
     packages = []
     relationships = []
-    for r in rows:
+    for index, r in enumerate(rows):
         pkg = {
             "SPDXID": spdx_id(r["name"]),
             "name": r["name"],
@@ -60,15 +61,21 @@ def main():
             "downloadLocation": r["url"] or "NOASSERTION",
             "filesAnalyzed": False,
             "licenseConcluded": "NOASSERTION",
-            "licenseDeclared": r["license"] or "NOASSERTION",
+            # deps.txt contains review notes, not audited SPDX expressions.
+            "licenseDeclared": "NOASSERTION",
             "copyrightText": "NOASSERTION",
         }
+        pkg["licenseComments"] = (
+            "SPDX license expression has not been audited. "
+            + (f"License note from deps.txt: {r['license']}" if r["license"]
+               else "No license note in deps.txt.")
+        )
         if r["checksum"].startswith("COMMIT="):
             pkg["sourceInfo"] = r["checksum"]
         elif re.fullmatch(r"[0-9a-fA-F]{64}", r["checksum"]):
             pkg["checksums"] = [{"algorithm": "SHA256", "checksumValue": r["checksum"].lower()}]
         packages.append(pkg)
-        if r is not main_pkg:
+        if index:
             relationships.append({
                 "spdxElementId": spdx_id(main_pkg["name"]),
                 "relatedSpdxElement": spdx_id(r["name"]),
@@ -80,7 +87,7 @@ def main():
         "dataLicense": "CC0-1.0",
         "SPDXID": "SPDXRef-DOCUMENT",
         "name": args.name,
-        "documentNamespace": f"{REPO}/spdx/{args.name}",
+        "documentNamespace": f"{REPO}/spdx/{uuid.uuid4()}",
         "creationInfo": {"created": created, "creators": ["Tool: make-sbom.py"]},
         "packages": packages,
         "relationships": [{

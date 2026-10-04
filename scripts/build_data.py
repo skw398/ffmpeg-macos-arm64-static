@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
+import re
 import tarfile
 
 
@@ -49,7 +50,20 @@ class Recipe:
 
 
 def read_pins(path=ROOT / "deps.txt"):
-    return {row[0]: Pin(*((row + [""] * 6)[:6])) for row in rows(path)}
+    pins = {}
+    for row in rows(path):
+        if not 5 <= len(row) <= 6 or not all(row[:4]):
+            raise ValueError(f"{path}: pin requires name, version, URL, checksum and license column")
+        pin = Pin(*(row + [""] * (6 - len(row))))
+        if pin.name in pins:
+            raise ValueError(f"{path}: duplicate pin: {pin.name}")
+        if not (re.fullmatch(r"[0-9a-fA-F]{64}|COMMIT=[0-9a-f]{40}", pin.checksum)
+                or pin.checksum in {"HASH-TODO", "PIN-IN-CI"}):
+            raise ValueError(f"{path}: invalid checksum pin: {pin.name}")
+        pins[pin.name] = pin
+    if not pins:
+        raise ValueError(f"{path}: no dependency pins")
+    return pins
 
 
 def read_recipes(path=DATA / "build-deps.txt"):
