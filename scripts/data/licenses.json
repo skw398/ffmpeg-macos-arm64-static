@@ -10,7 +10,6 @@
     "BSL-1.0",
     "CC0-1.0",
     "FTL",
-    "GPL-2.0-only",
     "GPL-2.0-or-later",
     "GPL-3.0-or-later",
     "ISC",
@@ -706,14 +705,28 @@
     "libaribb24": {
       "version": "v1.0.4",
       "checksum": "COMMIT=a41b904d66ed991ace32a9827f629db3d438b47b",
-      "expression": "NOASSERTION",
-      "comment": "NOASSERTION: COPYING contains LGPLv3, while the fixed aribb24.c, parser.c, decoder.c and drcs.c headers grant LGPL-2.1-or-later. The package-wide version declaration needs clarification; no version is guessed.",
+      "expression": "LGPL-2.1-or-later",
+      "comment": "All C sources and headers listed by Makefile.am explicitly grant LGPL version 2.1 or later. COPYING is the LGPLv3 license text; that copy does not remove the explicit or-later grants in the source headers. The earlier NOASSERTION has been resolved by checking the complete library source list.",
       "evidence": {
         "COPYING": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
         "src/aribb24.c": "c86328d3b911524c059cdff3419c37a3427000b66ffd873d14d763ae613003ba",
         "src/drcs.c": "43dbd53fa96a575dd51d55c6bd9029cc31224a3da0785ed2cf89682379e1a705",
         "src/decoder.c": "02ddd71e2d51814d272e3adc6e9ac978dd0211ee1ee20550dc3b6e9d25537019",
-        "src/parser.c": "ff67fa62cfd6f08b2aa7ea1a273178abf32bf3fef4b1855ab550f23da9b06aa1"
+        "src/parser.c": "ff67fa62cfd6f08b2aa7ea1a273178abf32bf3fef4b1855ab550f23da9b06aa1",
+        "Makefile.am": "95007c7320e335e3503e700242774d973703586510f28ec833f47311bc1740bf",
+        "README.md": "a9d5a0c8c8824d792cc57198f251c723b7ce69183efbc3a80de6384e0e60002c",
+        "src/decoder_macro.h": "b38e6ca6f899c880a194acebdc2c925a1bd51e352ef8e279840d0a4557c37088",
+        "src/drcs.h": "52747dd5b9a8ee8ea694107a286d753d93de593a5b5661015a6dff8816af45a9",
+        "src/parser_private.h": "0ab39d4d294d0b85d2d4a3b058c34a199fac105d49d4f6919987d6801e6e3631",
+        "src/md5.h": "4f73843c9cd2a51ff107d753bfdd5ffee215a8f3caa67c93cd8a0e1e36c5be31",
+        "src/convtable.h": "5c52be7e8fee8cee803af408600cbd15d4ec0f99b7e4b8140aff2a6bc9b8595e",
+        "src/md5.c": "bd0cb7ac96e21cfd1351e3506ff2374f7b5d9ca10e9971937b119530e7fc846b",
+        "src/aribb24_private.h": "13f2c01e235ca78d74de35c2ab07a51f5f115e8cd53e4a2e7254f89aef9cd67c",
+        "src/decoder_private.h": "28f7e78f5e06cf8e5a2fdee098b71ae6b852804bbb6d4bf031c14c787721b8b8",
+        "src/aribb24/parser.h": "a9b2db7d0eddae453f0f79e5c0b963bd038fd90c55ca9e69e95dcad4137b280a",
+        "src/aribb24/decoder.h": "fd11ca0b82c66195b8a51695f9341bf63e25d5659aa216bafd03396c6b95f41c",
+        "src/aribb24/aribb24.h": "4d7cb9b964e876c06ec8095425637033b39aedcd83619feab85f8b65067f4bfd",
+        "src/aribb24/bits.h": "72448a490b7a38dc54c2fa036f8f21461931d52b7a7b271ba1d626131d5a120e"
       },
       "licenseFiles": [
         "COPYING"
@@ -768,23 +781,6 @@
       },
       "licenseFiles": [
         "COPYING"
-      ]
-    },
-    "zvbi": {
-      "version": "v0.2.44",
-      "checksum": "COMMIT=5169a428d51c3ae8ff7b0897e8a687d8e05e37b5",
-      "expression": "GPL-2.0-or-later AND GPL-2.0-only AND LGPL-2.0-or-later AND LGPL-2.1-or-later AND MIT AND BSD-2-Clause AND (GPL-2.0-or-later OR BSD-3-Clause)",
-      "comment": "COPYING.md lists mixed package licenses. src/packet-830.c explicitly grants GPL version 2 without or-later. This GPL-2.0-only component requires review against the configured GPLv3 release before publication; this metadata does not claim compatibility.",
-      "evidence": {
-        "COPYING.md": "01b41f9b6e262bb62063151f15988a236296bbb5eeb9752692fc7dc2fb27ec45",
-        "src/Makefile.am": "85227768bcefde22062795c6d63cc28626d7f926fefd7382025f6aa3f8b0afd1",
-        "src/libzvbi.h": "7026ffcc1f7d09138f741c731de41510e3e2fe5eee18924671e3f0d0f2f7c582",
-        "src/pdc.c": "6dfc006c78e625f68a0924526d73cc39e2d38de88f4076bf668f7ed21f65d778",
-        "src/decoder.c": "b7860bcb4df1516d8b8fe202d7b9e7901db309ce20c2697af4ffd1ef0f86a945",
-        "src/packet-830.c": "8ad0a75af222067e7d3257ebf56aa28e3f56021d9266e1a952fcfbc7bde50ad4"
-      },
-      "licenseFiles": [
-        "COPYING.md"
       ]
     },
     "libssh": {

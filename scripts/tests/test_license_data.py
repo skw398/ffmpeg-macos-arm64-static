@@ -38,7 +38,6 @@ class LicenseDataTest(unittest.TestCase):
             (lambda data: data["packages"]["ffmpeg"].update(licenseFiles=[]), "missing license files"),
             (lambda data: data["packages"]["ffmpeg"]["evidence"].clear(), "missing license file evidence"),
             (lambda data: data["packages"]["ffmpeg"]["evidence"].update({"../COPYING": "a" * 64}), "invalid license evidence"),
-            (lambda data: data["packages"]["libaribb24"].update(comment="unknown"), "missing unresolved license reason"),
         ]
         for change, message in cases:
             with self.subTest(message=message):
@@ -46,6 +45,13 @@ class LicenseDataTest(unittest.TestCase):
                 change(data)
                 with self.assertRaisesRegex(ValueError, message):
                     self.read(data)
+
+    def test_unresolved_declaration_requires_a_reason(self):
+        pins = self.pins | {"libaribb24": replace(self.pins["libaribb24"], license="NOASSERTION")}
+        catalog = copy.deepcopy(self.catalog)
+        catalog["packages"]["libaribb24"].update(expression="NOASSERTION", comment="unknown")
+        with self.assertRaisesRegex(ValueError, "missing unresolved license reason"):
+            self.read(catalog, pins)
 
     def test_expressions_require_known_identifiers_and_complete_terms(self):
         known = {"MIT", "BSD-2-Clause", "GPL-2.0-or-later", "LicenseRef-custom"}

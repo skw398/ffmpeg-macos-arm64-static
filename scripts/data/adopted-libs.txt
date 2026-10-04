@@ -49,7 +49,6 @@ libaribcaption
 libbluray
 libdvdread
 libdvdnav
-libzvbi
 libssh
 libsrt
 librist

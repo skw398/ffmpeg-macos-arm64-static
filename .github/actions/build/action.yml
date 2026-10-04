@@ -7,6 +7,9 @@ inputs:
   cold_build:
     description: Ignore all caches, including tools and downloads.
     default: "false"
+  release_sources:
+    description: Collect complete fixed sources for a release.
+    default: "false"
   artifact_name:
     description: Name of the uploaded build artifact.
     default: ffmpeg-macos-arm64
@@ -69,7 +72,6 @@ runs:
           build/src/libbluray
           build/src/libdvdread
           build/src/libdvdnav
-          build/src/zvbi
           build/src/libssh
           build/src/libsrt
           build/src/librist
@@ -320,6 +322,11 @@ runs:
     - name: Collect release assets
       shell: bash
       run: uv run python scripts/collect-release-assets.py
+
+    - name: Collect release sources
+      if: ${{ inputs.release_sources == 'true' }}
+      shell: bash
+      run: uv run python scripts/release_sources.py collect
 
     - name: Upload artifacts
       if: always()

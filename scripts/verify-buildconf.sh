@@ -39,11 +39,17 @@ for t in $(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$TOKENS"); do
   fi
 done
 
+# Teletext is excluded: zvbi contains code incompatible with this GPLv3 build.
+if grep -qx CONFIG_LIBZVBI "$enabled_file"; then
+  echo "UNEXPECTED lib: libzvbi (CONFIG_LIBZVBI)"; fail=1
+fi
+
 # license flags passed / nonfree absent (configure args sanity)
 BC=$("$BIN" -buildconf 2>/dev/null)
 has_flag() { case "$BC" in *"$1"*) return 0 ;; *) return 1 ;; esac; }
 has_flag --enable-gpl      || { echo "MISSING --enable-gpl"; fail=1; }
 has_flag --enable-version3 || { echo "MISSING --enable-version3"; fail=1; }
+has_flag --disable-libzvbi || { echo "MISSING --disable-libzvbi"; fail=1; }
 if has_flag --enable-nonfree; then echo "UNEXPECTED --enable-nonfree"; fail=1; fi
 
 # representative components actually present

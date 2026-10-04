@@ -26,7 +26,7 @@ PATCHES="$HERE/data/patches.txt"
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
 # the data flags, so a flag that lives in code needs this to take effect)
-RECIPE_REV=8
+RECIPE_REV=9
 
 . "$HERE/lib.sh"
 export CC="${CC:-clang}"
@@ -330,6 +330,6 @@ fi
 
 # Pre-fetch the FFmpeg tarball so the downloads cache (saved after this step)
 # carries it; build-ffmpeg.sh also ensures it when run standalone.
-download ffmpeg
+[ -n "${SOURCE_PACKAGE:-}" ] || download ffmpeg
 
 echo "== deps build done: $PREFIX"

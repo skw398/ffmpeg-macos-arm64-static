@@ -73,14 +73,13 @@ libzimg|release-3.0.6|https://github.com/sekrit-twc/zimg.git|COMMIT=f819b14e8f39
 libjxl|v0.12.0|https://github.com/libjxl/libjxl.git|COMMIT=a7a9c787341cf703dede03c2009fa460cae5e5df|BSD-3-Clause AND LicenseRef-JPEG-XL-Patent|needs brotli+highway+lcms2; C++; build: -DJPEGXL_ENABLE_SKCMS=OFF -DJPEGXL_FORCE_SYSTEM_LCMS2=ON -DJPEGXL_FORCE_SYSTEM_BROTLI=ON -DJPEGXL_FORCE_SYSTEM_HWY=ON; git pin
 libvmaf|v3.2.1|https://github.com/Netflix/vmaf.git|COMMIT=f85a853692a8c730d0270cd733c8bb30b5b93b7c|Apache-2.0|build: meson; git pin
 
-# ---- subtitles / text / disc / teletext ----
+# ---- subtitles / text / disc ----
 libass|0.17.5|https://github.com/libass/libass.git|COMMIT=4a05d8127f525943ebf45fdc6497c9e665947f0d|ISC|needs unibreak+freetype+fribidi+harfbuzz; CoreText font provider; git pin
-libaribb24|v1.0.4|https://code.videolan.org/jeeb/aribb24.git|COMMIT=a41b904d66ed991ace32a9827f629db3d438b47b|NOASSERTION|relink materials; git pin
+libaribb24|v1.0.4|https://code.videolan.org/jeeb/aribb24.git|COMMIT=a41b904d66ed991ace32a9827f629db3d438b47b|LGPL-2.1-or-later|relink materials; git pin
 libaribcaption|v1.1.2|https://github.com/xqq/libaribcaption.git|COMMIT=c64c23b8905ba514b87c9789269e9f66f949ffe0|MIT|git pin
 libbluray|1.5.1|https://code.videolan.org/videolan/libbluray.git|COMMIT=a24f4fad4d62893de647abc8671397747b2359dd|LGPL-2.1-or-later|relink materials; needs external libudfread >= 1.2.0 (meson subproject; submodule not in archive); git pin
 libdvdread|7.1.1|https://code.videolan.org/videolan/libdvdread.git|COMMIT=8e43bfea6cc731f48902ce55e41c540b497b6a84|GPL-2.0-or-later|git pin
 libdvdnav|7.0.0|https://code.videolan.org/videolan/libdvdnav.git|COMMIT=38238caf599dc9405eddf1531c858c725015f776|GPL-2.0-or-later|git pin
-zvbi|v0.2.44|https://github.com/zapping-vbi/zvbi.git|COMMIT=5169a428d51c3ae8ff7b0897e8a687d8e05e37b5|GPL-2.0-or-later AND GPL-2.0-only AND LGPL-2.0-or-later AND LGPL-2.1-or-later AND MIT AND BSD-2-Clause AND (GPL-2.0-or-later OR BSD-3-Clause)|pkg zvbi-0.2; git pin
 
 # ---- network / messaging ----
 libssh|libssh-0.11.5|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601|LGPL-2.1-or-later|relink materials; crypto: OpenSSL 3; git pin

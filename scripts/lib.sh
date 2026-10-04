@@ -91,19 +91,24 @@ fetch() {
   hash=$(printf '%s' "$p" | cut -d'|' -f3)
   dest="$SRC/$name"
 
-  case "$hash" in
-    COMMIT=*)
-      sha=${hash#COMMIT=}
-      fetch_commit "$name" "$version" "$url" "$sha" \
-        || { echo "ERROR: $name commit mismatch" >&2; exit 1; }
-      ;;
-    *)
-      download "$name"
-      file="$DL/$name-$version.tarball"
-      rm -rf "$dest"; mkdir -p "$dest"
-      tar -xf "$file" -C "$dest" --strip-components=1
-      ;;
-  esac
+  if [ -n "${SOURCE_PACKAGE:-}" ]; then
+    uv run python "$HERE/release_sources.py" extract --package "$SOURCE_PACKAGE" \
+      --name "$name" --destination "$dest"
+  else
+    case "$hash" in
+      COMMIT=*)
+        sha=${hash#COMMIT=}
+        fetch_commit "$name" "$version" "$url" "$sha" \
+          || { echo "ERROR: $name commit mismatch" >&2; exit 1; }
+        ;;
+      *)
+        download "$name"
+        file="$DL/$name-$version.tarball"
+        rm -rf "$dest"; mkdir -p "$dest"
+        tar -xf "$file" -C "$dest" --strip-components=1
+        ;;
+    esac
+  fi
 
   # generic: drop the bare -Werror promotion from CMake build files (clang trips
   # on the GCC-targeted warnings these projects enable with -Wall; libxeve adds
