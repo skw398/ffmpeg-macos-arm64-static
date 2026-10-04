@@ -13,7 +13,6 @@
 #              failure — the configure-time check still covers the library)
 libaom|list|encoders|libaom-av1
 libvpx|list|encoders|libvpx-vp9
-libzvbi|list|decoders|libzvbi_teletextdec
 libssh|list|protocols|sftp
 libsrt|list|protocols|srt
 librist|list|protocols|rist

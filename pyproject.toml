@@ -5,6 +5,8 @@
 name = "ffmpeg-macos-arm64-static-tools"
 version = "0"
 requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
 
 [tool.uv]
 # scripts only, not an installable package

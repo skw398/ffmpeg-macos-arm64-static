@@ -34,6 +34,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       clean_build: true
+      release_sources: true
       artifact_name: ffmpeg-macos-arm64-release
     permissions:
       contents: read
@@ -90,6 +91,9 @@ jobs:
           cp -R "$assets/." "$name/share/"
           tar -cJf "$name.tar.xz" "$name"
           rm -rf "$name"
+          sources=$(find dist -type f -name ffmpeg-macos-arm64-sources.tar.xz | head -1)
+          [ -f "$sources" ] || { echo "ERROR: source package not found under dist" >&2; exit 1; }
+          cp "$sources" "$name-sources.tar.xz"
 
       - name: Generate the SBOM
         run: |
@@ -106,7 +110,8 @@ jobs:
         run: |
           uv run python scripts/verify-release-package.py \
             --archive "ffmpeg-macos-arm64-static-$VERSION.tar.xz" \
-            --sbom "ffmpeg-macos-arm64-static-$VERSION.spdx.json"
+            --sbom "ffmpeg-macos-arm64-static-$VERSION.spdx.json" \
+            --sources "ffmpeg-macos-arm64-static-$VERSION-sources.tar.xz"
 
       - name: Upload release package
         uses: actions/upload-artifact@v7.0.1
@@ -140,6 +145,7 @@ jobs:
         run: |
           set -eu
           assets="ffmpeg-macos-arm64-static-$VERSION.tar.xz \
+                  ffmpeg-macos-arm64-static-$VERSION-sources.tar.xz \
                   ffmpeg-macos-arm64-static-$VERSION.spdx.json SHA256SUMS"
           if [ -n "${NOTES:-}" ]; then
             gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" \

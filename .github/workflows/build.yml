@@ -19,6 +19,10 @@ on:
       cold_build:
         type: boolean
         default: false
+      release_sources:
+        description: Collect fixed sources for release packaging
+        type: boolean
+        default: false
       artifact_name:
         description: Name of the uploaded build artifact
         type: string
@@ -43,4 +47,5 @@ jobs:
         with:
           clean_build: ${{ inputs.clean_build }}
           cold_build: ${{ inputs.cold_build }}
+          release_sources: ${{ inputs.release_sources }}
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}

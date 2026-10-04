@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""make-sbom.py — generate an SPDX 2.3 SBOM for a release from deps.txt.
+"""make-sbom.py — generate an SPDX 2.3 SBOM from source pins and reviewed upstream declarations.
 
 The release is a statically linked ffmpeg, so the pinned dependencies are part of
 the artifact. This lists them (name, version, license, source, checksum) so a
@@ -11,26 +11,14 @@ Usage: python3 scripts/make-sbom.py --name <artifact name> --out <file>
 import argparse
 import datetime
 import json
-import os
 import re
 import sys
 import uuid
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEPS = os.path.join(ROOT, "deps.txt")
+from build_data import DATA, ROOT, read_pins, read_licenses
+
+DEPS = ROOT / "deps.txt"
 REPO = "https://github.com/skw398/ffmpeg-macos-arm64-static"
-
-
-def read_deps(path):
-    rows = []
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            if not re.match(r"^[A-Za-z0-9]", line):
-                continue
-            parts = (line.rstrip("\n").split("|") + [""] * 5)[:5]
-            rows.append({"name": parts[0], "version": parts[1], "url": parts[2],
-                         "checksum": parts[3], "license": parts[4]})
-    return rows
 
 
 def spdx_id(name):
@@ -40,14 +28,18 @@ def spdx_id(name):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--deps", default=DEPS)
+    ap.add_argument("--licenses", default=DATA / "licenses.json")
     ap.add_argument("--name", default="ffmpeg-macos-arm64-static")
     ap.add_argument("--out", default="-", help="output file ('-' = stdout)")
     args = ap.parse_args()
 
-    rows = read_deps(args.deps)
-    if not rows:
-        print("ERROR: no dependencies found", file=sys.stderr)
+    try:
+        pins = read_pins(args.deps)
+        licenses = read_licenses(pins, args.licenses)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print(f"ERROR: cannot generate SBOM: {error}", file=sys.stderr)
         return 1
+    rows = list(pins.values())
 
     created = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     main_pkg = rows[0]
@@ -55,30 +47,25 @@ def main():
     relationships = []
     for index, r in enumerate(rows):
         pkg = {
-            "SPDXID": spdx_id(r["name"]),
-            "name": r["name"],
-            "versionInfo": r["version"],
-            "downloadLocation": r["url"] or "NOASSERTION",
+            "SPDXID": spdx_id(r.name),
+            "name": r.name,
+            "versionInfo": r.version,
+            "downloadLocation": r.url or "NOASSERTION",
             "filesAnalyzed": False,
             "licenseConcluded": "NOASSERTION",
-            # deps.txt contains review notes, not audited SPDX expressions.
-            "licenseDeclared": "NOASSERTION",
+            "licenseDeclared": r.license,
             "copyrightText": "NOASSERTION",
         }
-        pkg["licenseComments"] = (
-            "SPDX license expression has not been audited. "
-            + (f"License note from deps.txt: {r['license']}" if r["license"]
-               else "No license note in deps.txt.")
-        )
-        if r["checksum"].startswith("COMMIT="):
-            pkg["sourceInfo"] = r["checksum"]
-        elif re.fullmatch(r"[0-9a-fA-F]{64}", r["checksum"]):
-            pkg["checksums"] = [{"algorithm": "SHA256", "checksumValue": r["checksum"].lower()}]
+        pkg["licenseComments"] = licenses["packages"][r.name]["comment"]
+        if r.checksum.startswith("COMMIT="):
+            pkg["sourceInfo"] = r.checksum
+        elif re.fullmatch(r"[0-9a-fA-F]{64}", r.checksum):
+            pkg["checksums"] = [{"algorithm": "SHA256", "checksumValue": r.checksum.lower()}]
         packages.append(pkg)
         if index:
             relationships.append({
-                "spdxElementId": spdx_id(main_pkg["name"]),
-                "relatedSpdxElement": spdx_id(r["name"]),
+                "spdxElementId": spdx_id(main_pkg.name),
+                "relatedSpdxElement": spdx_id(r.name),
                 "relationshipType": "CONTAINS",
             })
 
@@ -88,11 +75,13 @@ def main():
         "SPDXID": "SPDXRef-DOCUMENT",
         "name": args.name,
         "documentNamespace": f"{REPO}/spdx/{uuid.uuid4()}",
-        "creationInfo": {"created": created, "creators": ["Tool: make-sbom.py"]},
+        "creationInfo": {"created": created, "creators": ["Tool: make-sbom.py"],
+                         "licenseListVersion": licenses["licenseListVersion"]},
+        "hasExtractedLicensingInfos": licenses["extractedLicensingInfo"],
         "packages": packages,
         "relationships": [{
             "spdxElementId": "SPDXRef-DOCUMENT",
-            "relatedSpdxElement": spdx_id(main_pkg["name"]),
+            "relatedSpdxElement": spdx_id(main_pkg.name),
             "relationshipType": "DESCRIBES",
         }] + relationships,
     }

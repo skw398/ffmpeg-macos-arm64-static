@@ -73,7 +73,7 @@ set -- \
   --enable-libwebp --enable-libopenjpeg --enable-libzimg --enable-libjxl --enable-libvmaf \
   --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz \
   --enable-libaribb24 --enable-libaribcaption --enable-libbluray \
-  --enable-libdvdread --enable-libdvdnav --enable-libzvbi \
+  --enable-libdvdread --enable-libdvdnav --disable-libzvbi \
   --enable-libssh --enable-libsrt --enable-librist --enable-libzmq --enable-librabbitmq \
   --enable-libqrencode --enable-libquirc --enable-libtesseract --enable-libcaca --enable-libflite \
   --enable-videotoolbox --enable-audiotoolbox --enable-avfoundation \
