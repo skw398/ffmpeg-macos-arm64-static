@@ -14,6 +14,7 @@ import json
 import os
 import re
 import sys
+import uuid
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEPS = os.path.join(ROOT, "deps.txt")
@@ -60,9 +61,15 @@ def main():
             "downloadLocation": r["url"] or "NOASSERTION",
             "filesAnalyzed": False,
             "licenseConcluded": "NOASSERTION",
-            "licenseDeclared": r["license"] or "NOASSERTION",
+            # deps.txt contains review notes, not audited SPDX expressions.
+            "licenseDeclared": "NOASSERTION",
             "copyrightText": "NOASSERTION",
         }
+        pkg["licenseComments"] = (
+            "SPDX license expression has not been audited. "
+            + (f"License note from deps.txt: {r['license']}" if r["license"]
+               else "No license note in deps.txt.")
+        )
         if r["checksum"].startswith("COMMIT="):
             pkg["sourceInfo"] = r["checksum"]
         elif re.fullmatch(r"[0-9a-fA-F]{64}", r["checksum"]):
@@ -80,7 +87,7 @@ def main():
         "dataLicense": "CC0-1.0",
         "SPDXID": "SPDXRef-DOCUMENT",
         "name": args.name,
-        "documentNamespace": f"{REPO}/spdx/{args.name}",
+        "documentNamespace": f"{REPO}/spdx/{uuid.uuid4()}",
         "creationInfo": {"created": created, "creators": ["Tool: make-sbom.py"]},
         "packages": packages,
         "relationships": [{

@@ -86,6 +86,16 @@ jobs:
       - name: Checksums
         run: sha256sum ./*.tar.xz ./*.spdx.json > SHA256SUMS
 
+      - name: Upload release package
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ffmpeg-macos-arm64-release-package
+          if-no-files-found: error
+          path: |
+            *.tar.xz
+            *.spdx.json
+            SHA256SUMS
+
       - name: Attest build provenance
         if: ${{ !inputs.dry_run }}
         uses: actions/attest@v4
