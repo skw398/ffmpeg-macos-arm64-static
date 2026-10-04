@@ -26,7 +26,7 @@ PATCHES="$HERE/data/patches.txt"
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
 # the data flags, so a flag that lives in code needs this to take effect)
-RECIPE_REV=9
+RECIPE_REV=10
 
 . "$HERE/lib.sh"
 export CC="${CC:-clang}"

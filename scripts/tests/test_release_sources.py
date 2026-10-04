@@ -4,6 +4,7 @@ import contextlib
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -113,6 +114,33 @@ class ReleaseSourcesTest(unittest.TestCase):
         (self.package / "cargo/fixture/vendor/crate-1.0/LICENSE").write_text("changed")
         with self.assertRaisesRegex(ValueError, "Cargo source checksum mismatch"):
             sources.extract(self.package, self.pin, self.destination)
+
+    def test_source_preparation_preserves_vendored_cmake_checksums(self):
+        # Only extract and edit fixture data: no configure, compiler or Cargo.
+        cmake = b"add_compile_options(-Wall -Werror -Werror=return-type)\n"
+        vendor = ".cargo-vendor/libgit2-sys-1.0/libgit2"
+        checksums = {"files": {"libgit2/CMakeLists.txt": hashlib.sha256(cmake).hexdigest(),
+                               "libgit2/modules/warnings.cmake": hashlib.sha256(cmake).hexdigest()},
+                     "package": None}
+        data = archive_bytes({"fixture/CMakeLists.txt": cmake, "fixture/modules/warnings.cmake": cmake,
+                              f"fixture/{vendor}/CMakeLists.txt": cmake,
+                              f"fixture/{vendor}/modules/warnings.cmake": cmake,
+                              "fixture/.cargo-vendor/libgit2-sys-1.0/.cargo-checksum.json": json.dumps(checksums).encode()})
+        downloads = self.root / "downloads"
+        downloads.mkdir()
+        (downloads / "fixture-tag.tarball").write_bytes(data)
+        pins = self.root / "deps.txt"
+        pins.write_text(f"fixture|tag|https://example.invalid/fixture|{hashlib.sha256(data).hexdigest()}|MIT\n")
+        subprocess.run(["sh", "-eu", "-c",
+                        'HERE="$1"; PINS="$2"; SRC="$3"; DL="$4"; . "$HERE/lib.sh"; fetch fixture',
+                        "fixture", str(sources.ROOT / "scripts"), str(pins), str(self.destination.parent), str(downloads)],
+                       env=os.environ | {"SOURCE_PACKAGE": ""}, check=True, capture_output=True)
+        expected = b"add_compile_options(-Wall -Werror=return-type)\n"
+        self.assertEqual((self.destination / "CMakeLists.txt").read_bytes(), expected)
+        self.assertEqual((self.destination / "modules/warnings.cmake").read_bytes(), expected)
+        crate = self.destination / ".cargo-vendor/libgit2-sys-1.0"
+        for name, checksum in json.loads((crate / ".cargo-checksum.json").read_text())["files"].items():
+            self.assertEqual(sources.digest(crate / name), checksum, name)
 
     def test_collect_uses_commit_snapshot_and_excludes_maintenance(self):
         project = self.root / "project"

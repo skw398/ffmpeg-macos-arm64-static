@@ -116,10 +116,13 @@ fetch() {
   # branch). Keep -Werror=<warning> / -Werror-<warning>: those are specific
   # diagnostics that are often passed as data (e.g. check_c_compiler_flag
   # arguments), where removing them would corrupt the CMake code. Report the
-  # count for build diagnostics.
-  n=$(find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+  # count for build diagnostics. Cargo verifies vendored sources against their
+  # packaged checksums, so never edit files inside .cargo-vendor.
+  n=$(find "$dest" -maxdepth 5 -type d -name '.cargo-vendor' -prune -o \
+        -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
         -exec grep -hoE ' ?-Werror(?![=\w,-])' {} + 2>/dev/null | wc -l | tr -d ' ')
   if [ "$n" -gt 0 ]; then echo "== patch: cmake -Werror strip: $n occurrence(s)"; fi
-  find "$dest" -maxdepth 5 -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
+  find "$dest" -maxdepth 5 -type d -name '.cargo-vendor' -prune -o \
+    -type f \( -name 'CMakeLists.txt' -o -name '*.cmake' \) \
     -exec perl -pi -e 's/ ?-Werror(?![=\w,-])//g' {} + 2>/dev/null || true
 }
