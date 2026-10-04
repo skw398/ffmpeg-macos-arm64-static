@@ -6,14 +6,124 @@ on:
   workflow_call:
     inputs:
       task:
-        description: audit or updates
+        description: audit, updates or sources
         type: string
         required: true
+      source_run:
+        description: Completed release run ID to rebuild
+        type: string
+        default: ""
 
 permissions:
   contents: read
 
 jobs:
+  source-rebuild:
+    if: inputs.task == 'sources'
+    runs-on: macos-26
+    timeout-minutes: 350
+    defaults:
+      run:
+        shell: bash
+    permissions:
+      contents: read
+      actions: read
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Check the source run input and architecture
+        env:
+          SOURCE_RUN: ${{ inputs.source_run }}
+        run: |
+          case "$SOURCE_RUN" in ''|*[!0-9]*) echo 'ERROR: source_run must be a run ID' >&2; exit 1 ;; esac
+          test "$(uname -m)" = arm64
+          {
+            echo "TOOLS=$RUNNER_TEMP/source-rebuild-tools"
+            echo "CARGO_HOME=$RUNNER_TEMP/source-rebuild-tools/cargo"
+            echo "RUSTUP_HOME=$RUNNER_TEMP/source-rebuild-tools/rustup"
+            echo "UV_PYTHON_INSTALL_DIR=$RUNNER_TEMP/source-rebuild-tools/uv/python"
+          } >> "$GITHUB_ENV"
+      - name: Download the completed release package
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg-macos-arm64-release-package
+          path: source-artifact
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.source_run }}
+      - name: Bootstrap pinned Python
+        env:
+          UV_VERSION: "0.12.22"
+          UV_SHA256: "5d714de09501a59393ceca78f4bc232a50478729640d251907160299b2a93ddd"
+        run: |
+          uv_dir="$TOOLS/uv-$UV_VERSION"
+          mkdir -p "$uv_dir"
+          curl -sSL --fail -o "$RUNNER_TEMP/uv.tar.gz" \
+            "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-aarch64-apple-darwin.tar.gz"
+          echo "$UV_SHA256  $RUNNER_TEMP/uv.tar.gz" | shasum -a 256 -c -
+          tar -xzf "$RUNNER_TEMP/uv.tar.gz" -C "$uv_dir" --strip-components=1
+          echo "$uv_dir" >> "$GITHUB_PATH"
+          "$uv_dir/uv" python install
+      - name: Check the source preparation helper
+        run: uv run python -m unittest discover -s scripts/maintenance/tests
+      - name: Verify and unpack sources outside the checkout
+        id: sources
+        run: |
+          uv run python scripts/maintenance/prepare-source-rebuild.py \
+            --artifacts source-artifact --out "$RUNNER_TEMP/source-rebuild"
+      - name: Select the bundled Xcode version
+        run: |
+          app="/Applications/Xcode_${XCODE_VERSION}.app"
+          if [ ! -d "$app" ]; then
+            app=$(ls -d /Applications/Xcode_${XCODE_VERSION}*.app 2>/dev/null | head -n1 || true)
+          fi
+          [ -d "$app" ] || { echo "ERROR: Xcode $XCODE_VERSION is unavailable" >&2; exit 1; }
+          sudo xcode-select -s "$app"
+          xcodebuild -version
+      - name: Install remaining build tools
+        run: |
+          missing=""
+          for tool in nasm pkgconf autoconf automake libtool gettext perl; do
+            brew list --formula "$tool" >/dev/null 2>&1 || missing="$missing $tool"
+          done
+          if [ -n "$missing" ]; then brew install $missing; fi
+      - name: Install the bundled pinned toolchain
+        working-directory: ${{ steps.sources.outputs.project }}
+        run: sh scripts/install-toolchain.sh
+      - name: Remove tool-installation crate caches
+        run: rm -rf "$CARGO_HOME/registry" "$CARGO_HOME/git"
+      - name: Rebuild and verify using only bundled project and sources
+        working-directory: ${{ steps.sources.outputs.project }}
+        env:
+          CARGO_NET_OFFLINE: "true"
+        run: |
+          mkdir -p build
+          sh scripts/record-toolchain.sh | tee build/toolchain-versions.txt
+          uv run python scripts/verify-build-flags.py
+          sh scripts/build-deps.sh
+          uv run python scripts/report-ambient-deps.py
+          sh scripts/build-ffmpeg.sh --no-chromaprint
+          sh scripts/build-chromaprint.sh
+          sh scripts/build-ffmpeg.sh
+          libs=$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' scripts/data/adopted-libs.txt | tr '\n' ' ')
+          uv run python scripts/lib-consumers.py --check --config-header build/src/ffmpeg $libs
+          uv run python scripts/lib-consumers.py --check --binary build/prefix/bin/ffmpeg $libs
+          sh scripts/verify-buildconf.sh
+          sh scripts/verify-build.sh
+          uv run python scripts/collect-release-assets.py
+      - name: Upload rebuild results
+        if: ${{ always() && steps.sources.outputs.project != '' }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ffmpeg-macos-arm64-source-rebuild
+          path: |
+            ${{ steps.sources.outputs.project }}/build/prefix/bin/ffmpeg
+            ${{ steps.sources.outputs.project }}/build/prefix/bin/ffprobe
+            ${{ steps.sources.outputs.project }}/build/prefix/bin/ffplay
+            ${{ steps.sources.outputs.project }}/build/artifacts
+            ${{ steps.sources.outputs.project }}/build/logs
+            ${{ steps.sources.outputs.project }}/build/toolchain-versions.txt
+
   audit:
     if: inputs.task == 'audit'
     runs-on: macos-26

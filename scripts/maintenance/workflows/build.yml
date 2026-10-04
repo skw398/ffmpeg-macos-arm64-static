@@ -7,8 +7,12 @@ on:
       task:
         description: Task on the development branch
         type: choice
-        options: [build, audit, updates]
+        options: [build, audit, updates, sources]
         default: build
+      source_run:
+        description: Completed release run ID to rebuild (task=sources)
+        type: string
+        default: ""
       clean_build:
         description: Ignore build-output caches
         type: boolean
@@ -58,7 +62,11 @@ jobs:
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
 
   maintenance:
-    if: inputs.task == 'audit' || inputs.task == 'updates'
+    if: inputs.task == 'audit' || inputs.task == 'updates' || inputs.task == 'sources'
     uses: ./.github/workflows/maintenance.yml
+    permissions:
+      contents: read
+      actions: read
     with:
       task: ${{ inputs.task }}
+      source_run: ${{ inputs.source_run }}
