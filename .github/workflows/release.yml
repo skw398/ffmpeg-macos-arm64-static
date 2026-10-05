@@ -40,14 +40,12 @@ jobs:
       contents: read
       actions: read
 
-  release:
+  package:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write       # create the tag and the Release
-      id-token: write       # sign the attestations (Sigstore)
-      attestations: write   # store the attestations
+      contents: read
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -124,21 +122,86 @@ jobs:
             *.spdx.json
             SHA256SUMS
 
+  # Execute the exact packaged binaries on Apple Silicon before publishing.
+  verify-runtime:
+    needs: package
+    runs-on: macos-26
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Download release package
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg-macos-arm64-release-package
+          path: dist
+
+      - name: Verify packaged binaries
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -eu
+          test "$(uname -m)" = arm64
+          name="ffmpeg-macos-arm64-static-$VERSION"
+          stage="$RUNNER_TEMP/release-runtime"
+          mkdir -p "$stage"
+          # The package job already checked paths, modes and file checksums.
+          # Do not chmod here: the archive itself must preserve executability.
+          (cd dist && shasum -a 256 -c SHA256SUMS)
+          tar -xJf "dist/$name.tar.xz" -C "$stage"
+          verify="$GITHUB_WORKSPACE/scripts/verify-build.sh"
+          cd "$stage"
+          # No build prefix is installed in this job. Remove library-path
+          # overrides and use only Apple system tools for the smoke checks.
+          unset DYLD_LIBRARY_PATH DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
+          unset DYLD_FALLBACK_FRAMEWORK_PATH DYLD_INSERT_LIBRARIES
+          export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+          export PREFIX="$stage/$name"
+          export OUT="$RUNNER_TEMP/release-runtime-logs"
+          sh "$verify"
+
+      - name: Upload packaged binary verification logs
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ffmpeg-macos-arm64-release-runtime
+          path: ${{ runner.temp }}/release-runtime-logs
+          if-no-files-found: warn
+
+  release:
+    needs: [package, verify-runtime]
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write       # create the tag and the Release
+      id-token: write       # sign the attestations (Sigstore)
+      attestations: write   # store the attestations
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Download verified release package
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg-macos-arm64-release-package
+
+      - name: Check downloaded assets
+        run: sha256sum -c SHA256SUMS
+
       - name: Attest build provenance
-        if: ${{ !inputs.dry_run }}
         uses: actions/attest@v4
         with:
           subject-checksums: SHA256SUMS
 
       - name: Attest the SBOM
-        if: ${{ !inputs.dry_run }}
         uses: actions/attest@v4
         with:
           subject-path: ffmpeg-macos-arm64-static-${{ inputs.version }}.tar.xz
           sbom-path: ffmpeg-macos-arm64-static-${{ inputs.version }}.spdx.json
 
       - name: Create the release
-        if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
@@ -159,7 +222,7 @@ jobs:
   # Feature-only job fragment, appended to the normal release workflow.
   # The uploaded source package is rebuilt after successful dry-run packaging.
   source-rebuild:
-    needs: release
+    needs: [package, verify-runtime]
     if: inputs.dry_run
     uses: ./.github/workflows/maintenance.yml
     permissions:

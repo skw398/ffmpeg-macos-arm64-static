@@ -2,7 +2,7 @@
   # Feature-only job fragment, appended to the normal release workflow.
   # The uploaded source package is rebuilt after successful dry-run packaging.
   source-rebuild:
-    needs: release
+    needs: [package, verify-runtime]
     if: inputs.dry_run
     uses: ./.github/workflows/maintenance.yml
     permissions:
