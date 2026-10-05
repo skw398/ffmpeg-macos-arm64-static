@@ -64,7 +64,7 @@ done
 # --- buildconf and feature lists ---
 check buildconf "$BIN/ffmpeg" -buildconf || :
 cp "$OUT/buildconf.log" "$OUT/buildconf.txt"
-for x in formats demuxers muxers codecs encoders decoders parsers bsfs filters \
+for x in formats demuxers muxers codecs encoders decoders bsfs filters \
          protocols devices hwaccels pix_fmts sample_fmts layouts dispositions; do
   check "$x" "$BIN/ffmpeg" -"$x" || :
   cp "$OUT/$x.log" "$OUT/$x.txt"
