@@ -4,6 +4,9 @@ Unofficial FFmpeg builds for macOS on Apple Silicon, including `ffmpeg`,
 `ffprobe` and `ffplay`. Third-party libraries are linked statically; runtime
 dynamic dependencies are limited to Apple system libraries and frameworks.
 
+> [!NOTE]
+> This project is under active development. Builds are provided as-is, without warranty.
+
 Download binaries, matching source archives, SBOMs and checksums from
 [Releases](https://github.com/skw398/ffmpeg-macos-arm64-static/releases).
 
