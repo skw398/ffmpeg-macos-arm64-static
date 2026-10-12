@@ -61,76 +61,51 @@ jobs:
           release_sources: ${{ inputs.release_sources }}
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
 
-      # Temporary: verify removal of the archive-flattening workaround.
-      - name: Verify EVC static archive search paths
-        shell: bash
-        run: |
-          prefix="$GITHUB_WORKSPACE/build/prefix"
-          export PKG_CONFIG_PATH=""
-          export PKG_CONFIG_LIBDIR="$prefix/lib/pkgconfig"
-          for library in xeve xevd; do
-            test -f "$prefix/lib/$library/lib$library.a"
-            test ! -e "$prefix/lib/lib$library.a"
-            flags=$(pkg-config --static --libs "$library")
-            printf '%s: %s\n' "$library" "$flags"
-            case " $flags " in
-              *" -L$prefix/lib/$library "*) ;;
-              *) echo "ERROR: missing static archive search path for $library" >&2; exit 1 ;;
-            esac
-          done
-
-      # Temporary: check the specific integration changes when adopting OpenSSL 4.
-      - name: Verify OpenSSL 4 adoption
+      # Temporary: verify the libpng version and removal of shared framework output.
+      - name: Verify libpng adoption
         shell: bash
         run: |
           set -o pipefail
-          uv run python - <<'PY' | tee build/logs/openssl4-adoption.log
+          uv run python - <<'PY' | tee build/logs/libpng-adoption.log
           from pathlib import Path
           import os
           import re
+          import shlex
           import subprocess
 
           prefix = Path("build/prefix").resolve()
-          version = "4.0.3"
-          def run(*args, **kwargs):
-              return subprocess.check_output(args, text=True, **kwargs).strip()
-          text = run(str(prefix / "bin/openssl"), "version")
-          assert text.startswith(f"OpenSSL {version} "), text
-          print(text)
-          header = (prefix / "include/openssl/opensslv.h").read_text()
-          assert re.search(r'#\s*define\s+OPENSSL_VERSION_STR\s+"' + re.escape(version) + '"', header)
-          env = {"PATH": os.environ["PATH"], "PKG_CONFIG_PATH": "",
-                 "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
-          assert run("pkg-config", "--modversion", "openssl", env=env) == version
-          print("OpenSSL installed headers and pkg-config match:", version)
-          for name in ("libssh", "librabbitmq"):
-              cache = Path(f"build/src/{name}/.build/CMakeCache.txt").read_text()
-              for variable, expected in (("OPENSSL_INCLUDE_DIR", prefix / "include"),
-                                         ("OPENSSL_CRYPTO_LIBRARY", prefix / "lib/libcrypto.a")):
-                  match = re.search(r"^" + variable + r":[^=]+=(.*)$", cache, re.M)
-                  assert match and Path(match[1]).resolve() == expected, (name, variable, match)
-              print(name, "uses prefix OpenSSL headers and static crypto library")
-          for name, relative, macro in (
-              ("libssh", "config.h", "WITH_PKCS11_URI"),
-              ("librabbitmq", "librabbitmq/config.h", "ENABLE_SSL_ENGINE_API"),
-          ):
-              config = Path(f"build/src/{name}/.build/{relative}").read_text()
-              assert not re.search(r"^\s*#\s*define\s+" + macro + r"\b", config, re.M), (name, macro)
-              print(name, macro, "is disabled by upstream configuration")
-              archive = prefix / "lib" / ("libssh.a" if name == "libssh" else "librabbitmq.a")
-              undefined = run("nm", "-u", str(archive))
-              assert not re.search(r"\b_ENGINE_\w+", undefined), name
-              print(name, "has no undefined ENGINE API symbols")
-          cache = Path("build/src/libsrt/.build/CMakeCache.txt").read_text()
-          assert re.search(r"^USE_ENCLIB:[^=]+=openssl-evp$", cache, re.M)
-          print("SRT keeps its adopted OpenSSL EVP backend")
+          build = Path("build/src/libpng/.build")
+          version = "1.6.59"
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(*args):
+              return subprocess.check_output(["pkg-config", *args], text=True, env=env).strip()
+          assert pkg("--modversion", "libpng") == version
+          assert Path(pkg("--variable=prefix", "libpng")).resolve() == prefix
+          header = (prefix / "include/png.h").read_text()
+          assert re.search(r'#\s*define\s+PNG_LIBPNG_VER_STRING\s+"' + re.escape(version) + '"', header)
+          assert (prefix / "lib/libpng16.a").is_file()
+          print("libpng installed headers, pkg-config and static archive match:", version)
+          cache = (build / "CMakeCache.txt").read_text()
+          for option, expected in (("PNG_SHARED", "OFF"), ("PNG_FRAMEWORK", "OFF"), ("PNG_STATIC", "ON")):
+              assert re.search(r"^" + option + r":BOOL=" + expected + r"$", cache, re.M), option
+              print(option, "=", expected)
+          assert not list(build.rglob("*.framework")), "framework exists in libpng build tree"
+          assert not list(prefix.rglob("png.framework")), "png.framework exists in install prefix"
+          assert not list((prefix / "lib").glob("libpng*.dylib")), "libpng dylib exists in install prefix"
+          print("No libpng framework output in build tree or install prefix")
+          flags = shlex.split(pkg("--static", "--libs", "aribb24"))
+          assert "-lpng16" in flags, flags
+          assert "-L" + str(prefix / "lib") in flags, flags
+          undefined = subprocess.check_output(["nm", "-u", str(prefix / "lib/libaribb24.a")], text=True)
+          assert re.search(r"\b_png_write_image\b", undefined), "libaribb24 PNG writer reference missing"
+          print("libaribb24 keeps its PNG writer and prefix static link flags:", " ".join(flags))
           PY
-      - name: Upload OpenSSL adoption check
+      - name: Upload libpng adoption check
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: openssl4-adoption-check
-          path: build/logs/openssl4-adoption.log
+          name: libpng-adoption-check
+          path: build/logs/libpng-adoption.log
           if-no-files-found: ignore
 
   maintenance:

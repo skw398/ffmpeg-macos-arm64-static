@@ -118,12 +118,12 @@
       ]
     },
     "libpng": {
-      "version": "1.6.44",
-      "checksum": "8c25a7792099a0089fa1cc76c94260d0bb3f1ec52b93671b572f8bb61577b732",
+      "version": "1.6.59",
+      "checksum": "86a3e4b501f7f50e392c4e456ea158893e9a595b1c63eb88c7bb9f6cf8772dad",
       "expression": "libpng-2.0",
       "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
       "evidence": {
-        "LICENSE": "7317e078e2d3b5d7ba5a6159e650945153262b44b76f6700f8e9edb261c5143e"
+        "LICENSE": "bdb0a645ea18c60507d0368379b1ac5474b92255fcc2d115e07486a7672ba526"
       },
       "licenseFiles": [
         "LICENSE"

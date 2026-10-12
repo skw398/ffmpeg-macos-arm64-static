@@ -22,7 +22,7 @@ libtheora|1.2.0|https://downloads.xiph.org/releases/theora/libtheora-1.2.0.tar.g
 libunibreak|libunibreak_8_0|https://github.com/adah1972/libunibreak.git|COMMIT=28a2756b864c343f438cd22537d49d394d4666a5|Zlib|parent: libass (mandatory since 0.17); git pin
 freetype|2.14.3|https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.xz|36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f|FTL OR GPL-2.0-or-later|parent: libass/drawtext
 fribidi|v1.0.17|https://github.com/fribidi/fribidi.git|COMMIT=b93119f5fdc7ea47672cc304c1455ffa6dfe7536|LGPL-2.1-or-later|parent: libass/drawtext; git pin
-libpng|1.6.44|https://download.sourceforge.net/libpng/libpng-1.6.44.tar.gz|8c25a7792099a0089fa1cc76c94260d0bb3f1ec52b93671b572f8bb61577b732|libpng-2.0|parent: libaribb24/harfbuzz-raster; static only (Homebrew's dylib must not be linked)
+libpng|1.6.59|https://download.sourceforge.net/libpng/libpng-1.6.59.tar.gz|86a3e4b501f7f50e392c4e456ea158893e9a595b1c63eb88c7bb9f6cf8772dad|libpng-2.0|parent: libaribb24/harfbuzz-raster; static only (Homebrew's dylib must not be linked)
 harfbuzz|14.5.0|https://github.com/harfbuzz/harfbuzz.git|COMMIT=863d3f7787c6df18d20e4535c5906bf3eb803bd5|MIT-Modern-Variant|parent: libass/drawtext; build: meson; git pin
 brotli|v1.2.0|https://github.com/google/brotli.git|COMMIT=028fb5a23661f123017c060daa546b55cf4bde29|MIT|parent: libjxl; git pin
 highway|1.4.0|https://github.com/google/highway.git|COMMIT=2607d3b5b0113992fe84d3848859eae13b3b52c1|(Apache-2.0 OR BSD-3-Clause) AND CC0-1.0|parent: libjxl; build: cmake; git pin
