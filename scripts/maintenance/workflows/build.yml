@@ -79,6 +79,60 @@ jobs:
             esac
           done
 
+      # Temporary: check the specific integration changes when adopting OpenSSL 4.
+      - name: Verify OpenSSL 4 adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PY' | tee build/logs/openssl4-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          version = "4.0.3"
+          def run(*args, **kwargs):
+              return subprocess.check_output(args, text=True, **kwargs).strip()
+          text = run(str(prefix / "bin/openssl"), "version")
+          assert text.startswith(f"OpenSSL {version} "), text
+          print(text)
+          header = (prefix / "include/openssl/opensslv.h").read_text()
+          assert re.search(r'#\s*define\s+OPENSSL_VERSION_STR\s+"' + re.escape(version) + '"', header)
+          env = {"PATH": os.environ["PATH"], "PKG_CONFIG_PATH": "",
+                 "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          assert run("pkg-config", "--modversion", "openssl", env=env) == version
+          print("OpenSSL installed headers and pkg-config match:", version)
+          for name in ("libssh", "librabbitmq"):
+              cache = Path(f"build/src/{name}/.build/CMakeCache.txt").read_text()
+              for variable, expected in (("OPENSSL_INCLUDE_DIR", prefix / "include"),
+                                         ("OPENSSL_CRYPTO_LIBRARY", prefix / "lib/libcrypto.a")):
+                  match = re.search(r"^" + variable + r":[^=]+=(.*)$", cache, re.M)
+                  assert match and Path(match[1]).resolve() == expected, (name, variable, match)
+              print(name, "uses prefix OpenSSL headers and static crypto library")
+          for name, relative, macro in (
+              ("libssh", "config.h", "WITH_PKCS11_URI"),
+              ("librabbitmq", "librabbitmq/config.h", "ENABLE_SSL_ENGINE_API"),
+          ):
+              config = Path(f"build/src/{name}/.build/{relative}").read_text()
+              assert not re.search(r"^\s*#\s*define\s+" + macro + r"\b", config, re.M), (name, macro)
+              print(name, macro, "is disabled by upstream configuration")
+              archive = prefix / "lib" / ("libssh.a" if name == "libssh" else "librabbitmq.a")
+              undefined = run("nm", "-u", str(archive))
+              assert not re.search(r"\b_ENGINE_\w+", undefined), name
+              print(name, "has no undefined ENGINE API symbols")
+          cache = Path("build/src/libsrt/.build/CMakeCache.txt").read_text()
+          assert re.search(r"^USE_ENCLIB:[^=]+=openssl-evp$", cache, re.M)
+          print("SRT keeps its adopted OpenSSL EVP backend")
+          PY
+      - name: Upload OpenSSL adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: openssl4-adoption-check
+          path: build/logs/openssl4-adoption.log
+          if-no-files-found: ignore
+
   maintenance:
     if: inputs.task == 'audit' || inputs.task == 'updates' || inputs.task == 'sources'
     uses: ./.github/workflows/maintenance.yml

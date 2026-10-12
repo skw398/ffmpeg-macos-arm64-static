@@ -82,12 +82,12 @@ libdvdread|7.1.1|https://code.videolan.org/videolan/libdvdread.git|COMMIT=8e43bf
 libdvdnav|7.0.0|https://code.videolan.org/videolan/libdvdnav.git|COMMIT=38238caf599dc9405eddf1531c858c725015f776|GPL-2.0-or-later|git pin
 
 # ---- network / messaging ----
-libssh|libssh-0.11.5|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601|LGPL-2.1-or-later|relink materials; crypto: OpenSSL 3; git pin
+libssh|libssh-0.11.5|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601|LGPL-2.1-or-later|relink materials; crypto: pinned OpenSSL; git pin
 libsrt|v1.5.7|https://github.com/Haivision/srt.git|COMMIT=899348d8318eb9a3c5a5b6ec43c4a1114288773a|MPL-2.0|needs OpenSSL; git pin
 librist|v0.2.20|https://code.videolan.org/rist/librist.git|COMMIT=4f45ef8f78983892d52ccd52d9f675435b23738f|BSD-2-Clause|git pin
 libzmq|v4.3.5|https://github.com/zeromq/libzmq.git|COMMIT=622fc6dde99ee172ebaa9c8628d85a7a1995a21d|MPL-2.0|zmq filter/protocol; git pin
 librabbitmq|v0.18.0|https://github.com/alanxz/rabbitmq-c.git|COMMIT=b0b5f3774a216bcae9f31645c4ab581f718bd211|MIT|amqp protocol; git pin
-openssl|3.5.8|https://github.com/openssl/openssl/releases/download/openssl-3.5.8/openssl-3.5.8.tar.gz|a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2|Apache-2.0|LTS; no-threads=no; shared=no
+openssl|4.0.3|https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz|325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9|Apache-2.0|security: CVE-2026-84782, CVE-2026-75806, CVE-2026-35189; threads enabled; static only
 
 # ---- misc / utility ----
 libqrencode|v4.1.1|https://github.com/fukuchi/libqrencode.git|COMMIT=715e29fd4cd71b6e452ae0f4e36d917b43122ce8|LGPL-2.1-or-later|relink materials; git pin

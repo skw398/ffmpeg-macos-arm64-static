@@ -845,8 +845,8 @@
       ]
     },
     "openssl": {
-      "version": "3.5.8",
-      "checksum": "a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2",
+      "version": "4.0.3",
+      "checksum": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
       "expression": "Apache-2.0",
       "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
       "evidence": {
