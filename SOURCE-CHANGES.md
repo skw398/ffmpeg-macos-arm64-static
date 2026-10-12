@@ -2,7 +2,7 @@
 
 This distribution is built by skw398 from the sources pinned in `deps.txt`,
 with the modifications described below. It is not an unmodified upstream
-build. Notice updated: 2026-10-04. Dates below record when the modifications
+build. Notice updated: 2026-10-12. Dates below record when the modifications
 were introduced or revised in this project's history, not the date on which
 an individual CI build applies them.
 
@@ -15,6 +15,8 @@ copyright and license notices remain applicable to the affected code.
 All seven patches below were introduced by skw398 on 2026-09-27. Paths in the
 second column are relative to the corresponding upstream source directory.
 `scripts/data/patches.txt` selects the patches applied by `scripts/build-deps.sh`.
+The XEVE patch was revalidated for v0.7.1 on 2026-10-12 without changing its
+source modifications.
 
 | Component and pinned version | Changed files | Modification and patch |
 |---|---|---|
@@ -24,7 +26,7 @@ second column are relative to the corresponding upstream source directory.
 | libflite `v2.2` | `main/Makefile` | Replace a GNU-specific `cp -pd` install command with a macOS-compatible command. Patch: `patches/libflite/v2.2/001-cp-pd-macos.patch`. |
 | libcodec2 `1.2.0` | `src/c2sim.c`, `src/codec2.c`, `src/interp.c`, `src/lsp.c`, `src/lsp.h`, `src/quantise.c` | Rename the `lsp_to_lpc` / `lpc_to_lsp` helpers to avoid static-link collisions with Speex. Patch: `patches/libcodec2/1.2.0/001-rename-speex-helpers.patch`. |
 | libzmq `v4.3.5` | `external/sha1/sha1.c`, `external/sha1/sha1.h` | Rename SHA-1 helpers to avoid static-link collisions with libssh. Patch: `patches/libzmq/v4.3.5/001-rename-sha1.patch`. |
-| libxeve `v0.7.0` | `src_base/neon/xeve_sad_neon.c`, `src_base/neon/xeve_sad_neon.h` | Rename the NEON SAD helper to avoid a static-link collision with OpenAPV. Patch: `patches/libxeve/v0.7.0/001-rename-neon-sad.patch`. |
+| libxeve `v0.7.1` | `src_base/neon/xeve_sad_neon.c`, `src_base/neon/xeve_sad_neon.h` | Rename the NEON SAD helper to avoid a static-link collision with OpenAPV. Patch: `patches/libxeve/v0.7.1/001-rename-neon-sad.patch`. |
 
 ## Conditional build-file changes
 
