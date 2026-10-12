@@ -18,9 +18,6 @@ unpacking it. The archive has a `ffmpeg-macos-arm64-sources/` top-level director
 Build on a macOS Apple Silicon machine with the Xcode/SDK and tool versions
 recorded in `build-info/` and `project/.github/actions/build/action.yml`.
 General-purpose build tools and Apple SDKs are not part of this source package.
-This project's development and functional verification run only on GitHub
-Actions Apple Silicon runners; do not build or run the binaries on the
-maintainer's local Mac.
 
 Install the tools and set `MACOSX_DEPLOYMENT_TARGET=11.0`, following the composite
 Action's toolchain steps. Export `SOURCE_PACKAGE` as the absolute path to the

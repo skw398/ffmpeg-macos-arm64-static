@@ -7,7 +7,7 @@
 # Each patch lives in patches/<lib>/<version-dir>/ and is applied with
 # `git apply -p1` from the library source root, after a `git apply --check`
 # precondition (a patch that no longer applies fails the build loudly).
-# See docs/PATCH-POLICY.md for the classification and metadata rules.
+# Patch headers record the target, reason, linkage and upstream status.
 libssh|libssh-0.11.5|001-cmake4-compilerchecks.patch|A|any
 libqrencode|v4.1.1|001-autoconf-version-define.patch|A|any
 libcaca|0.99.beta20|001-internal-header-include.patch|A|any

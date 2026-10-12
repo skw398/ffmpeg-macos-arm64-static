@@ -4,7 +4,7 @@
 The release is a statically linked ffmpeg, so the pinned dependencies are part of
 the artifact. This lists them (name, version, license, source, checksum) so a
 consumer can see what is inside, and so the release can carry an SBOM
-attestation (see docs/VERSION-UPDATES.md).
+attestation.
 
 Usage: python3 scripts/make-sbom.py --name <artifact name> --out <file>
 """

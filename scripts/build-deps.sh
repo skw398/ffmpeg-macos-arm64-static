@@ -63,7 +63,7 @@ MANIFEST="$PREFIX/.manifest"
 # Apply the source patches listed for a library in scripts/data/patches.txt. Each is
 # checked with `git apply --check` first: a patch that no longer applies means
 # upstream changed the code, so the build fails loudly instead of silently
-# skipping the patch (see docs/PATCH-POLICY.md).
+# skipping the patch.
 apply_patches() { # <name>
   lib_want="$1"
   [ -f "$PATCHES" ] || return 0
@@ -165,7 +165,7 @@ dispatch_build() {
   name="$1"; kind="$2"; flags="$3"; subdir="$4"
 
   # source patches come from data (scripts/data/patches.txt) and are applied with a
-  # precondition check; see apply_patches() and docs/PATCH-POLICY.md
+  # precondition check; see apply_patches().
   apply_patches "$name"
 
   # Builders for libraries without a supported generic build/install path.
