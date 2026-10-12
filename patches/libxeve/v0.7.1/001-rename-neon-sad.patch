@@ -1,5 +1,5 @@
 # PATCH-POLICY: C
-# target: libxeve v0.7.0
+# target: libxeve v0.7.1
 # linkage: static
 # reason: xeve and openapv share the EVC code base and both export sad_16b_neon_8x2n as a global
 # upstream: not applicable

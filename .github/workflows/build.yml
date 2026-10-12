@@ -61,6 +61,24 @@ jobs:
           release_sources: ${{ inputs.release_sources }}
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
 
+      # Temporary: verify removal of the archive-flattening workaround.
+      - name: Verify EVC static archive search paths
+        shell: bash
+        run: |
+          prefix="$GITHUB_WORKSPACE/build/prefix"
+          export PKG_CONFIG_PATH=""
+          export PKG_CONFIG_LIBDIR="$prefix/lib/pkgconfig"
+          for library in xeve xevd; do
+            test -f "$prefix/lib/$library/lib$library.a"
+            test ! -e "$prefix/lib/lib$library.a"
+            flags=$(pkg-config --static --libs "$library")
+            printf '%s: %s\n' "$library" "$flags"
+            case " $flags " in
+              *" -L$prefix/lib/$library "*) ;;
+              *) echo "ERROR: missing static archive search path for $library" >&2; exit 1 ;;
+            esac
+          done
+
   maintenance:
     if: inputs.task == 'audit' || inputs.task == 'updates' || inputs.task == 'sources'
     uses: ./.github/workflows/maintenance.yml

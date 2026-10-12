@@ -26,7 +26,7 @@ PATCHES="$HERE/data/patches.txt"
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
 # the data flags, so a flag that lives in code needs this to take effect)
-RECIPE_REV=10
+RECIPE_REV=11
 
 . "$HERE/lib.sh"
 export CC="${CC:-clang}"
@@ -302,19 +302,6 @@ grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$RECIPES" | while IFS='|' read -r name
   fetch "$name"
   build_one "$name" "$kind" "$flags" "$marker" "$subdir"
 done
-
-# Some libraries install their static archive into a subdirectory while their
-# pkg-config file only adds $PREFIX/lib; flatten so -l<name> resolves it. Always
-# refresh the copy: a cached prefix can hold a stale one from an earlier build,
-# which would silently mask a rebuilt library.
-flattened=0
-for a in "$PREFIX"/lib/*/lib*.a; do
-  [ -e "$a" ] || continue
-  base=$(basename "$a")
-  cp -f "$a" "$PREFIX/lib/$base"
-  flattened=$((flattened + 1))
-done
-echo "== flattened static archives: $flattened"
 
 # The static ffmpeg must link only Apple dylibs, and the linker prefers a
 # .dylib over the .a, so drop any third-party shared library from the prefix

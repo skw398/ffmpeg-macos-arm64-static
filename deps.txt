@@ -42,8 +42,8 @@ x265|4.2|https://bitbucket.org/multicoreware/x265_git/downloads/x265_4.2.tar.gz|
 openh264|v2.6.0|https://github.com/cisco/openh264.git|COMMIT=652bdb7719f30b52b08e506645a7322ff1b2cc6f|BSD-2-Clause|H.264 enc/dec (libopenh264 encoder+decoder); patent note in Release; git pin
 libvvenc|v1.14.0|https://github.com/fraunhoferhhi/vvenc.git|COMMIT=9428ea8636ae7f443ecde89999d16b2dfc421524|BSD-3-Clause-Clear|VVC enc; NOTE: FFmpeg 9.0.2 has libvvenc only (no libvvdec option); git pin
 liboapv|v0.3.0.0|https://github.com/AcademySoftwareFoundation/openapv.git|COMMIT=9f6fd2a7369db90acec67d99fc57724f1136fb84|BSD-3-Clause|APV enc/dec; pkg oapv>=0.2.0.0; v0.3.0.0 is the last with the oapvm_create(int*) API FFmpeg 9.0.2 expects; git pin
-libxeve|v0.7.0|https://github.com/mpeg5/xeve.git|COMMIT=4325639f8dff8274c023df3d7c1ca6d3cdcfc11b|LicenseRef-XEVE-Distribution|MPEG-5 EVC enc (option libxeve; libxeveb = base profile, exclusive); git pin
-libxevd|v0.7.0|https://github.com/mpeg5/xevd.git|COMMIT=0f066b3ea33834fe4e25b41c32c66f912f0b5d30|LicenseRef-XEVD-Distribution|MPEG-5 EVC dec (option libxevd; libxevdb = base profile, exclusive); git pin
+libxeve|v0.7.1|https://github.com/mpeg5/xeve.git|COMMIT=fe229fec19e14907c60d65626ebd59f41517d9b3|LicenseRef-XEVE-Distribution|MPEG-5 EVC enc (option libxeve; libxeveb = base profile, exclusive); git pin
+libxevd|v0.8.0|https://github.com/mpeg5/xevd.git|COMMIT=8fa744e865e9bdb94a5d5da6a4ab18268cdc4bb4|LicenseRef-XEVD-Distribution|MPEG-5 EVC dec (option libxevd; libxevdb = base profile, exclusive); git pin
 libvidstab|v1.1.2|https://github.com/georgmartius/vid.stab.git|COMMIT=92bc0b0f369f2a88aaacf25eac3a10f8415308fc|GPL-2.0-or-later|vidstabdetect/vidstabtransform filters; pkg "vidstab >= 0.98"; relink materials; git pin
 libsnappy|1.3.1|https://github.com/google/snappy.git|COMMIT=9c28114a38866f6deeaa826db918293bc28ae410|BSD-3-Clause|hap encode only (hap decoder uses built-in snappy); no-pc: check_lib; links libstdc++; git pin
 

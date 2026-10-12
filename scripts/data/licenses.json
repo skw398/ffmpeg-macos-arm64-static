@@ -352,8 +352,8 @@
       ]
     },
     "libxeve": {
-      "version": "v0.7.0",
-      "checksum": "COMMIT=4325639f8dff8274c023df3d7c1ca6d3cdcfc11b",
+      "version": "v0.7.1",
+      "checksum": "COMMIT=fe229fec19e14907c60d65626ebd59f41517d9b3",
       "expression": "LicenseRef-XEVE-Distribution",
       "comment": "The COPYING declaration includes BSD-style terms and explicit third-party patent-right limitations. Its complete text is preserved as a LicenseRef.",
       "evidence": {
@@ -364,8 +364,8 @@
       ]
     },
     "libxevd": {
-      "version": "v0.7.0",
-      "checksum": "COMMIT=0f066b3ea33834fe4e25b41c32c66f912f0b5d30",
+      "version": "v0.8.0",
+      "checksum": "COMMIT=8fa744e865e9bdb94a5d5da6a4ab18268cdc4bb4",
       "expression": "LicenseRef-XEVD-Distribution",
       "comment": "The COPYING declaration includes BSD-style terms and explicit third-party patent-right limitations. Its complete text is preserved as a LicenseRef.",
       "evidence": {

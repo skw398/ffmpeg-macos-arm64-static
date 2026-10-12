@@ -206,8 +206,9 @@ runs:
       uses: actions/cache/restore@v6.1.0
       with:
         path: build/prefix
-        key: prefix-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
-        restore-keys: prefix-v2-${{ github.workflow }}-${{ github.ref }}-
+        # v3 excludes old prefixes containing flattened EVC archive copies.
+        key: prefix-v3-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
+        restore-keys: prefix-v3-${{ github.workflow }}-${{ github.ref }}-
 
     - name: Restore git sources cache
       id: cache-gitsrc
@@ -264,7 +265,7 @@ runs:
       uses: actions/cache/save@v6.1.0
       with:
         path: build/prefix
-        key: prefix-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
+        key: prefix-v3-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt') }}-${{ github.run_id }}
 
     - name: Save git sources cache
       if: always() && steps.cache-gitsrc.outputs.cache-hit != 'true'
