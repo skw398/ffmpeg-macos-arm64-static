@@ -12,21 +12,23 @@ copyright and license notices remain applicable to the affected code.
 
 ## Explicit patches
 
-All seven patches below were introduced by skw398 on 2026-09-27. Paths in the
-second column are relative to the corresponding upstream source directory.
-`scripts/data/patches.txt` selects the patches applied by `scripts/build-deps.sh`.
-The XEVE patch was revalidated for v0.7.1 on 2026-10-12 without changing its
-source modifications.
+The six dependency patches below were introduced by skw398 on 2026-09-27.
+The FFmpeg patch was introduced on 2026-10-12. Paths in the second column are
+relative to the corresponding upstream source directory.
+`scripts/data/patches.txt` selects the patches applied by `scripts/build-deps.sh`
+and `scripts/build-ffmpeg.sh`, using the shared helper in `scripts/lib.sh`.
+The XEVE NEON helper rename was removed on 2026-10-12 because OpenAPV 1.1.3.0
+no longer exports the conflicting helper.
 
 | Component and pinned version | Changed files | Modification and patch |
 |---|---|---|
+| FFmpeg `9.0.2` | `libavcodec/liboapvenc.c` | Pass a zero-initialized metadata creation descriptor to OpenAPV's API set 1. Adapted from upstream commit `c54710db21c1827dbc3e47658a562525af0fe528` for the pinned OpenAPV version. Patch: `patches/ffmpeg/9.0.2/001-openapv-metadata-api.patch`. |
 | libssh `libssh-0.11.5` | `CMakeLists.txt` | Replace incompatible compiler checks with the standard `CheckCCompilerFlag` module. Patch: `patches/libssh/libssh-0.11.5/001-cmake4-compilerchecks.patch`. |
 | libqrencode `v4.1.1` | `configure.ac` | Restore the `VERSION` definition used by the API version function. Patch: `patches/libqrencode/v4.1.1/001-autoconf-version-define.patch`. |
 | libcaca `0.99.beta20` | `src/common-image.c` | Include the internal header declaring `_caca_alloc2d`. Patch: `patches/libcaca/0.99.beta20/001-internal-header-include.patch`. |
 | libflite `v2.2` | `main/Makefile` | Replace a GNU-specific `cp -pd` install command with a macOS-compatible command. Patch: `patches/libflite/v2.2/001-cp-pd-macos.patch`. |
 | libcodec2 `1.2.0` | `src/c2sim.c`, `src/codec2.c`, `src/interp.c`, `src/lsp.c`, `src/lsp.h`, `src/quantise.c` | Rename the `lsp_to_lpc` / `lpc_to_lsp` helpers to avoid static-link collisions with Speex. Patch: `patches/libcodec2/1.2.0/001-rename-speex-helpers.patch`. |
 | libzmq `v4.3.5` | `external/sha1/sha1.c`, `external/sha1/sha1.h` | Rename SHA-1 helpers to avoid static-link collisions with libssh. Patch: `patches/libzmq/v4.3.5/001-rename-sha1.patch`. |
-| libxeve `v0.7.1` | `src_base/neon/xeve_sad_neon.c`, `src_base/neon/xeve_sad_neon.h` | Rename the NEON SAD helper to avoid a static-link collision with OpenAPV. Patch: `patches/libxeve/v0.7.1/001-rename-neon-sad.patch`. |
 
 ## Conditional build-file changes
 

@@ -1,0 +1,27 @@
+# PATCH-POLICY: A
+# target: FFmpeg 9.0.2 with OpenAPV API set 1
+# linkage: any
+# reason: pass the metadata creation descriptor required by OpenAPV 1.1
+# upstream: fixed by https://github.com/FFmpeg/FFmpeg/commit/c54710db21c1827dbc3e47658a562525af0fe528
+# adaptation: use the new API only, matching this project's pinned OpenAPV
+# apply: git apply -p1, from the FFmpeg source root
+
+--- a/libavcodec/liboapvenc.c
++++ b/libavcodec/liboapvenc.c
+@@ -477,6 +477,7 @@
+ {
+     ApvEncContext *apv = avctx->priv_data;
+     oapve_cdesc_t *cdsc = &apv->cdsc;
++    oapvm_cdesc_t mcdsc = { 0 };
+     unsigned char *bs_buf;
+     int ret;
+ 
+@@ -509,7 +510,7 @@
+     }
+ 
+     /* create metadata handler */
+-    apv->mid = oapvm_create(&ret);
++    apv->mid = oapvm_create(&mcdsc, &ret);
+     if (apv->mid == NULL || OAPV_FAILED(ret)) {
+         av_log(avctx, AV_LOG_ERROR, "cannot create OAPV metadata handler\n");
+         return AVERROR_EXTERNAL;

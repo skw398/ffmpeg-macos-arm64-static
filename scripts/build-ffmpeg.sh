@@ -30,9 +30,12 @@ export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 # download and verify the tarball on demand (verify-pins.py pre-fetches it when
 # pin verification is enabled, but it must not be a prerequisite)
 PINS="$ROOT/deps.txt"
+PATCHES="$HERE/data/patches.txt"
+LINKAGE=static
 . "$HERE/lib.sh"
 if [ ! -d "$SRC/ffmpeg" ]; then
   fetch ffmpeg
+  apply_patches ffmpeg
 fi
 
 # Pass 1 builds in its own tree so both passes can be cached and restored

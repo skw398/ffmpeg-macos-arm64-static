@@ -61,51 +61,48 @@ jobs:
           release_sources: ${{ inputs.release_sources }}
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
 
-      # Temporary: verify the libpng version and removal of shared framework output.
-      - name: Verify libpng adoption
+      # Temporary: verify the adopted versions, FFmpeg patch and XEVE patch removal.
+      - name: Verify security update adoption
         shell: bash
         run: |
           set -o pipefail
-          uv run python - <<'PY' | tee build/logs/libpng-adoption.log
+          uv run python - <<'PYTHON' | tee build/logs/security-adoption.log
           from pathlib import Path
           import os
           import re
-          import shlex
           import subprocess
 
           prefix = Path("build/prefix").resolve()
-          build = Path("build/src/libpng/.build")
-          version = "1.6.59"
           env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
-          def pkg(*args):
-              return subprocess.check_output(["pkg-config", *args], text=True, env=env).strip()
-          assert pkg("--modversion", "libpng") == version
-          assert Path(pkg("--variable=prefix", "libpng")).resolve() == prefix
-          header = (prefix / "include/png.h").read_text()
-          assert re.search(r'#\s*define\s+PNG_LIBPNG_VER_STRING\s+"' + re.escape(version) + '"', header)
-          assert (prefix / "lib/libpng16.a").is_file()
-          print("libpng installed headers, pkg-config and static archive match:", version)
-          cache = (build / "CMakeCache.txt").read_text()
-          for option, expected in (("PNG_SHARED", "OFF"), ("PNG_FRAMEWORK", "OFF"), ("PNG_STATIC", "ON")):
-              assert re.search(r"^" + option + r":BOOL=" + expected + r"$", cache, re.M), option
-              print(option, "=", expected)
-          assert not list(build.rglob("*.framework")), "framework exists in libpng build tree"
-          assert not list(prefix.rglob("png.framework")), "png.framework exists in install prefix"
-          assert not list((prefix / "lib").glob("libpng*.dylib")), "libpng dylib exists in install prefix"
-          print("No libpng framework output in build tree or install prefix")
-          flags = shlex.split(pkg("--static", "--libs", "aribb24"))
-          assert "-lpng16" in flags, flags
-          assert "-L" + str(prefix / "lib") in flags, flags
-          undefined = subprocess.check_output(["nm", "-u", str(prefix / "lib/libaribb24.a")], text=True)
-          assert re.search(r"\b_png_write_image\b", undefined), "libaribb24 PNG writer reference missing"
-          print("libaribb24 keeps its PNG writer and prefix static link flags:", " ".join(flags))
-          PY
-      - name: Upload libpng adoption check
+          for name, expected in (("openssl", "4.0.3"), ("oapv", "1.1.3.0"), ("harfbuzz", "14.6.0")):
+              actual = subprocess.check_output(["pkg-config", "--modversion", name], text=True, env=env).strip()
+              installed = subprocess.check_output(["pkg-config", "--variable=prefix", name], text=True, env=env).strip()
+              assert actual == expected, (name, actual, expected)
+              assert Path(installed).resolve() == prefix, (name, installed)
+              print(name, actual, "installed in the build prefix")
+          source = Path("build/src/ffmpeg/libavcodec/liboapvenc.c").read_text()
+          assert "oapvm_cdesc_t mcdsc = { 0 };" in source
+          assert "oapvm_create(&mcdsc, &ret)" in source
+          assert "oapvm_create(&ret)" not in source
+          print("FFmpeg uses the OpenAPV API set 1 metadata descriptor")
+          symbols = {}
+          for library in ("libxeve.a", "liboapv.a"):
+              archives = list(prefix.rglob(library))
+              assert len(archives) == 1, (library, archives)
+              symbols[library] = subprocess.check_output(["nm", "-gU", str(archives[0])], text=True)
+          original = r"\b_sad_16b_neon_8x2n\b"
+          renamed = r"\b_xeve_sad_16b_neon_8x2n\b"
+          assert re.search(original, symbols["libxeve.a"]), "XEVE original helper is missing"
+          assert not re.search(renamed, symbols["libxeve.a"]), "XEVE rename patch is still present"
+          assert not re.search(original, symbols["liboapv.a"]), "OpenAPV still exports the conflicting helper"
+          print("XEVE original NEON helper retained; OpenAPV collision absent; rename patch removed")
+          PYTHON
+      - name: Upload security update adoption check
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: libpng-adoption-check
-          path: build/logs/libpng-adoption.log
+          name: security-update-adoption-check
+          path: build/logs/security-adoption.log
           if-no-files-found: ignore
 
   maintenance:

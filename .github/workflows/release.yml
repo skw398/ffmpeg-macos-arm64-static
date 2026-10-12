@@ -3,8 +3,8 @@ name: release
 # Cut a release: clean build -> tag -> GitHub Release -> attestations.
 #
 # Manual only. The version is chosen by a human, not computed (see
-# docs/VERSION-UPDATES.md): v<ffmpeg>-<build number>, e.g. v9.0.2-1 (first),
-# v9.0.2-2 (security patch), v9.1.0-1 (FFmpeg bump).
+# docs/VERSION-UPDATES.md): v<ffmpeg>-r<revision>, e.g. v9.0.2-r1,
+# v9.0.2-r2 (security update), v9.1.0-r1 (FFmpeg bump).
 #
 # The released binaries must come from a *clean* build: the version/feature
 # detection can change with a pin, so a cached tree is not acceptable.
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release tag, e.g. v9.0.2-1 (docs/VERSION-UPDATES.md)"
+        description: "Release tag, e.g. v9.0.2-r2"
         required: true
         type: string
       notes:
