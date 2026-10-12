@@ -1,6 +1,6 @@
 name: maintenance
 
-# Archive/feature only. main carries build.yml and release.yml.
+# Archive/feature only. main carries build.yml, release.yml and updates.yml.
 # Candidate edits are committed on feature; this workflow has no trial switches.
 on:
   workflow_call:
@@ -163,7 +163,15 @@ jobs:
           tar -xzf "$RUNNER_TEMP/uv.tar.gz" -C "$uv_dir" --strip-components=1
           echo "$uv_dir" >> "$GITHUB_PATH"
           "$uv_dir/uv" python install
-      - name: Report upstream versions
+      - name: Test update detection and notification rules
+        run: uv run python -m unittest discover -s scripts/tests -p test_update_notifications.py
+      - name: Report upstream versions (without notifications)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uv run python scripts/maintenance/report-updates.py
+        run: uv run python scripts/updates/check.py --json build/upstream-updates.json --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7.0.1
+        if: always()
+        with:
+          name: upstream-update-report
+          path: build/upstream-updates.json
+          if-no-files-found: ignore

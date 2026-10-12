@@ -1,0 +1,60 @@
+name: upstream-updates
+
+on:
+  schedule:
+    # Daily at 08:17 Japan time; GitHub may delay scheduled runs.
+    - cron: "17 23 * * *"
+  workflow_dispatch:
+    inputs:
+      notify:
+        description: Publish GitHub Issues (main only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-update-notifications
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install pinned uv and Python
+        env:
+          UV_VERSION: "0.12.22"
+          UV_SHA256: "b9980552309f09c15172b8be828555e375097f16deb459795ce7bfd200380f0b"
+        run: |
+          uv_dir="$RUNNER_TEMP/uv-$UV_VERSION"
+          mkdir -p "$uv_dir"
+          curl -sSL --fail -o "$RUNNER_TEMP/uv.tar.gz" \
+            "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/uv-x86_64-unknown-linux-gnu.tar.gz"
+          echo "$UV_SHA256  $RUNNER_TEMP/uv.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/uv.tar.gz" -C "$uv_dir" --strip-components=1
+          echo "$uv_dir" >> "$GITHUB_PATH"
+          "$uv_dir/uv" python install
+      - name: Test update detection and notification rules
+        run: uv run python -m unittest discover -s scripts/tests -p test_update_notifications.py
+      - name: Check upstream releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NOTIFY_USER: ${{ github.repository_owner }}
+          PUBLISH: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || inputs.notify) }}
+        run: |
+          args=()
+          if [ "$PUBLISH" = true ]; then args+=(--notify); fi
+          uv run python scripts/updates/check.py --json build/upstream-updates.json \
+            --summary "$GITHUB_STEP_SUMMARY" "${args[@]}"
+      - uses: actions/upload-artifact@v7.0.1
+        if: always()
+        with:
+          name: upstream-update-report
+          path: build/upstream-updates.json
+          if-no-files-found: ignore
