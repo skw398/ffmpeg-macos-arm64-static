@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from build_data import Pin
 from updates.releases import Release, archive_releases, check_pin, find_releases, select_updates, version_key
 from updates.notifications import Issues, marker, publish, release_marker
-from updates.check import main
+from updates.check import main, read_policy
 
 
 def pin(version="1.2.3", url="https://github.com/owner/repo.git", commit="a" * 40):
@@ -77,11 +77,36 @@ class DetectionTest(unittest.TestCase):
     def test_archive_listing_ignores_other_projects_and_extensions(self):
         releases = archive_releases(["ffmpeg-9.0.3.tar.xz", "ffmpeg-10.0.tar.xz",
                                      "ffmpeg-99.0.tar.gz", "other-99.0.tar.xz"],
-                                    "ffmpeg-9.0.2.tar.xz", "https://ffmpeg.org/releases/")
+                                    "ffmpeg-9.0.2.tar.xz", "9.0.2", "https://ffmpeg.org/releases/")
         self.assertEqual([row.version for row in releases], ["9.0.3", "10.0"])
         self.assertEqual(releases[0].url, "https://ffmpeg.org/releases/ffmpeg-9.0.3.tar.xz")
         with self.assertRaises(ValueError):
-            archive_releases([], "ffmpeg-9.0.2.tar.xz", "https://ffmpeg.org/releases/")
+            archive_releases([], "ffmpeg-9.0.2.tar.xz", "9.0.2", "https://ffmpeg.org/releases/")
+
+    def test_project_digits_do_not_become_the_archive_version(self):
+        releases = archive_releases(["libbs2b-3.1.0.tar.gz", "libbs2b-3.2.0.tar.gz"],
+                                    "libbs2b-3.1.0.tar.gz", "3.1.0", "https://example.invalid/")
+        self.assertEqual([row.version for row in releases], ["3.1.0", "3.2.0"])
+
+    def test_legacy_lame_filenames_are_not_version_398(self):
+        releases = archive_releases(["lame-398-2.tar.gz", "lame-398.tar.gz", "lame-3.100.tar.gz"],
+                                    "lame-4.0.tar.gz", "4.0", "https://example.invalid/")
+        self.assertEqual(select_updates("4.0", releases), [])
+
+    def test_rfc_tag_is_not_a_package_release(self):
+        releases = [Release(version, "https://example.invalid") for version in ["webp-rfc9649", "v1.6.1"]]
+        self.assertEqual([row.version for row in select_updates("v1.6.0", releases)], ["v1.6.1"])
+
+    def test_archive_prefix_is_accepted_for_github_tags(self):
+        with patch("updates.releases.find_releases", return_value=[Release("openssl-3.5.9", "https://example.invalid")]):
+            result = check_pin(pin("3.5.8", "https://github.com/openssl/openssl/releases/download/openssl-3.5.8/openssl-3.5.8.tar.gz"))
+        self.assertEqual(result["updates"][0]["version"], "openssl-3.5.9")
+
+    def test_sdl2_policy_excludes_the_separate_sdl3_package(self):
+        releases = [Release(version, "https://example.invalid") for version in ["release-2.32.12", "release-3.4.18"]]
+        with patch("updates.releases.find_releases", return_value=releases):
+            result = check_pin(pin("release-2.32.10"), {"major": 2})
+        self.assertEqual([row["version"] for row in result["updates"]], ["release-2.32.12"])
 
 
 class FakeIssues:
@@ -159,6 +184,7 @@ class NotificationTest(unittest.TestCase):
             report = Path(directory) / "report.json"
             with patch("sys.argv", ["check.py", "--json", str(report)]), \
                  patch("updates.check.read_pins", return_value={"fixture": pin()}), \
+                 patch("updates.check.read_policy", return_value={}), \
                  patch("updates.check.check_pin", return_value=result("1.2.4")[0]), \
                  patch("updates.check.publish") as publisher:
                 self.assertEqual(main(), 0)
@@ -170,9 +196,15 @@ class NotificationTest(unittest.TestCase):
             report = Path(directory) / "report.json"
             with patch("sys.argv", ["check.py", "--json", str(report)]), \
                  patch("updates.check.read_pins", return_value={"fixture": pin()}), \
+                 patch("updates.check.read_policy", return_value={}), \
                  patch("updates.check.check_pin", return_value=result(error="HTTP 503")[0]):
                 self.assertEqual(main(), 1)
             self.assertIn("HTTP 503", report.read_text())
+
+    def test_misspelled_policy_or_wrong_major_type_fails_explicitly(self):
+        for data in ['{"missing": {"major": 2}}', '{"fixture": {"major": "2"}}']:
+            with patch("pathlib.Path.read_text", return_value=data), self.assertRaises(ValueError):
+                read_policy({"fixture": pin()})
 
 
 if __name__ == "__main__":

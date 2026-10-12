@@ -14,6 +14,17 @@ from updates.releases import check_pin
 from updates.notifications import Issues, publish
 
 
+def read_policy(pins):
+    policies = json.loads(Path(__file__).with_name("release-policy.json").read_text())
+    if not isinstance(policies, dict) or set(policies) - pins.keys():
+        raise ValueError("release policy names must match dependency pins")
+    for policy in policies.values():
+        if (not isinstance(policy, dict) or set(policy) != {"major"}
+                or type(policy["major"]) is not int or policy["major"] < 0):
+            raise ValueError("release policy requires a nonnegative integer major")
+    return policies
+
+
 def summary(results):
     lines = ["## Upstream update checks", "",
              "| Component | Pinned | Available | Status |", "|---|---|---|---|"]
@@ -42,12 +53,13 @@ def main():
     if args.notify and (args.names or not args.repository or not args.recipient):
         parser.error("--notify requires a complete inventory, --repository and --recipient")
     pins = read_pins(args.pins)
+    policies = read_policy(pins)
     unknown = set(args.names) - pins.keys()
     if unknown:
         parser.error("unknown component(s): " + ", ".join(sorted(unknown)))
     selected = [pin for name, pin in pins.items() if not args.names or name in args.names]
     with ThreadPoolExecutor(max_workers=6) as pool:
-        results = list(pool.map(check_pin, selected))
+        results = list(pool.map(check_pin, selected, [policies.get(pin.name, {}) for pin in selected]))
     report = summary(results)
     print(report, end="")
     if args.json_path:
