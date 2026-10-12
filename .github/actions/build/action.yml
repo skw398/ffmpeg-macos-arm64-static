@@ -225,8 +225,8 @@ runs:
       uses: actions/cache/restore@v6.1.0
       with:
         path: build/src/ffmpeg-pass1
-        key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
-        restore-keys: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-
+        key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh', 'scripts/lib.sh', 'scripts/data/patches.txt', 'patches/ffmpeg/**') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+        restore-keys: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh', 'scripts/lib.sh', 'scripts/data/patches.txt', 'patches/ffmpeg/**') }}-xcode${{ env.XCODE_VERSION }}-
 
     - name: Restore FFmpeg full cache
       id: cache-ffmpeg-full
@@ -234,8 +234,8 @@ runs:
       uses: actions/cache/restore@v6.1.0
       with:
         path: build/src/ffmpeg
-        key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
-        restore-keys: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-
+        key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh', 'scripts/lib.sh', 'scripts/data/patches.txt', 'patches/ffmpeg/**') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+        restore-keys: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh', 'scripts/lib.sh', 'scripts/data/patches.txt', 'patches/ffmpeg/**') }}-xcode${{ env.XCODE_VERSION }}-
 
     - name: Verify pins
       shell: bash
@@ -283,7 +283,7 @@ runs:
       uses: actions/cache/save@v6.1.0
       with:
         path: build/src/ffmpeg-pass1
-        key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+        key: ffmpeg-pass1-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh', 'scripts/lib.sh', 'scripts/data/patches.txt', 'patches/ffmpeg/**') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
 
     - name: Build chromaprint
       shell: bash
@@ -298,7 +298,7 @@ runs:
       uses: actions/cache/save@v6.1.0
       with:
         path: build/src/ffmpeg
-        key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
+        key: ffmpeg-full-v2-${{ github.workflow }}-${{ github.ref }}-${{ hashFiles('deps.txt', 'scripts/build-ffmpeg.sh', 'scripts/lib.sh', 'scripts/data/patches.txt', 'patches/ffmpeg/**') }}-xcode${{ env.XCODE_VERSION }}-${{ github.run_id }}
 
     - name: Check library consumers (configure)
       shell: bash

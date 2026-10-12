@@ -98,6 +98,12 @@ smoke aac.m4a "" -f lavfi -i sine=sample_rate=44100 -t 2 -c:a aac
 smoke opus.ogg "" -f lavfi -i sine=sample_rate=48000 -t 2 -c:a libopus
 smoke webp.webp "" -f lavfi -i testsrc=size=320x240:rate=1 -frames:v 1 -c:v libwebp
 
+# APV uses OpenAPV for encoding and FFmpeg's own decoder for playback.
+smoke apv-qp.apv apv -f lavfi -i testsrc2=size=320x240:rate=3 \
+  -frames:v 3 -c:v liboapv -preset fast -qp 32 -pix_fmt yuv422p10le -threads 2
+smoke apv-bitrate.apv apv -f lavfi -i testsrc2=size=320x240:rate=3 \
+  -frames:v 3 -c:v liboapv -preset fast -b:v 20M -qp 0 -pix_fmt yuv422p10le -threads 2
+
 # Exercise all three adopted AV1 encoders and explicitly use the external decoder.
 smoke av1-aom.ivf libdav1d -f lavfi -i testsrc2=size=320x240:rate=3 \
   -frames:v 3 -c:v libaom-av1 -cpu-used 8 -lag-in-frames 0 -threads 2

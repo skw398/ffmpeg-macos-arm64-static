@@ -26,7 +26,7 @@ PATCHES="$HERE/data/patches.txt"
 LINKAGE=static
 # bump when build logic changes, to force rebuilds (the per-library marker uses
 # the data flags, so a flag that lives in code needs this to take effect)
-RECIPE_REV=11
+RECIPE_REV=12
 
 . "$HERE/lib.sh"
 export CC="${CC:-clang}"
@@ -59,34 +59,6 @@ LOGS="${LOGS:-$ROOT/build/logs}"; mkdir -p "$LOGS"
 # per-library record of the files its install created, so a rebuild can remove
 # the previous ones first (a cached prefix may hold files from an older install)
 MANIFEST="$PREFIX/.manifest"
-
-# Apply the source patches listed for a library in scripts/data/patches.txt. Each is
-# checked with `git apply --check` first: a patch that no longer applies means
-# upstream changed the code, so the build fails loudly instead of silently
-# skipping the patch.
-apply_patches() { # <name>
-  lib_want="$1"
-  [ -f "$PATCHES" ] || return 0
-  while IFS='|' read -r lib vdir pfile cls link || [ -n "$lib" ]; do
-    case "$lib" in ''|'#'*) continue ;; esac
-    [ "$lib" = "$lib_want" ] || continue
-    if [ "$link" = static ] && [ "$LINKAGE" != static ]; then
-      echo "== patch $lib: skipped ($pfile is static-only)"
-      continue
-    fi
-    pf="$ROOT/patches/$lib/$vdir/$pfile"
-    if [ ! -f "$pf" ]; then
-      echo "ERROR: patch not found: $pf" >&2; exit 1
-    fi
-    if ! ( cd "$SRC/$lib" && git apply --check -p1 "$pf" ); then
-      echo "ERROR: patch does not apply: $lib/$vdir/$pfile" >&2
-      echo "       (upstream changed the code -> refresh or remove the patch)" >&2
-      exit 1
-    fi
-    ( cd "$SRC/$lib" && git apply -p1 "$pf" )
-    echo "== patch $lib: $pfile ($cls) applied"
-  done < "$PATCHES"
-}
 
 build_generic() {
   name="$1"; kind="$2"; flags="$3"; subdir="$4"

@@ -17,6 +17,32 @@ pin_field() {
 pin_version() { pin_field "$1" 2; }
 pin_hash() { pin_field "$1" 4; }
 
+# Apply data-selected patches to a freshly prepared component source tree.
+# The caller sets ROOT, SRC, PATCHES and LINKAGE.
+apply_patches() { # <name>
+  lib_want="$1"
+  [ -f "$PATCHES" ] || return 0
+  while IFS='|' read -r lib vdir pfile cls link || [ -n "$lib" ]; do
+    case "$lib" in ''|'#'*) continue ;; esac
+    [ "$lib" = "$lib_want" ] || continue
+    if [ "$link" = static ] && [ "$LINKAGE" != static ]; then
+      echo "== patch $lib: skipped ($pfile is static-only)"
+      continue
+    fi
+    pf="$ROOT/patches/$lib/$vdir/$pfile"
+    if [ ! -f "$pf" ]; then
+      echo "ERROR: patch not found: $pf" >&2; exit 1
+    fi
+    if ! ( cd "$SRC/$lib" && git apply --check -p1 "$pf" ); then
+      echo "ERROR: patch does not apply: $lib/$vdir/$pfile" >&2
+      echo "       (upstream changed the code -> refresh or remove the patch)" >&2
+      exit 1
+    fi
+    ( cd "$SRC/$lib" && git apply -p1 "$pf" )
+    echo "== patch $lib: $pfile ($cls) applied"
+  done < "$PATCHES"
+}
+
 # trim <string> -> the string without leading or trailing whitespace
 trim() {
   printf '%s' "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
