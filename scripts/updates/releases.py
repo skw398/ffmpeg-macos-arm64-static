@@ -5,6 +5,9 @@ import json
 import os
 import re
 import subprocess
+import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -13,6 +16,39 @@ import urllib.request
 class Release:
     version: str
     url: str
+
+
+class LookupFailure(OSError):
+    def __init__(self, url, attempts, error):
+        super().__init__(f"{url} (attempts: {attempts}): {type(error).__name__}: {error}")
+
+
+def retryable(error):
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code in {429, 500, 502, 503, 504}
+    if isinstance(error, urllib.error.URLError):
+        return isinstance(error.reason, TimeoutError)
+    return isinstance(error, (TimeoutError, subprocess.TimeoutExpired))
+
+
+def lookup(url, operation, *, retry=True):
+    attempts = 3 if retry else 1
+    for attempt in range(1, attempts + 1):
+        try:
+            return operation(), attempt
+        except (OSError, subprocess.SubprocessError) as error:
+            if isinstance(error, urllib.error.HTTPError):
+                error.close()
+            if attempt == attempts or not retryable(error):
+                raise LookupFailure(url, attempt, error) from error
+            print(f"Retrying lookup: {url} (attempt {attempt}/{attempts}): "
+                  f"{type(error).__name__}: {error}", file=sys.stderr)
+            time.sleep(2 * attempt)
+
+
+def read_response(request):
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.read()
 
 
 def request_json(url, *, method="GET", data=None):
@@ -26,14 +62,17 @@ def request_json(url, *, method="GET", data=None):
     if payload is not None:
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(url, data=payload, headers=headers, method=method)
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return json.load(response)
+    body, attempts = lookup(url, lambda: read_response(request), retry=method == "GET")
+    try:
+        return json.loads(body)
+    except ValueError as error:
+        raise LookupFailure(url, attempts, error) from error
 
 
 def fetch_text(url):
     request = urllib.request.Request(url, headers={"User-Agent": "ffmpeg-update-check"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return response.read().decode("utf-8", "replace")
+    body, _ = lookup(url, lambda: read_response(request))
+    return body.decode("utf-8", "replace")
 
 
 def version_key(version):
@@ -77,8 +116,9 @@ def select_updates(pinned, releases, tag_prefixes=(), major=None):
 
 
 def git_refs(url, *patterns):
-    run = subprocess.run(["git", "ls-remote", url, *patterns], capture_output=True,
-                         text=True, timeout=30, check=True)
+    run, _ = lookup(url, lambda: subprocess.run(
+        ["git", "ls-remote", url, *patterns], capture_output=True,
+        text=True, timeout=30, check=True))
     return [line.split("\t", 1) for line in run.stdout.splitlines() if "\t" in line]
 
 

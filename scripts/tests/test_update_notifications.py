@@ -1,21 +1,122 @@
 """Prevent false update notices, silent lookup failures and repeat notifications."""
 
+import io
 from pathlib import Path
 import subprocess
 import sys
 import unittest
 from unittest.mock import patch
 import tempfile
+import urllib.error
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from build_data import Pin
-from updates.releases import Release, archive_releases, check_pin, find_releases, select_updates, version_key
+from updates.releases import (LookupFailure, Release, archive_releases, check_pin, fetch_text,
+                              find_releases, git_refs, request_json, select_updates, version_key)
 from updates.notifications import Issues, marker, publish, release_marker
 from updates.check import main, read_policy
 
 
 def pin(version="1.2.3", url="https://github.com/owner/repo.git", commit="a" * 40):
     return Pin("fixture", version, url, "COMMIT=" + commit, "MIT", "")
+
+
+class LookupTest(unittest.TestCase):
+    url = "https://example.invalid/releases/"
+
+    def test_json_lookup_recovers_after_transient_errors(self):
+        errors = [urllib.error.HTTPError(self.url, 503, "unavailable", {}, None),
+                  urllib.error.URLError(TimeoutError("timed out"))]
+        with patch("updates.releases.urllib.request.urlopen", side_effect=errors + [io.BytesIO(b'[1]')]) as request, \
+             patch("updates.releases.time.sleep") as sleep:
+            self.assertEqual(request_json(self.url), [1])
+        self.assertEqual(request.call_count, 3)
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [2, 4])
+        self.assertTrue(all(call.kwargs == {"timeout": 30} for call in request.call_args_list))
+
+    def test_each_transient_http_status_is_retried(self):
+        for status in (429, 500, 502, 503, 504):
+            with self.subTest(status=status), \
+                 patch("updates.releases.urllib.request.urlopen", side_effect=[
+                     urllib.error.HTTPError(self.url, status, "temporary", {}, None), io.BytesIO(b"release")]) as request, \
+                 patch("updates.releases.time.sleep"):
+                self.assertEqual(fetch_text(self.url), "release")
+                self.assertEqual(request.call_count, 2)
+
+    def test_timeout_during_response_read_is_retried(self):
+        class TimedOutResponse(io.BytesIO):
+            def read(self):
+                raise TimeoutError("read timed out")
+        response = TimedOutResponse()
+        with patch("updates.releases.urllib.request.urlopen", side_effect=[response, io.BytesIO(b"release")]) as request, \
+             patch("updates.releases.time.sleep"):
+            self.assertEqual(fetch_text(self.url), "release")
+        self.assertEqual(request.call_count, 2)
+        self.assertTrue(response.closed)
+
+    def test_exhausted_lookup_reports_url_attempts_and_final_error_in_issue(self):
+        source = pin("9.0.2", "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz")
+        with patch("updates.releases.urllib.request.urlopen", side_effect=urllib.error.URLError(TimeoutError("timed out"))) as request, \
+             patch("updates.releases.time.sleep") as sleep:
+            row = check_pin(source)
+        self.assertEqual(request.call_count, 3)
+        self.assertEqual(sleep.call_count, 2)
+        self.assertEqual(row["updates"], [])
+        self.assertIn("https://ffmpeg.org/releases/", row["error"])
+        self.assertIn("attempts: 3", row["error"])
+        self.assertIn("URLError: <urlopen error timed out>", row["error"])
+        issues = FakeIssues()
+        publish([row], issues, "fixture-owner", "https://example.invalid/run")
+        self.assertIn(row["error"], issues.created[0][1])
+        self.assertIn("unknown update status", issues.created[0][1])
+
+    def test_permanent_http_and_non_timeout_errors_are_not_retried(self):
+        errors = [urllib.error.HTTPError(self.url, status, "permanent", {}, None) for status in (403, 404, 501)]
+        errors.append(urllib.error.URLError("name resolution failed"))
+        for error in errors:
+            with self.subTest(error=error), \
+                 patch("updates.releases.urllib.request.urlopen", side_effect=error) as request, \
+                 patch("updates.releases.time.sleep") as sleep:
+                with self.assertRaisesRegex(LookupFailure, "attempts: 1"):
+                    fetch_text(self.url)
+                self.assertEqual(request.call_count, 1)
+                sleep.assert_not_called()
+
+    def test_invalid_json_reports_source_without_retry(self):
+        with patch("updates.releases.urllib.request.urlopen", return_value=io.BytesIO(b"not JSON")) as request, \
+             patch("updates.releases.time.sleep") as sleep:
+            with self.assertRaises(LookupFailure) as failure:
+                request_json(self.url)
+        self.assertIn(self.url, str(failure.exception))
+        self.assertIn("attempts: 1", str(failure.exception))
+        self.assertIn("JSONDecodeError", str(failure.exception))
+        self.assertEqual(request.call_count, 1)
+        sleep.assert_not_called()
+
+    def test_issue_writes_are_never_retried(self):
+        for method in ("POST", "PATCH"):
+            for error in (TimeoutError("timed out"), urllib.error.HTTPError(self.url, 503, "unavailable", {}, None)):
+                with self.subTest(method=method, error=error), \
+                     patch("updates.releases.urllib.request.urlopen", side_effect=error) as request, \
+                     patch("updates.releases.time.sleep") as sleep:
+                    with self.assertRaisesRegex(LookupFailure, "attempts: 1"):
+                        request_json(self.url, method=method, data={"body": "notice"})
+                    self.assertEqual(request.call_count, 1)
+                    self.assertEqual(request.call_args.args[0].get_method(), method)
+                    sleep.assert_not_called()
+
+    def test_git_timeout_recovers_but_repository_errors_do_not_retry(self):
+        completed = subprocess.CompletedProcess(["git"], 0, stdout="a" * 40 + "\tHEAD\n")
+        with patch("updates.releases.subprocess.run", side_effect=[subprocess.TimeoutExpired(["git"], 30), completed]) as request, \
+             patch("updates.releases.time.sleep"):
+            self.assertEqual(git_refs(self.url, "HEAD"), [["a" * 40, "HEAD"]])
+            self.assertEqual(request.call_count, 2)
+        with patch("updates.releases.subprocess.run", side_effect=subprocess.CalledProcessError(128, ["git"])) as request, \
+             patch("updates.releases.time.sleep") as sleep:
+            with self.assertRaisesRegex(LookupFailure, "attempts: 1"):
+                git_refs(self.url, "HEAD")
+            self.assertEqual(request.call_count, 1)
+            sleep.assert_not_called()
 
 
 class DetectionTest(unittest.TestCase):
