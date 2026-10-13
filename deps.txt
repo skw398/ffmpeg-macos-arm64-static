@@ -24,7 +24,7 @@ harfbuzz|14.6.0|https://github.com/harfbuzz/harfbuzz.git|COMMIT=c7a7457b7385f331
 brotli|v1.2.0|https://github.com/google/brotli.git|COMMIT=028fb5a23661f123017c060daa546b55cf4bde29|MIT|parent: libjxl; git pin
 highway|1.4.0|https://github.com/google/highway.git|COMMIT=2607d3b5b0113992fe84d3848859eae13b3b52c1|(Apache-2.0 OR BSD-3-Clause) AND CC0-1.0|parent: libjxl; build: cmake; git pin
 lcms2|lcms2.19.1|https://github.com/mm2/Little-CMS.git|COMMIT=21c582a594fe5279f90c0b93437c398f93bf62b0|MIT|parent: libjxl (skcms submodule absent from the git archive); build: cmake/autotools; git pin
-leptonica|1.86.0|https://github.com/DanBloomberg/leptonica/releases/download/1.86.0/leptonica-1.86.0.tar.gz|1fa08e40bb37fd45802d5e6e7b43927449a5c47d4608ef99d3bd3f0fa76baedc|BSD-2-Clause|parent: tesseract
+leptonica|1.87.0|https://github.com/DanBloomberg/leptonica/releases/download/1.87.0/leptonica-1.87.0.tar.gz|c73363397f96eb1295602bf44d708a994ad42046c791bf03ea0505d829bdb6a7|BSD-2-Clause|parent: tesseract
 libudfread|1.2.0|https://code.videolan.org/videolan/libudfread.git|COMMIT=c3cd5cbb097924557ea4d9da1ff76a74620c51a8|LGPL-2.1-or-later|parent: libbluray (contrib/libudfread submodule absent from the git archive); meson requires >= 1.2.0; relink materials; git pin
 libsndfile|1.2.2|https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz|3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e|LGPL-2.1-or-later AND TU-Berlin-1.0|parent: libbs2b (its configure requires sndfile); relink materials
 

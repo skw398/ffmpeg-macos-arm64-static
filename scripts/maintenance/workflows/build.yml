@@ -1,0 +1,106 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      clean_build:
+        description: Ignore build-output caches
+        type: boolean
+        default: false
+      cold_build:
+        description: Ignore every cache, including tools and downloads
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      clean_build:
+        type: boolean
+        default: false
+      cold_build:
+        type: boolean
+        default: false
+      release_sources:
+        description: Collect fixed sources for release packaging
+        type: boolean
+        default: false
+      artifact_name:
+        description: Name of the uploaded build artifact
+        type: string
+        default: ffmpeg-macos-arm64
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-arm64:
+    runs-on: macos-26
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build and verify FFmpeg
+        uses: ./.github/actions/build
+        env:
+          FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
+        with:
+          clean_build: ${{ inputs.clean_build }}
+          cold_build: ${{ inputs.cold_build }}
+          release_sources: ${{ inputs.release_sources }}
+          artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
+
+      # Temporary: verify leptonica adoption.
+      - name: Verify leptonica update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/leptonica-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/leptonica")
+          installed("lept", "1.87.0")
+          cache = cache_at(source)
+          setting(cache, "SW_BUILD", "OFF")
+          for codec in ("ZLIB", "PNG", "JPEG", "TIFF", "GIF", "WEBP", "OPENJPEG"):
+              setting(cache, "ENABLE_" + codec, "OFF")
+          recipe = next(row for row in Path("scripts/data/build-deps.txt").read_text().splitlines() if row.startswith("leptonica|"))
+          assert "SW_BUILD" not in recipe
+          requires = pkg("lept", "--print-requires-private")
+          assert not requires, requires
+          assert Path(pkg("tesseract", "--variable=prefix")).resolve() == prefix
+          filters = subprocess.check_output([str(prefix / "bin/ffmpeg"), "-hide_banner", "-filters"], text=True)
+          assert re.search(r"^\s*\S+\s+ocr\s", filters, re.M), "FFmpeg OCR filter missing"
+          print("Tesseract rebuilt against the adopted Leptonica; OCR registered; optional image codecs remain disabled")
+          print("No traineddata is supplied; OCR recognition itself is not tested by this check")
+          PYTHON
+      - name: Upload leptonica adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: leptonica-update-adoption-check
+          path: build/logs/leptonica-adoption.log
+          if-no-files-found: ignore
