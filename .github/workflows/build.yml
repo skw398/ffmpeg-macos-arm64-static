@@ -49,3 +49,56 @@ jobs:
           cold_build: ${{ inputs.cold_build }}
           release_sources: ${{ inputs.release_sources }}
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
+
+      # Temporary: verify libaom adoption.
+      - name: Verify libaom update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/libaom-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/libaom")
+          installed("aom", "3.15.2")
+          assert subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip() == "af3dc9aadc793c1b00edc003e3fc19a44fdeb574"
+          cache = cache_at(source)
+          for key, value in (("CONFIG_AV1_ENCODER", "1"), ("CONFIG_AV1_DECODER", "1"), ("ENABLE_TESTS", "0"), ("ENABLE_EXAMPLES", "0"), ("ENABLE_TOOLS", "0")):
+              setting(cache, key, value)
+          recipe = next(row for row in Path("scripts/data/build-deps.txt").read_text().splitlines() if row.startswith("libaom|"))
+          assert "CONFIG_AV1_ENCODER" not in recipe and "CONFIG_AV1_DECODER" not in recipe
+          output = Path("build/logs/aom-good-quality.ivf")
+          ffmpeg = str(prefix / "bin/ffmpeg")
+          subprocess.run([ffmpeg, "-hide_banner", "-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=320x240:rate=3", "-frames:v", "6", "-c:v", "libaom-av1", "-usage", "good", "-cpu-used", "2", "-threads", "2", "-row-mt", "1", "-enable-restoration", "1", "-f", "ivf", str(output)], check=True)
+          subprocess.run([ffmpeg, "-hide_banner", "-nostdin", "-v", "error", "-xerror", "-abort_on", "empty_output", "-c:v", "libdav1d", "-i", str(output), "-f", "null", "-"], check=True)
+          print("AV1 encoder/decoder defaults retained; good-quality multithreaded loop-restoration encode/decode passed")
+          PYTHON
+      - name: Upload libaom adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: libaom-update-adoption-check
+          path: build/logs/libaom-adoption.log
+          if-no-files-found: ignore

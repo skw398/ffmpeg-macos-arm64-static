@@ -29,7 +29,7 @@ libudfread|meson||
 
 # ---- video codecs ----
 dav1d|meson|-Denable_tools=false -Denable_tests=false|
-libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1|git pin (clone)
+libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0|git pin (clone)
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
 librav1e|custom|--release --library-type staticlib --locked|Rust + cargo-c
 libvpx|autotools|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone)

@@ -232,8 +232,8 @@
       ]
     },
     "libaom": {
-      "version": "v3.15.1",
-      "checksum": "COMMIT=44d0a57786f432d933ff64b653347c66f4d0fa1d",
+      "version": "v3.15.2",
+      "checksum": "COMMIT=af3dc9aadc793c1b00edc003e3fc19a44fdeb574",
       "expression": "BSD-2-Clause AND LicenseRef-libaom-AOM-Patent",
       "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
       "evidence": {
