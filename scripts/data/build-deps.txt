@@ -79,7 +79,7 @@ libdvdnav|meson||
 
 # ---- network / messaging ----
 openssl|perl|no-shared no-tests|
-libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF|
+libssh|cmake|-DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp|static only: a dylib would be linked instead of the static lib
 librist|meson|-Dtest=false|
 libzmq|autotools||

@@ -1,0 +1,109 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      clean_build:
+        description: Ignore build-output caches
+        type: boolean
+        default: false
+      cold_build:
+        description: Ignore every cache, including tools and downloads
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      clean_build:
+        type: boolean
+        default: false
+      cold_build:
+        type: boolean
+        default: false
+      release_sources:
+        description: Collect fixed sources for release packaging
+        type: boolean
+        default: false
+      artifact_name:
+        description: Name of the uploaded build artifact
+        type: string
+        default: ffmpeg-macos-arm64
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-arm64:
+    runs-on: macos-26
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build and verify FFmpeg
+        uses: ./.github/actions/build
+        env:
+          FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
+        with:
+          clean_build: ${{ inputs.clean_build }}
+          cold_build: ${{ inputs.cold_build }}
+          release_sources: ${{ inputs.release_sources }}
+          artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
+
+      # Temporary: verify libssh adoption.
+      - name: Verify libssh update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/libssh-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/libssh")
+          installed("libssh", "0.12.2")
+          assert subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip() == "07430deb9b97b751ec5ea5a7fc307f40bf042e0a"
+          cache = cache_at(source)
+          for key, value in (("WITH_ZLIB", "ON"), ("UNIT_TESTING", "OFF"), ("WITH_SERVER", "OFF"), ("WITH_GSSAPI", "OFF"), ("WITH_EXAMPLES", "OFF"), ("WITH_FIDO2", "OFF")):
+              setting(cache, key, value)
+          setting(cache, "OPENSSL_CRYPTO_LIBRARY", str(prefix / "lib/libcrypto.a"))
+          config = (source / ".build/config.h").read_text()
+          assert re.search(r"^#define HAVE_MLKEM1024 1$", config, re.M)
+          assert re.search(r"^#define HAVE_OPENSSL_MLKEM 1$", config, re.M)
+          assert "include(CheckCCompilerFlag)" in (source / "CMakeLists.txt").read_text()
+          recipe = next(row for row in Path("scripts/data/build-deps.txt").read_text().splitlines() if row.startswith("libssh|"))
+          assert "WITH_ZLIB" not in recipe and "UNIT_TESTING" not in recipe
+          symbols = subprocess.check_output(["nm", "-gU", str(prefix / "lib/libssh.a")], text=True)
+          for symbol in ("_sftp_new", "_sftp_init", "_sftp_open", "_ssh_connect"):
+              assert re.search(r"\b" + symbol + r"\b", symbols), symbol
+          assert not re.search(r"\b_mlkem768_(?:keypair|enc|dec)\b", symbols), "native ML-KEM fallback still linked"
+          print("OpenSSL ML-KEM backend and SFTP symbols present; CMake patch retained; default flags confirmed")
+          PYTHON
+      - name: Upload libssh adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: libssh-update-adoption-check
+          path: build/logs/libssh-adoption.log
+          if-no-files-found: ignore

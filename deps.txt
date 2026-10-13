@@ -79,7 +79,7 @@ libdvdread|7.1.1|https://code.videolan.org/videolan/libdvdread.git|COMMIT=8e43bf
 libdvdnav|7.0.0|https://code.videolan.org/videolan/libdvdnav.git|COMMIT=38238caf599dc9405eddf1531c858c725015f776|GPL-2.0-or-later|git pin
 
 # ---- network / messaging ----
-libssh|libssh-0.11.5|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601|LGPL-2.1-or-later|relink materials; crypto: pinned OpenSSL; git pin
+libssh|libssh-0.12.2|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=07430deb9b97b751ec5ea5a7fc307f40bf042e0a|LGPL-2.1-or-later|relink materials; crypto: pinned OpenSSL; git pin
 libsrt|v1.5.7|https://github.com/Haivision/srt.git|COMMIT=899348d8318eb9a3c5a5b6ec43c4a1114288773a|MPL-2.0|needs OpenSSL; git pin
 librist|v0.2.20|https://code.videolan.org/rist/librist.git|COMMIT=4f45ef8f78983892d52ccd52d9f675435b23738f|BSD-2-Clause|git pin
 libzmq|v4.3.5|https://github.com/zeromq/libzmq.git|COMMIT=622fc6dde99ee172ebaa9c8628d85a7a1995a21d|MPL-2.0|zmq filter/protocol; git pin

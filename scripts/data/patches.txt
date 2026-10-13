@@ -9,7 +9,7 @@
 # precondition (a patch that no longer applies fails the build loudly).
 # Patch headers record the target, reason, linkage and upstream status.
 ffmpeg|9.0.2|001-openapv-metadata-api.patch|A|any
-libssh|libssh-0.11.5|001-cmake4-compilerchecks.patch|A|any
+libssh|libssh-0.12.2|001-cmake4-compilerchecks.patch|A|any
 libqrencode|v4.1.1|001-autoconf-version-define.patch|A|any
 libcaca|0.99.beta20|001-internal-header-include.patch|A|any
 libflite|v2.2|001-cp-pd-macos.patch|A|any
