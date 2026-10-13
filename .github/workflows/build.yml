@@ -61,48 +61,58 @@ jobs:
           release_sources: ${{ inputs.release_sources }}
           artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
 
-      # Temporary: verify the adopted versions, FFmpeg patch and XEVE patch removal.
-      - name: Verify security update adoption
+      # Temporary: verify rabbitmq-c adoption and the simplified recipe.
+      - name: Verify rabbitmq-c update adoption
         shell: bash
         run: |
           set -o pipefail
-          uv run python - <<'PYTHON' | tee build/logs/security-adoption.log
+          uv run python - <<'PYTHON' | tee build/logs/rabbitmq-adoption.log
           from pathlib import Path
           import os
-          import re
+          import shlex
           import subprocess
 
           prefix = Path("build/prefix").resolve()
+          source = Path("build/src/librabbitmq")
           env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
-          for name, expected in (("openssl", "4.0.3"), ("oapv", "1.1.3.0"), ("harfbuzz", "14.6.0")):
-              actual = subprocess.check_output(["pkg-config", "--modversion", name], text=True, env=env).strip()
-              installed = subprocess.check_output(["pkg-config", "--variable=prefix", name], text=True, env=env).strip()
-              assert actual == expected, (name, actual, expected)
-              assert Path(installed).resolve() == prefix, (name, installed)
-              print(name, actual, "installed in the build prefix")
-          source = Path("build/src/ffmpeg/libavcodec/liboapvenc.c").read_text()
-          assert "oapvm_cdesc_t mcdsc = { 0 };" in source
-          assert "oapvm_create(&mcdsc, &ret)" in source
-          assert "oapvm_create(&ret)" not in source
-          print("FFmpeg uses the OpenAPV API set 1 metadata descriptor")
-          symbols = {}
-          for library in ("libxeve.a", "liboapv.a"):
-              archives = list(prefix.rglob(library))
-              assert len(archives) == 1, (library, archives)
-              symbols[library] = subprocess.check_output(["nm", "-gU", str(archives[0])], text=True)
-          original = r"\b_sad_16b_neon_8x2n\b"
-          renamed = r"\b_xeve_sad_16b_neon_8x2n\b"
-          assert re.search(original, symbols["libxeve.a"]), "XEVE original helper is missing"
-          assert not re.search(renamed, symbols["libxeve.a"]), "XEVE rename patch is still present"
-          assert not re.search(original, symbols["liboapv.a"]), "OpenAPV still exports the conflicting helper"
-          print("XEVE original NEON helper retained; OpenAPV collision absent; rename patch removed")
+          def pkg(*args):
+              return subprocess.check_output(["pkg-config", *args, "librabbitmq"], text=True, env=env).strip()
+
+          assert pkg("--modversion") == "0.18.1"
+          assert Path(pkg("--variable=prefix")).resolve() == prefix
+          commit = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
+          assert commit == "dc22a7fa21522788310ec7f3f49bc3f028150b22", commit
+          print("rabbitmq-c 0.18.1 installed from the pinned commit in the build prefix")
+
+          recipe = next(line.split("|") for line in Path("scripts/data/build-deps.txt").read_text().splitlines() if line.startswith("librabbitmq|"))
+          assert recipe[2] == "", recipe
+          cache = {}
+          for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+              if not line or line.startswith(("#", "//")) or "=" not in line:
+                  continue
+              key, value = line.split("=", 1)
+              cache[key.split(":", 1)[0]] = value
+          for key, expected in (("BUILD_TESTING", "OFF"), ("ENABLE_SSL_SUPPORT", "ON"), ("BUILD_SHARED_LIBS", "OFF"), ("BUILD_STATIC_LIBS", "ON")):
+              assert cache[key] == expected, (key, cache.get(key), expected)
+              print(key, cache[key])
+          for key, library in (("OPENSSL_SSL_LIBRARY", "libssl.a"), ("OPENSSL_CRYPTO_LIBRARY", "libcrypto.a")):
+              assert Path(cache[key]).resolve() == prefix / "lib" / library, (key, cache.get(key))
+          assert {"-lrabbitmq", "-lssl", "-lcrypto"} <= set(shlex.split(pkg("--static", "--libs")))
+          print("empty per-library flags preserve static SSL support with the pinned OpenSSL libraries")
+
+          consumer = (source / "librabbitmq/amqp_consumer.c").read_text()
+          guard = consumer.index("if (AMQP_BASIC_CLASS != frame.payload.properties.class_id)")
+          clone = consumer.index("res = amqp_basic_properties_clone", guard)
+          assert "ret.library_error = AMQP_STATUS_BAD_AMQP_DATA;" in consumer[guard:clone]
+          assert "goto error_out1;" in consumer[guard:clone]
+          print("non-basic content headers are rejected before cloning basic properties")
           PYTHON
-      - name: Upload security update adoption check
+      - name: Upload rabbitmq-c adoption check
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: security-update-adoption-check
-          path: build/logs/security-adoption.log
+          name: rabbitmq-update-adoption-check
+          path: build/logs/rabbitmq-adoption.log
           if-no-files-found: ignore
 
   maintenance:

@@ -133,7 +133,6 @@ libsrt|-DENABLE_APPS=OFF|extras||
 libsrt|-DENABLE_TESTING=OFF|extras||
 libsrt|-DUSE_ENCLIB=openssl-evp|feature||pin the crypto backend to OpenSSL
 librist|-Dtest=false|extras||
-librabbitmq|-DENABLE_SSL_SUPPORT=ON|feature||SSL support
 libqrencode|--without-tools|extras||
 libtesseract|-DBUILD_TRAINING_TOOLS=OFF|extras||
 libtesseract|-DDISABLE_ARCHIVE=ON|dep|libarchive|

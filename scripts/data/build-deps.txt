@@ -83,7 +83,7 @@ libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp|static only: a dylib would be linked instead of the static lib
 librist|meson|-Dtest=false|
 libzmq|autotools||
-librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON|
+librabbitmq|cmake||
 
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|

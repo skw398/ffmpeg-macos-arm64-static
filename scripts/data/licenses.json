@@ -833,8 +833,8 @@
       ]
     },
     "librabbitmq": {
-      "version": "v0.18.0",
-      "checksum": "COMMIT=b0b5f3774a216bcae9f31645c4ab581f718bd211",
+      "version": "v0.18.1",
+      "checksum": "COMMIT=dc22a7fa21522788310ec7f3f49bc3f028150b22",
       "expression": "MIT",
       "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
       "evidence": {
