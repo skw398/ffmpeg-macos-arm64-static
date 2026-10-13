@@ -1,0 +1,119 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      clean_build:
+        description: Ignore build-output caches
+        type: boolean
+        default: false
+      cold_build:
+        description: Ignore every cache, including tools and downloads
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      clean_build:
+        type: boolean
+        default: false
+      cold_build:
+        type: boolean
+        default: false
+      release_sources:
+        description: Collect fixed sources for release packaging
+        type: boolean
+        default: false
+      artifact_name:
+        description: Name of the uploaded build artifact
+        type: string
+        default: ffmpeg-macos-arm64
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-arm64:
+    runs-on: macos-26
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build and verify FFmpeg
+        uses: ./.github/actions/build
+        env:
+          FORCE_REBUILD: ${{ vars.FORCE_REBUILD }}
+        with:
+          clean_build: ${{ inputs.clean_build }}
+          cold_build: ${{ inputs.cold_build }}
+          release_sources: ${{ inputs.release_sources }}
+          artifact_name: ${{ inputs.artifact_name || 'ffmpeg-macos-arm64' }}
+
+      # Temporary: verify freetype adoption.
+      - name: Verify freetype update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/freetype-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/freetype")
+          installed("freetype2", "26.7.20")
+          header = (prefix / "include/freetype2/freetype/freetype.h").read_text()
+          for name, value in (("MAJOR", "2"), ("MINOR", "15"), ("PATCH", "0")):
+              assert re.search(r"#define\s+FREETYPE_" + name + r"\s+" + value + r"\b", header)
+          options = (prefix / "include/freetype2/freetype/config/ftoption.h").read_text()
+          assert re.search(r"^#define\s+FT_CONFIG_OPTION_USE_PNG\b", options, re.M)
+          assert Path(pkg("libpng", "--variable=prefix")).resolve() == prefix
+          flags = shlex.split(pkg("freetype2", "--static", "--libs"))
+          assert "-lpng16" in flags, flags
+          assert not any("/opt/homebrew" in flag or "/usr/local" in flag for flag in flags), flags
+          print("FreeType PNG support uses the adopted static libpng:", " ".join(flags))
+          recipes = Path("scripts/data/build-deps.txt").read_text().splitlines()
+          assert recipes.index(next(row for row in recipes if row.startswith("libpng|"))) < recipes.index("freetype|autotools||")
+          cid = (source / "src/cid/cidload.c").read_text()
+          assert "cum_len / 4 > stream->size" in cid
+          hvf_enabled = bool(re.search(r"^#define\s+FT_CONFIG_OPTION_HVF\b", options, re.M))
+          print("HVF enabled:", hvf_enabled)
+          for binary in ("ffmpeg", "ffprobe"):
+              commands = subprocess.check_output(["otool", "-l", str(prefix / "bin" / binary)], text=True)
+              assert re.search(r"\bminos\s+11\.0(?:\.0)?\s", commands), "macOS minimum changed"
+              hvf = [command for command in commands.split("Load command ") if re.search(r"\bname\s+\S*hvf\S*", command)]
+              for command in hvf:
+                  print(binary, command.strip())
+                  assert "cmd LC_LOAD_WEAK_DYLIB" in command, "HVF is a mandatory runtime dependency above macOS 11"
+              if hvf_enabled:
+                  assert hvf, "HVF enabled but no corresponding load command found"
+          print("CID length guard present; macOS 11 minimum retained; no mandatory HVF dependency")
+          PYTHON
+      - name: Upload freetype adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: freetype-update-adoption-check
+          path: build/logs/freetype-adoption.log
+          if-no-files-found: ignore

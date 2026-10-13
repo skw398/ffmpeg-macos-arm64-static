@@ -17,9 +17,9 @@ libogg|autotools||
 libvorbis|autotools||
 libtheora|autotools|--disable-examples|
 libunibreak|autotools||
-freetype|autotools|--without-png|
-fribidi|meson|-Ddocs=false -Dtests=false|
 libpng|cmake|-DPNG_SHARED=OFF -DPNG_FRAMEWORK=OFF -DPNG_TESTS=OFF|static only; required by libaribb24 and harfbuzz-raster
+freetype|autotools||
+fribidi|meson|-Ddocs=false -Dtests=false|
 harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dutilities=disabled -Dfreetype=enabled|library only: the util tools pull an incomplete static brotli
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
