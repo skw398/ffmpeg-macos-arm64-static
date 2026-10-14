@@ -22,7 +22,6 @@
 # -DBUILD_TESTING=OFF are not classified and are not listed here (lint [E] skips
 # them too).
 libtheora|--disable-examples|build||
-freetype|--without-png|dep|libpng|
 fribidi|-Ddocs=false|build||
 fribidi|-Dtests=false|extras||
 libpng|-DPNG_TESTS=OFF|extras||
@@ -46,11 +45,8 @@ leptonica|-DENABLE_PNG=OFF|dep|libpng|
 leptonica|-DENABLE_TIFF=OFF|dep|libtiff|
 leptonica|-DENABLE_WEBP=OFF|dep|libwebp|
 leptonica|-DENABLE_ZLIB=OFF|dep|zlib|
-leptonica|-DSW_BUILD=OFF|extras||
 dav1d|-Denable_tests=false|extras||
 dav1d|-Denable_tools=false|extras||
-libaom|-DCONFIG_AV1_DECODER=1|feature||provide AV1 decoding
-libaom|-DCONFIG_AV1_ENCODER=1|feature||provide AV1 encoding
 libaom|-DENABLE_EXAMPLES=0|extras||
 libaom|-DENABLE_TESTS=0|extras||
 libaom|-DENABLE_TOOLS=0|extras||
@@ -124,11 +120,9 @@ libbluray|-Denable_tools=false|extras||
 libbluray|-Dfreetype=disabled|dep|freetype|
 libbluray|-Dlibxml2=disabled|dep|libxml2|
 openssl|no-tests|extras||
-libssh|-DUNIT_TESTING=OFF|extras||
 libssh|-DWITH_EXAMPLES=OFF|extras||
 libssh|-DWITH_GSSAPI=OFF|dep|gssapi|
 libssh|-DWITH_SERVER=OFF|feature||client only
-libssh|-DWITH_ZLIB=ON|feature||zlib support
 libsrt|-DENABLE_APPS=OFF|extras||
 libsrt|-DENABLE_TESTING=OFF|extras||
 libsrt|-DUSE_ENCLIB=openssl-evp|feature||pin the crypto backend to OpenSSL

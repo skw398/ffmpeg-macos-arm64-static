@@ -53,7 +53,7 @@ class ReleasePackageTest(unittest.TestCase):
                                  "evidence": {filename: hashlib.sha256(data).hexdigest()}}
         self.licenses.write_text(json.dumps({"licenseListVersion": "3.29.0", "licenseIds": ["MIT", "GPL-3.0-or-later"],
                                             "packages": records, "extractedLicensingInfo": []}))
-        for name in ("LICENSE", "LICENSING.md", "BUILDING.md"):
+        for name in ("LICENSE", "LICENSING.md", "BUILDING.md", "SOURCE-CHANGES.md"):
             self.entries[f"share/project/{name}"] = ((ROOT / name).read_bytes(), 0o644)
         header = struct.pack("<II", 0xfeedfacf, 0x0100000c) + bytes(24)
         for binary in ("ffmpeg", "ffprobe", "ffplay"):
@@ -174,6 +174,8 @@ class ReleasePackageTest(unittest.TestCase):
             ("bin/ffmpeg", (self.entries["bin/ffmpeg"][0], 0o644), "invalid release binary"),
             ("share/dependency-versions.txt", (b"ffmpeg|wrong\n", 0o644), "release metadata mismatch"),
             ("share/patches/patches.txt", None, "release metadata mismatch"),
+            ("share/project/SOURCE-CHANGES.md", None, "release metadata mismatch"),
+            ("share/project/SOURCE-CHANGES.md", (b"changed notice", 0o644), "release metadata mismatch"),
             ("share/buildconf.txt", (b"--enable-gpl --enable-shared\n", 0o644), "missing release build flags"),
             ("share/buildconf.txt", (self.entries["share/buildconf.txt"][0] + b"--enable-libzvbi\n", 0o644), "incompatible release build flags"),
             ("share/buildconf.txt", (self.entries["share/buildconf.txt"][0] + b"--enable-nonfree\n", 0o644), "incompatible release build flags"),
@@ -196,6 +198,8 @@ class ReleasePackageTest(unittest.TestCase):
 
     def test_source_inventory_pins_contents_and_build_metadata_are_checked(self):
         changes = [
+            (lambda entries, manifest: (entries.pop("project/SOURCE-CHANGES.md"),
+                                       manifest["files"].pop("project/SOURCE-CHANGES.md")), "source build scripts"),
             (lambda entries, manifest: entries.pop("upstream/fixture.tar"), "source file inventory"),
             (lambda entries, manifest: entries.update({"upstream/fixture.tar": b"changed"}), "source file inventory"),
             (lambda entries, manifest: manifest["packages"].pop("fixture"), "source package inventory"),

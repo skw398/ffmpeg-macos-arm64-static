@@ -16,7 +16,7 @@ import tomllib
 from build_data import ROOT, env_path, read_pins
 
 BUNDLE_NAME = "ffmpeg-macos-arm64-sources"
-ROOT_FILES = ("LICENSE", "LICENSING.md", "BUILDING.md", "deps.txt", "pyproject.toml",
+ROOT_FILES = ("LICENSE", "LICENSING.md", "BUILDING.md", "SOURCE-CHANGES.md", "deps.txt", "pyproject.toml",
               ".python-version", ".gitignore", "scripts/release_sources.py")
 
 

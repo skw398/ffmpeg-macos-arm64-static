@@ -17,20 +17,20 @@ libogg|1.3.6|https://downloads.xiph.org/releases/ogg/libogg-1.3.6.tar.xz|5c82534
 libvorbis|1.3.7|https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.gz|0e982409a9c3fc82ee06e08205b1355e5c6aa4c36bca58146ef399621b0ce5ab|BSD-3-Clause|parent: theora (optional), ffmpeg
 libtheora|1.2.0|https://downloads.xiph.org/releases/theora/libtheora-1.2.0.tar.gz|279327339903b544c28a92aeada7d0dcfd0397b59c2f368cc698ac56f515906e|BSD-3-Clause AND LicenseRef-Theora-On2-Patent|pkg: theoraenc/theoradec
 libunibreak|libunibreak_8_0|https://github.com/adah1972/libunibreak.git|COMMIT=28a2756b864c343f438cd22537d49d394d4666a5|Zlib|parent: libass (mandatory since 0.17); git pin
-freetype|2.14.3|https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.xz|36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f|FTL OR GPL-2.0-or-later|parent: libass/drawtext
+freetype|2.15.0|https://download.savannah.gnu.org/releases/freetype/freetype-2.15.0.tar.xz|93cd47eb719c325107f2d3cf087d06299e944c3b48a40b55537302304dea1dd5|FTL OR GPL-2.0-or-later|security: CVE-2026-95512; parent: libass/drawtext
 fribidi|v1.0.17|https://github.com/fribidi/fribidi.git|COMMIT=b93119f5fdc7ea47672cc304c1455ffa6dfe7536|LGPL-2.1-or-later|parent: libass/drawtext; git pin
 libpng|1.6.59|https://download.sourceforge.net/libpng/libpng-1.6.59.tar.gz|86a3e4b501f7f50e392c4e456ea158893e9a595b1c63eb88c7bb9f6cf8772dad|libpng-2.0|parent: libaribb24/harfbuzz-raster; static only (Homebrew's dylib must not be linked)
 harfbuzz|14.6.0|https://github.com/harfbuzz/harfbuzz.git|COMMIT=c7a7457b7385f33178e8cf87615ca077a810bbe7|MIT-Modern-Variant|parent: libass/drawtext; includes malformed-font safety fixes; build: meson; git pin
 brotli|v1.2.0|https://github.com/google/brotli.git|COMMIT=028fb5a23661f123017c060daa546b55cf4bde29|MIT|parent: libjxl; git pin
 highway|1.4.0|https://github.com/google/highway.git|COMMIT=2607d3b5b0113992fe84d3848859eae13b3b52c1|(Apache-2.0 OR BSD-3-Clause) AND CC0-1.0|parent: libjxl; build: cmake; git pin
 lcms2|lcms2.19.1|https://github.com/mm2/Little-CMS.git|COMMIT=21c582a594fe5279f90c0b93437c398f93bf62b0|MIT|parent: libjxl (skcms submodule absent from the git archive); build: cmake/autotools; git pin
-leptonica|1.86.0|https://github.com/DanBloomberg/leptonica/releases/download/1.86.0/leptonica-1.86.0.tar.gz|1fa08e40bb37fd45802d5e6e7b43927449a5c47d4608ef99d3bd3f0fa76baedc|BSD-2-Clause|parent: tesseract
+leptonica|1.87.0|https://github.com/DanBloomberg/leptonica/releases/download/1.87.0/leptonica-1.87.0.tar.gz|c73363397f96eb1295602bf44d708a994ad42046c791bf03ea0505d829bdb6a7|BSD-2-Clause|parent: tesseract
 libudfread|1.2.0|https://code.videolan.org/videolan/libudfread.git|COMMIT=c3cd5cbb097924557ea4d9da1ff76a74620c51a8|LGPL-2.1-or-later|parent: libbluray (contrib/libudfread submodule absent from the git archive); meson requires >= 1.2.0; relink materials; git pin
 libsndfile|1.2.2|https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz|3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e|LGPL-2.1-or-later AND TU-Berlin-1.0|parent: libbs2b (its configure requires sndfile); relink materials
 
 # ---- core: video codecs ----
 dav1d|1.5.4|https://code.videolan.org/videolan/dav1d.git|COMMIT=54706fc6bc0cdecab7e9593974a4039cc038fca7|BSD-2-Clause AND LicenseRef-dav1d-AOM-Patent|AV1 dec; build: meson; git pin
-libaom|v3.15.1|https://aomedia.googlesource.com/aom|COMMIT=44d0a57786f432d933ff64b653347c66f4d0fa1d|BSD-2-Clause AND LicenseRef-libaom-AOM-Patent|AV1 enc/dec; build: cmake; needs perl. git pin: version is the tag; clone it and assert HEAD == COMMIT (googlesource archives are not byte-stable)
+libaom|v3.15.2|https://aomedia.googlesource.com/aom|COMMIT=af3dc9aadc793c1b00edc003e3fc19a44fdeb574|BSD-2-Clause AND LicenseRef-libaom-AOM-Patent|AV1 enc/dec; build: cmake; needs perl. git pin: version is the tag; clone it and assert HEAD == COMMIT (googlesource archives are not byte-stable)
 SVT-AV1|v4.2.0|https://github.com/AOMediaCodec/SVT-AV1.git|COMMIT=9292ec8e32bce26f781f277ec8739b53426c4300|BSD-3-Clause-Clear AND BSD-2-Clause AND LicenseRef-SVT-AV1-AOM-Patent|AV1 enc; build: cmake; git pin
 librav1e|v0.8.1|https://github.com/xiph/rav1e.git|COMMIT=1fe82de02510767539e89b2ee6fa846920ae2686|BSD-2-Clause AND LicenseRef-librav1e-AOM-Patent|AV1 enc (alt); Rust + cargo-c; pkg rav1e >= 0.5.0; git pin
 libvpx|v1.17.0|https://chromium.googlesource.com/webm/libvpx|COMMIT=6df3ec34557879fff673706f4a1d9fbd0f3a6f0e|BSD-3-Clause AND LicenseRef-WebM-Patent|VP8/9 enc/dec; build: configure; needs nasm; git pin: version is the tag; clone it and assert HEAD == COMMIT
@@ -79,7 +79,7 @@ libdvdread|7.1.1|https://code.videolan.org/videolan/libdvdread.git|COMMIT=8e43bf
 libdvdnav|7.0.0|https://code.videolan.org/videolan/libdvdnav.git|COMMIT=38238caf599dc9405eddf1531c858c725015f776|GPL-2.0-or-later|git pin
 
 # ---- network / messaging ----
-libssh|libssh-0.11.5|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601|LGPL-2.1-or-later|relink materials; crypto: pinned OpenSSL; git pin
+libssh|libssh-0.12.2|https://gitlab.com/libssh/libssh-mirror.git|COMMIT=07430deb9b97b751ec5ea5a7fc307f40bf042e0a|LGPL-2.1-or-later|relink materials; crypto: pinned OpenSSL; git pin
 libsrt|v1.5.7|https://github.com/Haivision/srt.git|COMMIT=899348d8318eb9a3c5a5b6ec43c4a1114288773a|MPL-2.0|needs OpenSSL; git pin
 librist|v0.2.20|https://code.videolan.org/rist/librist.git|COMMIT=4f45ef8f78983892d52ccd52d9f675435b23738f|BSD-2-Clause|git pin
 libzmq|v4.3.5|https://github.com/zeromq/libzmq.git|COMMIT=622fc6dde99ee172ebaa9c8628d85a7a1995a21d|MPL-2.0|zmq filter/protocol; git pin

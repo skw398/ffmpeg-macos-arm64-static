@@ -115,6 +115,240 @@ jobs:
           path: build/logs/rabbitmq-adoption.log
           if-no-files-found: ignore
 
+      # Temporary: verify freetype adoption.
+      - name: Verify freetype update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/freetype-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/freetype")
+          installed("freetype2", "26.7.20")
+          header = (prefix / "include/freetype2/freetype/freetype.h").read_text()
+          for name, value in (("MAJOR", "2"), ("MINOR", "15"), ("PATCH", "0")):
+              assert re.search(r"#define\s+FREETYPE_" + name + r"\s+" + value + r"\b", header)
+          options = (prefix / "include/freetype2/freetype/config/ftoption.h").read_text()
+          assert re.search(r"^#define\s+FT_CONFIG_OPTION_USE_PNG\b", options, re.M)
+          assert Path(pkg("libpng", "--variable=prefix")).resolve() == prefix
+          flags = shlex.split(pkg("freetype2", "--static", "--libs"))
+          assert "-lpng16" in flags, flags
+          assert not any("/opt/homebrew" in flag or "/usr/local" in flag for flag in flags), flags
+          print("FreeType PNG support uses the adopted static libpng:", " ".join(flags))
+          recipes = Path("scripts/data/build-deps.txt").read_text().splitlines()
+          assert recipes.index(next(row for row in recipes if row.startswith("libpng|"))) < recipes.index("freetype|autotools||")
+          cid = (source / "src/cid/cidload.c").read_text()
+          assert "cum_len / 4 > stream->size" in cid
+          hvf_enabled = bool(re.search(r"^#define\s+FT_CONFIG_OPTION_HVF\b", options, re.M))
+          print("HVF enabled:", hvf_enabled)
+          for binary in ("ffmpeg", "ffprobe"):
+              commands = subprocess.check_output(["otool", "-l", str(prefix / "bin" / binary)], text=True)
+              assert re.search(r"\bminos\s+11\.0(?:\.0)?\s", commands), "macOS minimum changed"
+              hvf = [command for command in commands.split("Load command ") if re.search(r"\bname\s+\S*hvf\S*", command)]
+              for command in hvf:
+                  print(binary, command.strip())
+                  assert "cmd LC_LOAD_WEAK_DYLIB" in command, "HVF is a mandatory runtime dependency above macOS 11"
+              if hvf_enabled:
+                  assert hvf, "HVF enabled but no corresponding load command found"
+          print("CID length guard present; macOS 11 minimum retained; no mandatory HVF dependency")
+          PYTHON
+      - name: Upload freetype adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: freetype-update-adoption-check
+          path: build/logs/freetype-adoption.log
+          if-no-files-found: ignore
+
+      # Temporary: verify libssh adoption.
+      - name: Verify libssh update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/libssh-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/libssh")
+          installed("libssh", "0.12.2")
+          assert subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip() == "07430deb9b97b751ec5ea5a7fc307f40bf042e0a"
+          cache = cache_at(source)
+          for key, value in (("WITH_ZLIB", "ON"), ("UNIT_TESTING", "OFF"), ("WITH_SERVER", "OFF"), ("WITH_GSSAPI", "OFF"), ("WITH_EXAMPLES", "OFF"), ("WITH_FIDO2", "OFF")):
+              setting(cache, key, value)
+          setting(cache, "OPENSSL_CRYPTO_LIBRARY", str(prefix / "lib/libcrypto.a"))
+          config = (source / ".build/config.h").read_text()
+          assert re.search(r"^#define HAVE_MLKEM1024 1$", config, re.M)
+          assert re.search(r"^#define HAVE_OPENSSL_MLKEM 1$", config, re.M)
+          assert "include(CheckCCompilerFlag)" in (source / "CMakeLists.txt").read_text()
+          recipe = next(row for row in Path("scripts/data/build-deps.txt").read_text().splitlines() if row.startswith("libssh|"))
+          assert "WITH_ZLIB" not in recipe and "UNIT_TESTING" not in recipe
+          symbols = subprocess.check_output(["nm", "-gU", str(prefix / "lib/libssh.a")], text=True)
+          for symbol in ("_sftp_new", "_sftp_init", "_sftp_open", "_ssh_connect"):
+              assert re.search(r"\b" + symbol + r"\b", symbols), symbol
+          assert not re.search(r"\b_mlkem768_(?:keypair|enc|dec)\b", symbols), "native ML-KEM fallback still linked"
+          print("OpenSSL ML-KEM backend and SFTP symbols present; CMake patch retained; default flags confirmed")
+          PYTHON
+      - name: Upload libssh adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: libssh-update-adoption-check
+          path: build/logs/libssh-adoption.log
+          if-no-files-found: ignore
+
+      # Temporary: verify leptonica adoption.
+      - name: Verify leptonica update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/leptonica-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/leptonica")
+          installed("lept", "1.87.0")
+          cache = cache_at(source)
+          setting(cache, "SW_BUILD", "OFF")
+          for codec in ("ZLIB", "PNG", "JPEG", "TIFF", "GIF", "WEBP", "OPENJPEG"):
+              setting(cache, "ENABLE_" + codec, "OFF")
+          recipe = next(row for row in Path("scripts/data/build-deps.txt").read_text().splitlines() if row.startswith("leptonica|"))
+          assert "SW_BUILD" not in recipe
+          requires = pkg("lept", "--print-requires-private")
+          assert not requires, requires
+          assert Path(pkg("tesseract", "--variable=prefix")).resolve() == prefix
+          filters = subprocess.check_output([str(prefix / "bin/ffmpeg"), "-hide_banner", "-filters"], text=True)
+          assert re.search(r"^\s*\S+\s+ocr\s", filters, re.M), "FFmpeg OCR filter missing"
+          print("Tesseract rebuilt against the adopted Leptonica; OCR registered; optional image codecs remain disabled")
+          print("No traineddata is supplied; OCR recognition itself is not tested by this check")
+          PYTHON
+      - name: Upload leptonica adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: leptonica-update-adoption-check
+          path: build/logs/leptonica-adoption.log
+          if-no-files-found: ignore
+
+      # Temporary: verify libaom adoption.
+      - name: Verify libaom update adoption
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run python - <<'PYTHON' | tee build/logs/libaom-adoption.log
+          from pathlib import Path
+          import os
+          import re
+          import shlex
+          import subprocess
+
+          prefix = Path("build/prefix").resolve()
+          env = os.environ | {"PKG_CONFIG_PATH": "", "PKG_CONFIG_LIBDIR": str(prefix / "lib/pkgconfig")}
+          def pkg(name, *args):
+              return subprocess.check_output(["pkg-config", *args, name], text=True, env=env).strip()
+          def installed(name, version):
+              assert pkg(name, "--modversion") == version, (name, pkg(name, "--modversion"))
+              assert Path(pkg(name, "--variable=prefix")).resolve() == prefix
+              print(name, version, "installed in the build prefix")
+          def cache_at(source):
+              cache = {}
+              for line in (source / ".build/CMakeCache.txt").read_text().splitlines():
+                  if not line or line.startswith(("#", "//")) or "=" not in line:
+                      continue
+                  key, value = line.split("=", 1)
+                  cache[key.split(":", 1)[0]] = value
+              return cache
+          def setting(cache, key, expected):
+              assert cache.get(key) == expected, (key, cache.get(key), expected)
+              print(key, expected)
+          source = Path("build/src/libaom")
+          installed("aom", "3.15.2")
+          assert subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip() == "af3dc9aadc793c1b00edc003e3fc19a44fdeb574"
+          cache = cache_at(source)
+          for key, value in (("CONFIG_AV1_ENCODER", "1"), ("CONFIG_AV1_DECODER", "1"), ("ENABLE_TESTS", "0"), ("ENABLE_EXAMPLES", "0"), ("ENABLE_TOOLS", "0")):
+              setting(cache, key, value)
+          recipe = next(row for row in Path("scripts/data/build-deps.txt").read_text().splitlines() if row.startswith("libaom|"))
+          assert "CONFIG_AV1_ENCODER" not in recipe and "CONFIG_AV1_DECODER" not in recipe
+          output = Path("build/logs/aom-good-quality.ivf")
+          ffmpeg = str(prefix / "bin/ffmpeg")
+          subprocess.run([ffmpeg, "-hide_banner", "-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=320x240:rate=3", "-frames:v", "6", "-c:v", "libaom-av1", "-usage", "good", "-cpu-used", "2", "-threads", "2", "-row-mt", "1", "-enable-restoration", "1", "-f", "ivf", str(output)], check=True)
+          subprocess.run([ffmpeg, "-hide_banner", "-nostdin", "-v", "error", "-xerror", "-abort_on", "empty_output", "-c:v", "libdav1d", "-i", str(output), "-f", "null", "-"], check=True)
+          print("AV1 encoder/decoder defaults retained; good-quality multithreaded loop-restoration encode/decode passed")
+          PYTHON
+      - name: Upload libaom adoption check
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: libaom-update-adoption-check
+          path: build/logs/libaom-adoption.log
+          if-no-files-found: ignore
+
   maintenance:
     if: inputs.task == 'audit' || inputs.task == 'updates' || inputs.task == 'sources'
     uses: ./.github/workflows/maintenance.yml
