@@ -89,8 +89,8 @@
       ]
     },
     "freetype": {
-      "version": "2.14.3",
-      "checksum": "36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f",
+      "version": "2.15.0",
+      "checksum": "93cd47eb719c325107f2d3cf087d06299e944c3b48a40b55537302304dea1dd5",
       "expression": "FTL OR GPL-2.0-or-later",
       "comment": "LICENSE.TXT offers a choice of FTL or GPL version 2 or later. Both complete license texts are included.",
       "evidence": {
@@ -178,8 +178,8 @@
       ]
     },
     "leptonica": {
-      "version": "1.86.0",
-      "checksum": "1fa08e40bb37fd45802d5e6e7b43927449a5c47d4608ef99d3bd3f0fa76baedc",
+      "version": "1.87.0",
+      "checksum": "c73363397f96eb1295602bf44d708a994ad42046c791bf03ea0505d829bdb6a7",
       "expression": "BSD-2-Clause",
       "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
       "evidence": {
@@ -232,8 +232,8 @@
       ]
     },
     "libaom": {
-      "version": "v3.15.1",
-      "checksum": "COMMIT=44d0a57786f432d933ff64b653347c66f4d0fa1d",
+      "version": "v3.15.2",
+      "checksum": "COMMIT=af3dc9aadc793c1b00edc003e3fc19a44fdeb574",
       "expression": "BSD-2-Clause AND LicenseRef-libaom-AOM-Patent",
       "comment": "Upstream copyright license plus its separate patent grant. The patent text is reproduced as a LicenseRef; the expression is not a statement about patent coverage.",
       "evidence": {
@@ -784,16 +784,20 @@
       ]
     },
     "libssh": {
-      "version": "libssh-0.11.5",
-      "checksum": "COMMIT=a09fdd00416e53b6ed436df6ff14339a4f884601",
+      "version": "libssh-0.12.2",
+      "checksum": "COMMIT=07430deb9b97b751ec5ea5a7fc307f40bf042e0a",
       "expression": "LGPL-2.1-or-later",
-      "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
+      "comment": "Upstream library declaration; file-level license conclusions are not asserted. The public-domain sntrup761 notice and MIT libcrux source notice are also retained; the OpenSSL ML-KEM backend is selected when available.",
       "evidence": {
         "COPYING": "1656186e951db1c010a8485481fa94587f7e53a26d24976bef97945ad0c4df5a",
-        "src/session.c": "fccbb5a5c3a5dd412c5d4b2fe836f62cf957764de6b84b6e44a697f9be088a66"
+        "src/session.c": "9e229c8a30ced85465cb673bc28b214d3bf22f9f6e579ede03584048400c4d73",
+        "src/external/sntrup761.c": "09afdc0d2c19356a9b1878027d9d9426b1369220eeeea39aee480ad8cab34696",
+        "src/external/libcrux_mlkem768_sha3.c": "e80ba8a6e8db7a3a61d7c993e4d0d564180e788ea8d8c8697f2e6567ac3160c6"
       },
       "licenseFiles": [
-        "COPYING"
+        "COPYING",
+        "src/external/sntrup761.c",
+        "src/external/libcrux_mlkem768_sha3.c"
       ]
     },
     "libsrt": {
@@ -833,8 +837,8 @@
       ]
     },
     "librabbitmq": {
-      "version": "v0.18.0",
-      "checksum": "COMMIT=b0b5f3774a216bcae9f31645c4ab581f718bd211",
+      "version": "v0.18.1",
+      "checksum": "COMMIT=dc22a7fa21522788310ec7f3f49bc3f028150b22",
       "expression": "MIT",
       "comment": "Upstream library declaration; file-level license conclusions are not asserted.",
       "evidence": {

@@ -2,7 +2,7 @@
 
 This distribution is built by skw398 from the sources pinned in `deps.txt`,
 with the modifications described below. It is not an unmodified upstream
-build. Notice updated: 2026-10-12. Dates below record when the modifications
+build. Notice updated: 2026-10-13. Dates below record when the modifications
 were introduced or revised in this project's history, not the date on which
 an individual CI build applies them.
 
@@ -13,7 +13,8 @@ copyright and license notices remain applicable to the affected code.
 ## Explicit patches
 
 The six dependency patches below were introduced by skw398 on 2026-09-27.
-The FFmpeg patch was introduced on 2026-10-12. Paths in the second column are
+The FFmpeg patch was introduced on 2026-10-12. The libssh patch was
+retargeted to libssh 0.12.2 on 2026-10-13. Paths in the second column are
 relative to the corresponding upstream source directory.
 `scripts/data/patches.txt` selects the patches applied by `scripts/build-deps.sh`
 and `scripts/build-ffmpeg.sh`, using the shared helper in `scripts/lib.sh`.
@@ -23,7 +24,7 @@ no longer exports the conflicting helper.
 | Component and pinned version | Changed files | Modification and patch |
 |---|---|---|
 | FFmpeg `9.0.2` | `libavcodec/liboapvenc.c` | Pass a zero-initialized metadata creation descriptor to OpenAPV's API set 1. Adapted from upstream commit `c54710db21c1827dbc3e47658a562525af0fe528` for the pinned OpenAPV version. Patch: `patches/ffmpeg/9.0.2/001-openapv-metadata-api.patch`. |
-| libssh `libssh-0.11.5` | `CMakeLists.txt` | Replace incompatible compiler checks with the standard `CheckCCompilerFlag` module. Patch: `patches/libssh/libssh-0.11.5/001-cmake4-compilerchecks.patch`. |
+| libssh `libssh-0.12.2` | `CMakeLists.txt` | Replace incompatible compiler checks with the standard `CheckCCompilerFlag` module. Patch: `patches/libssh/libssh-0.12.2/001-cmake4-compilerchecks.patch`. |
 | libqrencode `v4.1.1` | `configure.ac` | Restore the `VERSION` definition used by the API version function. Patch: `patches/libqrencode/v4.1.1/001-autoconf-version-define.patch`. |
 | libcaca `0.99.beta20` | `src/common-image.c` | Include the internal header declaring `_caca_alloc2d`. Patch: `patches/libcaca/0.99.beta20/001-internal-header-include.patch`. |
 | libflite `v2.2` | `main/Makefile` | Replace a GNU-specific `cp -pd` install command with a macOS-compatible command. Patch: `patches/libflite/v2.2/001-cp-pd-macos.patch`. |

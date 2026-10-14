@@ -17,19 +17,19 @@ libogg|autotools||
 libvorbis|autotools||
 libtheora|autotools|--disable-examples|
 libunibreak|autotools||
-freetype|autotools|--without-png|
-fribidi|meson|-Ddocs=false -Dtests=false|
 libpng|cmake|-DPNG_SHARED=OFF -DPNG_FRAMEWORK=OFF -DPNG_TESTS=OFF|static only; required by libaribb24 and harfbuzz-raster
+freetype|autotools||
+fribidi|meson|-Ddocs=false -Dtests=false|
 harfbuzz|meson|-Ddocs=disabled -Dtests=disabled -Dutilities=disabled -Dfreetype=enabled|library only: the util tools pull an incomplete static brotli
 brotli|cmake|-DBROTLI_DISABLE_TESTS=ON|
 highway|cmake|-DHWY_ENABLE_TESTS=OFF -DHWY_ENABLE_EXAMPLES=OFF -DHWY_ENABLE_CONTRIB=OFF|
 lcms2|cmake|-DLCMS2_BUILD_TESTS=OFF -DLCMS2_BUILD_TOOLS=OFF -DLCMS2_BUILD_JPGICC=OFF -DLCMS2_BUILD_TIFICC=OFF -DLCMS2_BUILD_TIFDIFF=OFF|
-leptonica|cmake|-DSW_BUILD=OFF -DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_GIF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF|no image codecs: OCR only needs raw frames, and they pull Homebrew dylibs / break lept.pc Requires
+leptonica|cmake|-DENABLE_ZLIB=OFF -DENABLE_PNG=OFF -DENABLE_JPEG=OFF -DENABLE_TIFF=OFF -DENABLE_GIF=OFF -DENABLE_WEBP=OFF -DENABLE_OPENJPEG=OFF|no image codecs: OCR uses raw frames; avoid unused dependencies and Homebrew discovery
 libudfread|meson||
 
 # ---- video codecs ----
 dav1d|meson|-Denable_tools=false -Denable_tests=false|
-libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0 -DCONFIG_AV1_ENCODER=1 -DCONFIG_AV1_DECODER=1|git pin (clone)
+libaom|cmake|-DENABLE_TESTS=0 -DENABLE_EXAMPLES=0 -DENABLE_TOOLS=0|git pin (clone)
 SVT-AV1|cmake|-DBUILD_APPS=OFF -DBUILD_TESTING=OFF|
 librav1e|custom|--release --library-type staticlib --locked|Rust + cargo-c
 libvpx|autotools|--enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 --enable-vp9-highbitdepth --enable-postproc --enable-multi-res-encoding --enable-pic|git pin (clone)
@@ -79,11 +79,11 @@ libdvdnav|meson||
 
 # ---- network / messaging ----
 openssl|perl|no-shared no-tests|
-libssh|cmake|-DWITH_ZLIB=ON -DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF -DUNIT_TESTING=OFF|
+libssh|cmake|-DWITH_SERVER=OFF -DWITH_GSSAPI=OFF -DWITH_EXAMPLES=OFF|
 libsrt|cmake|-DENABLE_APPS=OFF -DENABLE_TESTING=OFF -DENABLE_SHARED=OFF -DUSE_ENCLIB=openssl-evp|static only: a dylib would be linked instead of the static lib
 librist|meson|-Dtest=false|
 libzmq|autotools||
-librabbitmq|cmake|-DBUILD_TESTING=OFF -DENABLE_SSL_SUPPORT=ON|
+librabbitmq|cmake||
 
 # ---- misc / utility ----
 libqrencode|autotools|--without-tools|
